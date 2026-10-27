@@ -463,3 +463,408 @@ body {
     border-top: 1px solid var(--border);
   }
 }
+
+/* ── Assistant body ───────────────────────────────────────── */
+.assistant-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.model-select {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82em;
+}
+
+.model-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78em;
+  color: var(--err, #c0392b);
+}
+
+.retry-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78em;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: var(--acc-soft);
+}
+
+/* ── Pane tabs ────────────────────────────────────────────── */
+.pane-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pane-tab {
+  padding: 3px 12px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pane-tab:hover {
+  background: var(--acc-soft);
+}
+
+.pane-tab.active {
+  background: var(--acc);
+  color: #fff;
+}
+
+.pane-tab:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+
+/* ── Chat tabs ────────────────────────────────────────────── */
+.chat-tabs-area {
+  flex-shrink: 0;
+}
+
+.closed-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.8em;
+  color: var(--muted);
+  background: var(--acc-soft);
+}
+
+.closed-bar button {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+.chat-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.chat-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  cursor: pointer;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chat-tab:hover {
+  background: var(--acc-soft);
+}
+
+.chat-tab.active {
+  background: var(--acc-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chat-tab-close {
+  width: 18px;
+  height: 18px;
+  font-size: 0.7em;
+}
+
+.chat-tab-new {
+  width: 24px;
+  height: 24px;
+  font-size: 1em;
+}
+
+/* ── Chat view ────────────────────────────────────────────── */
+.chat-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 90%;
+}
+
+.msg.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msg.assistant {
+  align-self: flex-start;
+}
+
+.msg-bubble {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.msg.user .msg-bubble {
+  background: var(--acc);
+  color: #fff;
+}
+
+.msg.assistant .msg-bubble {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.msg-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg-actions {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+}
+
+.msg-actions[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stopped-label {
+  display: block;
+  font-size: 0.72em;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 2px;
+}
+
+.phase-line {
+  font-size: 0.8em;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Chips ────────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--acc-soft);
+  font-size: 0.78em;
+}
+
+.chip .icon-btn {
+  width: 16px;
+  height: 16px;
+  font-size: 0.65em;
+}
+
+/* ── Slash list ───────────────────────────────────────────── */
+.slash-list {
+  margin: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.slash-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 0.82em;
+  cursor: pointer;
+}
+
+.slash-item:hover,
+.slash-item.active {
+  background: var(--acc-soft);
+}
+
+.slash-item[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.slash-cmd {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+.slash-name {
+  color: var(--text);
+}
+
+.slash-desc {
+  color: var(--muted);
+}
+
+/* ── Chat input ───────────────────────────────────────────── */
+.chat-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.chat-input textarea {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.chat-input textarea:focus {
+  outline: none;
+  border-color: var(--acc);
+}
+
+/* ── Skills tab table ─────────────────────────────────────── */
+.skills-tab {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+
+.skills-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82em;
+}
+
+.skills-table th {
+  text-align: left;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.skills-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.skill-row.active {
+  cursor: pointer;
+}
+
+.skill-row.active:hover {
+  background: var(--acc-soft);
+}
+
+.skill-row.planned {
+  color: var(--muted);
+}
+
+/* ── Badges ───────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.78em;
+  font-weight: 600;
+}
+
+.badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.planned {
+  background: #e9ecef;
+  color: #495057;
+}
+
+/* ── Spinner ──────────────────────────────────────────────── */
+.spin {
+  display: inline-flex;
+  align-items: center;
+  animation: spin-rotate 1s linear infinite;
+}
+
+@keyframes spin-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

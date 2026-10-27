@@ -19,6 +19,7 @@ import {
   saveDocument,
   saveCheckpoint,
 } from '../files/fileActions';
+import { AssistantPane } from '../assistant/AssistantPane';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
@@ -189,6 +190,7 @@ export function Shell() {
               )}
             </button>
           </div>
+          {!assistantCollapsed && <AssistantPane />}
         </div>
       </div>
 

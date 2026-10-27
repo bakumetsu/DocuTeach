@@ -9,7 +9,16 @@ import { PreviewPane } from '../editor/PreviewPane';
 import { PageStyleDialog } from './dialogs/PageStyleDialog';
 import { SplitDialog } from './dialogs/SplitDialog';
 import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
+import { CheckpointsDialog } from './dialogs/CheckpointsDialog';
+import { ConfirmHost } from './ConfirmHost';
+import { installGlobalKeys } from '../editor/globalKeys';
 import { revert, redo } from '../editor/history';
+import {
+  newDocument,
+  openDocument,
+  saveDocument,
+  saveCheckpoint,
+} from '../files/fileActions';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
@@ -29,6 +38,11 @@ export function Shell() {
   // Init theme once on mount
   useEffect(() => {
     initTheme();
+  }, []);
+
+  // Install global keyboard shortcuts
+  useEffect(() => {
+    return installGlobalKeys();
   }, []);
 
   // Save previous scroll, restore current on view change
@@ -51,6 +65,21 @@ export function Shell() {
   const handleMenuAction = useCallback(
     (id: string) => {
       switch (id) {
+        case 'file.new':
+          newDocument();
+          break;
+        case 'file.open':
+          openDocument();
+          break;
+        case 'file.save':
+          saveDocument();
+          break;
+        case 'file.saveAs':
+          saveDocument(true);
+          break;
+        case 'edit.checkpoint':
+          saveCheckpoint();
+          break;
         case 'edit.undo':
           revert();
           break;
@@ -187,6 +216,8 @@ export function Shell() {
       <SplitDialog open={dialog === 'split'} onClose={() => setDialog(null)} />
       <ShortcutsDialog open={dialog === 'shortcuts'} onClose={() => setDialog(null)} />
       <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
+      <CheckpointsDialog open={dialog === 'checkpoints'} onClose={() => setDialog(null)} />
+      <ConfirmHost />
     </div>
   );
 }

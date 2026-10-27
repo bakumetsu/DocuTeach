@@ -6,6 +6,7 @@ import { ViewContext } from './ViewContext';
 import { parseMarkdown } from '../markdown/parse';
 import { readPageStyle, pageCssVars } from './pageStyle';
 import { loadInitialMarkdown } from './initial';
+import { startAutosave } from '../files/autosave';
 
 interface InitialState {
   json: object;
@@ -41,6 +42,7 @@ export function EditorPane({ hidden = false }: { hidden?: boolean }) {
 function EditorInner({ initialJson }: { initialJson: InitialState }) {
   const meta = useApp((s) => s.docMeta);
   const prevMeta = useRef(meta);
+  const stopAutosave = useRef<(() => void) | null>(null);
 
   const editor = useEditor({
     extensions: buildEditorExtensions({
@@ -53,6 +55,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     onCreate: ({ editor: created }) => {
       useApp.getState().setEditor(created);
       useApp.getState().setWarnings(initialJson.warnings);
+      stopAutosave.current = startAutosave(created);
     },
     onTransaction: ({ editor: current }) => {
       const m = current?.state.doc.attrs.meta;
@@ -62,6 +65,8 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
       }
     },
     onDestroy: () => {
+      stopAutosave.current?.();
+      stopAutosave.current = null;
       useApp.getState().setEditor(null);
     },
   });

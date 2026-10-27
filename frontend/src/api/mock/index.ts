@@ -1,7 +1,5 @@
 import type {
   DocuTeachApi,
-  DocRecord,
-  Checkpoint,
   ChatRecord,
   ModelInfo,
   ModelState,
@@ -9,11 +7,9 @@ import type {
   ChatRequest,
   StreamEvent,
 } from '../types'
+import { mockDocs } from './docs'
 
-const DOC_PREFIX = 'docuteach:v1:doc:'
-const CKPT_PREFIX = 'docuteach:v1:ckpt:'
 const CHATS_PREFIX = 'docuteach:v1:chats:'
-const CKPT_CAP = 50
 
 function readJson<T>(key: string): T | null {
   const raw = localStorage.getItem(key)
@@ -59,37 +55,5 @@ export const mockApi: DocuTeachApi = {
       return Promise.resolve([])
     },
   },
-  docs: {
-    load(id: string): Promise<DocRecord | null> {
-      return Promise.resolve(readJson<DocRecord>(DOC_PREFIX + id))
-    },
-    save(id: string, markdown: string): Promise<DocRecord> {
-      const record: DocRecord = { id, markdown, updatedAt: new Date().toISOString() }
-      localStorage.setItem(DOC_PREFIX + id, JSON.stringify(record))
-      return Promise.resolve(record)
-    },
-    checkpoints: {
-      list(id: string): Promise<Checkpoint[]> {
-        return Promise.resolve(readJson<Checkpoint[]>(CKPT_PREFIX + id) ?? [])
-      },
-      create(id: string, name: string, markdown: string): Promise<Checkpoint> {
-        const existing = readJson<Checkpoint[]>(CKPT_PREFIX + id) ?? []
-        const cp: Checkpoint = {
-          id: crypto.randomUUID(),
-          name,
-          createdAt: new Date().toISOString(),
-          markdown,
-        }
-        const next = [...existing, cp].slice(-CKPT_CAP)
-        localStorage.setItem(CKPT_PREFIX + id, JSON.stringify(next))
-        return Promise.resolve(cp)
-      },
-      remove(id: string, checkpointId: string): Promise<void> {
-        const existing = readJson<Checkpoint[]>(CKPT_PREFIX + id) ?? []
-        const filtered = existing.filter((c) => c.id !== checkpointId)
-        localStorage.setItem(CKPT_PREFIX + id, JSON.stringify(filtered))
-        return Promise.resolve()
-      },
-    },
-  },
+  docs: mockDocs,
 }

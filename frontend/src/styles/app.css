@@ -1,0 +1,215 @@
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui-font);
+}
+
+.shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bars ─────────────────────────────────────────────── */
+.topbars {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.menubar {
+  display: flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu > button {
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.menu > button:hover,
+.menu > button:focus-visible {
+  background: var(--acc-soft);
+  outline: none;
+}
+
+.menu-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  padding: 4px 0;
+  z-index: 100;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 14px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-item:hover,
+.menu-item.active {
+  background: var(--acc-soft);
+}
+
+.menu-item .check {
+  width: 14px;
+  text-align: center;
+  font-size: 0.85em;
+}
+
+/* ── Icon button ──────────────────────────────────────────── */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  color: var(--acc);
+  background: var(--acc-soft);
+  outline: none;
+}
+
+/* ── Popover (floating-ui) ────────────────────────────────── */
+.popover {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  z-index: 200;
+}
+
+/* ── Save indicator ───────────────────────────────────────── */
+.save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-right: 8px;
+  font-size: 0.82em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.save-indicator .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acc);
+  flex-shrink: 0;
+}
+
+/* ── Toolbar slot (placeholder) ───────────────────────────── */
+.toolbar-slot {
+  padding: 4px 12px;
+  font-size: 0.85em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+/* ── Workspace ────────────────────────────────────────────── */
+.workspace {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+}
+
+.doc-pane {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.gutter {
+  width: 6px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.gutter:hover,
+.gutter.dragging {
+  background: var(--acc);
+}
+
+.assistant-pane {
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.assistant-pane.collapsed {
+  width: 36px !important;
+}
+
+.assistant-pane .pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .workspace {
+    flex-direction: column;
+  }
+  .gutter {
+    display: none;
+  }
+  .assistant-pane {
+    width: 100% !important;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}

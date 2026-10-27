@@ -1,0 +1,12 @@
+.page {
+  background: #ffffff;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 16px auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  padding: var(--page-mt, 12mm) var(--page-mr, 15mm) var(--page-mb, 12mm) var(--page-ml, 15mm);
+  font-family: var(--page-font, Arial, "Noto Sans", sans-serif);
+  font-size: calc(var(--page-size, 12) * 1pt);
+  line-height: var(--page-line, 1.65);
+  color: #1f2937;
+}

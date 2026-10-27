@@ -264,20 +264,11 @@
   font-weight: 600;
 }
 
-.page-content > .mcq {
+.page-content > .react-renderer.node-mcq {
   counter-increment: q;
 }
 
-.page-content > [data-node-view-wrapper].mcq {
-  counter-increment: q;
-}
-
-.page-content > .mcq .mcq-question::before {
-  content: counter(q) ". ";
-  font-weight: 600;
-}
-
-.page-content > [data-node-view-wrapper].mcq .mcq-question::before {
+.page-content > .react-renderer.node-mcq .mcq-question::before {
   content: counter(q) ". ";
   font-weight: 600;
 }

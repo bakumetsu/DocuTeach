@@ -1,0 +1,3 @@
+* text=auto eol=lf
+frontend/test/** text eol=lf
+frontend/public/** text eol=lf

@@ -1,5 +1,8 @@
 import { create } from 'zustand'
+import type { Editor } from '@tiptap/core'
 import { loadJson, saveJson } from './persist'
+import type { Meta } from '../markdown/frontmatter'
+import { EMPTY_META } from '../markdown/frontmatter'
 
 type Theme = 'light' | 'dark'
 type View = 'edit' | 'student' | 'teacher'
@@ -17,6 +20,10 @@ interface AppState {
   saveState: SaveState
   fileName: string
   dirty: boolean
+  editor: Editor | null
+  toast: string | null
+  warnings: string[]
+  docMeta: Meta
   setTheme: (t: Theme) => void
   setView: (v: View) => void
   setAssistantWidth: (w: number) => void
@@ -24,9 +31,16 @@ interface AppState {
   setSaveState: (s: SaveState) => void
   setFileName: (n: string) => void
   setDirty: (d: boolean) => void
+  setEditor: (e: Editor | null) => void
+  showToast: (msg: string) => void
+  setWarnings: (w: string[]) => void
+  setDocMeta: (m: Meta) => void
 }
 
 const MIN_ASSISTANT_WIDTH = 280
+const TOAST_DURATION = 2500
+
+let toastTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useApp = create<AppState>((set) => ({
   theme: loadJson<Theme>('theme', 'light'),
@@ -36,6 +50,10 @@ export const useApp = create<AppState>((set) => ({
   saveState: { kind: 'idle' },
   fileName: 'lesson.md',
   dirty: false,
+  editor: null,
+  toast: null,
+  warnings: [],
+  docMeta: EMPTY_META,
 
   setTheme: (t) => {
     document.documentElement.dataset.theme = t
@@ -55,6 +73,20 @@ export const useApp = create<AppState>((set) => ({
   setSaveState: (s) => set({ saveState: s }),
   setFileName: (n) => set({ fileName: n }),
   setDirty: (d) => set({ dirty: d }),
+  setEditor: (e) => set({ editor: e }),
+  showToast: (msg) => {
+    if (toastTimer) {
+      clearTimeout(toastTimer)
+      toastTimer = null
+    }
+    set({ toast: msg })
+    toastTimer = setTimeout(() => {
+      set({ toast: null })
+      toastTimer = null
+    }, TOAST_DURATION)
+  },
+  setWarnings: (w) => set({ warnings: w }),
+  setDocMeta: (m) => set({ docMeta: m }),
 }))
 
 export function initTheme(): void {

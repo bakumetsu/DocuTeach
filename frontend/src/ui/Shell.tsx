@@ -2,12 +2,16 @@ import { useCallback, useEffect } from 'react';
 import { ChevronsRight, ChevronsLeft } from 'lucide-react';
 import { useApp, initTheme } from '../state/store';
 import { MenuBar } from './MenuBar';
+import { EditorPane } from '../editor/EditorPane';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
   const assistantCollapsed = useApp((s) => s.assistantCollapsed);
   const setAssistantWidth = useApp((s) => s.setAssistantWidth);
   const setAssistantCollapsed = useApp((s) => s.setAssistantCollapsed);
+  const warnings = useApp((s) => s.warnings);
+  const setWarnings = useApp((s) => s.setWarnings);
+  const toast = useApp((s) => s.toast);
 
   // Init theme once on mount
   useEffect(() => {
@@ -61,7 +65,7 @@ export function Shell() {
 
       <div className="workspace">
         <div className="doc-pane">
-          <div className="page" />
+          <EditorPane />
         </div>
 
         <div
@@ -95,6 +99,26 @@ export function Shell() {
           </div>
         </div>
       </div>
+
+      {warnings.length > 0 && (
+        <div className="warn-strip" role="status">
+          <span>
+            {warnings[0]}
+            {warnings.length > 1 && (
+              <span className="warn-count"> (+{warnings.length - 1} more)</span>
+            )}
+          </span>
+          <button aria-label="Dismiss" onClick={() => setWarnings([])}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

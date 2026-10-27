@@ -10,3 +10,321 @@
   line-height: var(--page-line, 1.65);
   color: #1f2937;
 }
+
+/* ── Loading state ─────────────────────────────────────────── */
+.page.loading {
+  opacity: .5;
+}
+
+/* ── ProseMirror root ──────────────────────────────────────── */
+.page-content {
+  outline: none;
+  min-height: 60vh;
+  counter-reset: q 0;
+}
+
+.page-content p {
+  margin: 0 0 .6em;
+}
+
+.page-content h1,
+.page-content h2,
+.page-content h3 {
+  font-weight: bold;
+}
+
+.page-content h1 {
+  font-size: 1.6em;
+  margin: .6em 0 .4em;
+}
+
+.page-content h2 {
+  font-size: 1.3em;
+  margin: .8em 0 .3em;
+  counter-reset: q;
+}
+
+.page-content h3 {
+  font-size: 1.1em;
+  margin: .6em 0 .3em;
+}
+
+.page-content ul,
+.page-content ol {
+  padding-left: 1.6em;
+}
+
+.page-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.page-content table td,
+.page-content table th {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+}
+
+.page-content table th {
+  font-weight: bold;
+  background: #f3f4f6;
+}
+
+/* ── Notes ─────────────────────────────────────────────────── */
+.note {
+  background: var(--note-bg);
+  border-left: 4px solid var(--note-border);
+  border-radius: 4px;
+  padding: .5em .8em;
+  margin: .8em 0;
+  position: relative;
+}
+
+.note-chip {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  background: transparent;
+  border: 1px solid var(--note-border);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: .3em;
+  display: inline-block;
+  padding: 1px 8px;
+}
+
+.note-content {
+  margin: 0;
+}
+
+/* ── Blanks ────────────────────────────────────────────────── */
+.blank {
+  display: inline-block;
+  min-width: 4ch;
+}
+
+.blank-main {
+  color: var(--acc);
+  border-bottom: 2px dotted var(--acc);
+}
+
+.blank-more {
+  font-size: .7em;
+  vertical-align: super;
+}
+
+.blank-empty {
+  display: inline-block;
+  min-width: 5ch;
+  height: 1em;
+  border-bottom: 2px dotted var(--danger);
+  background: rgba(220, 38, 38, .06);
+}
+
+.view-teacher .blank-main {
+  font-weight: 700;
+}
+
+.blank-alts {
+  color: var(--muted);
+}
+
+.blank-line {
+  display: inline-block;
+  width: 6ch;
+  border-bottom: 1px solid currentColor;
+}
+
+/* ── MCQ ───────────────────────────────────────────────────── */
+.mcq {
+  margin: .8em 0;
+  counter-reset: opt;
+}
+
+.mcq-question {
+  margin: 0 0 .3em;
+}
+
+.mcq[data-multi="true"] .mcq-question::after {
+  content: " (choose all that apply)";
+  color: var(--muted);
+  font-style: italic;
+}
+
+.mcq-option {
+  display: flex;
+  gap: .5em;
+  counter-increment: opt;
+}
+
+.mcq-letter {
+  width: 1.6em;
+  height: 1.6em;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85em;
+  flex-shrink: 0;
+}
+
+.mcq-letter::before {
+  content: counter(opt, lower-alpha) ".";
+}
+
+.view-edit .mcq-option[data-correct="true"] .mcq-letter {
+  background: var(--acc);
+  color: #fff;
+  border-color: var(--acc);
+}
+
+.view-teacher .mcq-option[data-correct="true"] {
+  background: var(--ok-bg);
+}
+
+.view-teacher .mcq-option[data-correct="true"] .mcq-letter::after {
+  content: " ✓";
+}
+
+.mcq-warn {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  font-size: 11px;
+  padding: 0 6px;
+  display: inline-block;
+}
+
+.view-student .mcq-letter {
+  pointer-events: none;
+  border: none;
+}
+
+/* ── Split ─────────────────────────────────────────────────── */
+.split {
+  border-top: 2px dashed var(--muted);
+  margin: 1.2em 0;
+  padding-top: .4em;
+}
+
+.split .split-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4em;
+  font-size: .85em;
+  color: var(--muted);
+}
+
+.split-thin {
+  border: none;
+  border-top: 1px dashed var(--muted);
+  margin: 1em 0;
+}
+
+/* ── Raw block ─────────────────────────────────────────────── */
+.raw {
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: .5em .8em;
+  margin: .8em 0;
+}
+
+.raw pre {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .85em;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.raw .raw-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-bottom: .3em;
+}
+
+/* ── Numbering (section 7) ─────────────────────────────────── */
+.page-content > ol {
+  list-style: none;
+  padding-left: 0;
+}
+
+.page-content > ol > li {
+  counter-increment: q;
+  display: block;
+}
+
+.page-content > ol > li > p:first-child::before {
+  content: counter(q) ". ";
+  font-weight: 600;
+}
+
+.page-content > .mcq {
+  counter-increment: q;
+}
+
+.page-content > [data-node-view-wrapper].mcq {
+  counter-increment: q;
+}
+
+.page-content > .mcq .mcq-question::before {
+  content: counter(q) ". ";
+  font-weight: 600;
+}
+
+.page-content > [data-node-view-wrapper].mcq .mcq-question::before {
+  content: counter(q) ". ";
+  font-weight: 600;
+}
+
+/* ── Warnings strip ────────────────────────────────────────── */
+.warn-strip {
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--acc-soft);
+  border: 1px solid var(--acc);
+  border-radius: 6px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  max-width: 90vw;
+}
+
+.warn-strip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: inherit;
+  padding: 2px 4px;
+}
+
+.warn-count {
+  color: var(--muted);
+}
+
+/* ── Toast ─────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #1f2937;
+  color: #fff;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}

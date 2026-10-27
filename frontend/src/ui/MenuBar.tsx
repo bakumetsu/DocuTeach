@@ -59,7 +59,10 @@ interface MenuBarProps {
 export function MenuBar({ onAction }: MenuBarProps) {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [activeItem, setActiveItem] = useState(0);
-  const [titleEls, setTitleEls] = useState<(HTMLButtonElement | null)[]>([]);
+  // Anchor element for the currently open menu. Captured from titleRefs at
+  // the moment the menu opens (inside an event handler), never in render
+  // or a ref callback.
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
 
   const titleRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -73,11 +76,14 @@ export function MenuBar({ onAction }: MenuBarProps) {
   const closeMenu = useCallback(() => {
     setOpenMenu(null);
     setActiveItem(0);
+    setAnchor(null);
   }, []);
 
   const openMenuAt = useCallback((idx: number) => {
     setOpenMenu(idx);
     setActiveItem(0);
+    // Read the anchor element now, while opening, and store it in state.
+    setAnchor(titleRefs.current[idx] ?? null);
   }, []);
 
   const activateItem = useCallback(
@@ -172,12 +178,6 @@ export function MenuBar({ onAction }: MenuBarProps) {
           <button
             ref={(el) => {
               titleRefs.current[mi] = el;
-              setTitleEls((prev) => {
-                if (prev[mi] === el) return prev;
-                const next = [...prev];
-                next[mi] = el;
-                return next;
-              });
             }}
             type="button"
             aria-haspopup="menu"
@@ -194,7 +194,7 @@ export function MenuBar({ onAction }: MenuBarProps) {
           </button>
 
           <Popover
-            anchor={titleEls[mi] ?? null}
+            anchor={openMenu === mi ? anchor : null}
             open={openMenu === mi}
             onClose={closeMenu}
           >

@@ -3,6 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { extensions } from './extensions'
 import { EditorKeymaps } from './keymaps'
 import { SplitGuard } from './guards'
+import { StreamSlot } from './stream'
 import { TeacherNoteView } from './nodeviews/TeacherNoteView'
 import { BlankView } from './nodeviews/BlankView'
 import { McqView, McqOptionView } from './nodeviews/McqView'
@@ -17,7 +18,7 @@ function getExtension(name: string): AnyExtension {
   return found
 }
 
-export function buildEditorExtensions(opts?: { onSplitBlocked?: () => void }): AnyExtension[] {
+export function buildEditorExtensions(opts?: { onSplitBlocked?: () => void; withStream?: boolean }): AnyExtension[] {
   const replacements: Record<string, AnyExtension> = {
     teacherNote: getExtension('teacherNote').extend({
       addNodeView: () => ReactNodeViewRenderer(TeacherNoteView),
@@ -60,6 +61,10 @@ export function buildEditorExtensions(opts?: { onSplitBlocked?: () => void }): A
 
   result.push(EditorKeymaps)
   result.push(SplitGuard.configure({ onBlocked: opts?.onSplitBlocked }))
+
+  if (opts?.withStream) {
+    result.push(StreamSlot)
+  }
 
   return result
 }

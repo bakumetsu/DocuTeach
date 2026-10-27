@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { useApp } from '../state/store';
 import { buildEditorExtensions } from './extensions-ui';
+import { installPageHandlers } from './pageHandlers';
+import { SelectionPopover } from './SelectionPopover';
 import { ViewContext } from './ViewContext';
 import { parseMarkdown } from '../markdown/parse';
 import { readPageStyle, pageCssVars } from './pageStyle';
@@ -47,6 +49,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
   const editor = useEditor({
     extensions: buildEditorExtensions({
       onSplitBlocked: () => useApp.getState().showToast('Only one split point'),
+      withStream: true,
     }),
     content: initialJson.json,
     editorProps: {
@@ -71,10 +74,17 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     },
   });
 
+  useEffect(() => {
+    if (!editor) return;
+    const cleanup = installPageHandlers(editor);
+    return cleanup;
+  }, [editor]);
+
   return (
     <ViewContext.Provider value="edit">
       <div className="page view-edit" style={pageCssVars(readPageStyle(meta))}>
         <EditorContent editor={editor} />
+        <SelectionPopover editor={editor} />
       </div>
     </ViewContext.Provider>
   );

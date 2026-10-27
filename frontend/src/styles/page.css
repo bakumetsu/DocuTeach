@@ -328,3 +328,78 @@
   font-size: 13px;
   box-shadow: 0 4px 12px rgba(0,0,0,.25);
 }
+
+/* ── Incoming (streaming) card ─────────────────────────────── */
+.incoming-card {
+  border: 2px dashed var(--acc);
+  border-radius: 6px;
+  background: var(--acc-soft);
+  padding: .6em .8em;
+  margin: .6em 0;
+  user-select: none;
+}
+
+.incoming-card .incoming-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .3em;
+}
+
+.incoming-card .incoming-header .incoming-label {
+  font-size: .75em;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--acc);
+}
+
+.incoming-card .incoming-header .incoming-cancel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .9em;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+.incoming-text {
+  white-space: pre-wrap;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .85em;
+  margin: 0;
+}
+
+.incoming-hint {
+  color: var(--muted);
+  font-size: .75em;
+  margin-top: .3em;
+}
+
+/* ── Selection popover ─────────────────────────────────────── */
+.selection-popover {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  padding: 2px;
+}
+
+.selection-popover button {
+  font-size: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.selection-popover button:hover {
+  background: var(--acc-soft);
+}

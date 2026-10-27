@@ -1,8 +1,9 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { ChevronsRight, ChevronsLeft } from 'lucide-react';
 import { useApp, initTheme } from '../state/store';
 import { MenuBar } from './MenuBar';
 import { EditorPane } from '../editor/EditorPane';
+import { PreviewPane } from '../editor/PreviewPane';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
@@ -12,11 +13,31 @@ export function Shell() {
   const warnings = useApp((s) => s.warnings);
   const setWarnings = useApp((s) => s.setWarnings);
   const toast = useApp((s) => s.toast);
+  const view = useApp((s) => s.view);
+
+  const docPaneRef = useRef<HTMLDivElement>(null);
+  const scrollTops = useRef<Record<string, number>>({});
 
   // Init theme once on mount
   useEffect(() => {
     initTheme();
   }, []);
+
+  // Save previous scroll, restore current on view change
+  useLayoutEffect(() => {
+    const pane = docPaneRef.current;
+    if (!pane) return;
+
+    const tops = scrollTops.current;
+
+    // Restore scroll for the new view
+    pane.scrollTop = tops[view] ?? 0;
+
+    // On cleanup (before next view change), save the outgoing view's scroll
+    return () => {
+      tops[view] = pane.scrollTop;
+    };
+  }, [view]);
 
   // ── Gutter drag ────────────────────────────────────────────
   const handleGutterPointerDown = useCallback(
@@ -64,8 +85,9 @@ export function Shell() {
       </div>
 
       <div className="workspace">
-        <div className="doc-pane">
-          <EditorPane />
+        <div className="doc-pane" ref={docPaneRef}>
+          <EditorPane hidden={view !== 'edit'} />
+          {view !== 'edit' && <PreviewPane key={view} mode={view} />}
         </div>
 
         <div

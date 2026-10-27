@@ -6,6 +6,7 @@ import { EMPTY_META } from '../markdown/frontmatter'
 
 type Theme = 'light' | 'dark'
 type View = 'edit' | 'student' | 'teacher'
+type Dialog = null | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints'
 type SaveState =
   | { kind: 'saved'; at: string }
   | { kind: 'saving' }
@@ -24,6 +25,7 @@ interface AppState {
   toast: string | null
   warnings: string[]
   docMeta: Meta
+  dialog: Dialog
   setTheme: (t: Theme) => void
   setView: (v: View) => void
   setAssistantWidth: (w: number) => void
@@ -35,6 +37,7 @@ interface AppState {
   showToast: (msg: string) => void
   setWarnings: (w: string[]) => void
   setDocMeta: (m: Meta) => void
+  setDialog: (d: Dialog) => void
 }
 
 const MIN_ASSISTANT_WIDTH = 280
@@ -54,6 +57,7 @@ export const useApp = create<AppState>((set) => ({
   toast: null,
   warnings: [],
   docMeta: EMPTY_META,
+  dialog: null,
 
   setTheme: (t) => {
     document.documentElement.dataset.theme = t
@@ -87,6 +91,7 @@ export const useApp = create<AppState>((set) => ({
   },
   setWarnings: (w) => set({ warnings: w }),
   setDocMeta: (m) => set({ docMeta: m }),
+  setDialog: (d) => set({ dialog: d }),
 }))
 
 export function initTheme(): void {

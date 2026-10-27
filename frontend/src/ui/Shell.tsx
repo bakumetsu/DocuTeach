@@ -2,8 +2,14 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { ChevronsRight, ChevronsLeft } from 'lucide-react';
 import { useApp, initTheme } from '../state/store';
 import { MenuBar } from './MenuBar';
+import { Toolbar } from './Toolbar';
+import { ViewTabs } from './ViewTabs';
 import { EditorPane } from '../editor/EditorPane';
 import { PreviewPane } from '../editor/PreviewPane';
+import { PageStyleDialog } from './dialogs/PageStyleDialog';
+import { SplitDialog } from './dialogs/SplitDialog';
+import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
+import { revert, redo } from '../editor/history';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
@@ -14,6 +20,8 @@ export function Shell() {
   const setWarnings = useApp((s) => s.setWarnings);
   const toast = useApp((s) => s.toast);
   const view = useApp((s) => s.view);
+  const dialog = useApp((s) => s.dialog);
+  const setDialog = useApp((s) => s.setDialog);
 
   const docPaneRef = useRef<HTMLDivElement>(null);
   const scrollTops = useRef<Record<string, number>>({});
@@ -38,6 +46,38 @@ export function Shell() {
       tops[view] = pane.scrollTop;
     };
   }, [view]);
+
+  // ── Menu bar actions ──────────────────────────────────────
+  const handleMenuAction = useCallback(
+    (id: string) => {
+      switch (id) {
+        case 'edit.undo':
+          revert();
+          break;
+        case 'edit.redo':
+          redo();
+          break;
+        case 'tools.pageStyle':
+          setDialog('pageStyle');
+          break;
+        case 'file.split':
+          setDialog('split');
+          break;
+        case 'help.shortcuts':
+          setDialog('shortcuts');
+          break;
+        case 'help.about':
+          setDialog('about');
+          break;
+        case 'edit.checkpoints':
+          setDialog('checkpoints');
+          break;
+        default:
+          break;
+      }
+    },
+    [setDialog],
+  );
 
   // ── Gutter drag ────────────────────────────────────────────
   const handleGutterPointerDown = useCallback(
@@ -80,8 +120,9 @@ export function Shell() {
   return (
     <div className="shell">
       <div className="topbars">
-        <MenuBar onAction={() => {}} />
-        <div className="toolbar-slot">Toolbar</div>
+        <MenuBar onAction={handleMenuAction} />
+        <Toolbar />
+        <ViewTabs />
       </div>
 
       <div className="workspace">
@@ -141,6 +182,11 @@ export function Shell() {
           {toast}
         </div>
       )}
+
+      <PageStyleDialog open={dialog === 'pageStyle'} onClose={() => setDialog(null)} />
+      <SplitDialog open={dialog === 'split'} onClose={() => setDialog(null)} />
+      <ShortcutsDialog open={dialog === 'shortcuts'} onClose={() => setDialog(null)} />
+      <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
     </div>
   );
 }

@@ -146,6 +146,256 @@ body {
   background: var(--panel);
 }
 
+/* ── Toolbar ──────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tb-btn:hover,
+.tb-btn:focus-visible {
+  background: var(--acc-soft);
+  outline: none;
+}
+
+.tb-btn[aria-pressed="true"] {
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+.tb-btn.dim,
+.tb-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tb-sep {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.tb-grow {
+  flex: 1;
+}
+
+.tb-select {
+  height: 30px;
+  padding: 0 6px;
+  margin-right: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85em;
+}
+
+/* ── Toolbar popovers / menus ─────────────────────────────── */
+.tb-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  min-width: 140px;
+}
+
+.tb-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85em;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tb-menu-item:hover,
+.tb-menu-item:focus-visible {
+  background: var(--acc-soft);
+  outline: none;
+}
+
+.tb-menu-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tb-table-new {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 4px;
+}
+
+.tb-table-new label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+.tb-table-new input {
+  width: 56px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.tb-table-ops {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+}
+
+.tb-insert {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.tb-insert:hover,
+.tb-insert:focus-visible {
+  filter: brightness(1.05);
+  outline: none;
+}
+
+/* ── View tabs (segmented control) ────────────────────────── */
+.view-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.view-tab {
+  padding: 4px 14px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85em;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.view-tab:hover {
+  background: var(--acc-soft);
+}
+
+.view-tab[aria-selected="true"] {
+  background: var(--acc);
+  color: #fff;
+}
+
+.view-tab:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+
+/* ── Dialog (native <dialog>) ─────────────────────────────── */
+.dialog {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  max-width: 480px;
+  width: 90vw;
+}
+
+.dialog::backdrop {
+  background: rgba(0,0,0,.4);
+}
+
+.dialog-body {
+  padding: 18px 20px;
+}
+
+.dialog-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+.dialog-body input,
+.dialog-body select,
+.dialog-body textarea {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.dialog-footer button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.dialog-footer button.primary {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+}
+
 /* ── Workspace ────────────────────────────────────────────── */
 .workspace {
   display: flex;

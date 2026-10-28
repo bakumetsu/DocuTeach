@@ -5,7 +5,7 @@ import { api } from '../src/api';
 import { useChats, resetChatsForTest } from '../src/assistant/chatStore';
 import { useApp } from '../src/state/store';
 import { extensions } from '../src/editor/extensions';
-import { StreamSlot, isStreaming, getSlot, startPageStream } from '../src/editor/stream';
+import { StreamSlot, isStreaming, getSlot, startPageStream, cancelPageStream } from '../src/editor/stream';
 import { insertFragment } from '../src/editor/insert';
 import { parseMarkdown } from '../src/markdown/parse';
 import { serializeMarkdown } from '../src/markdown/serialize';
@@ -207,6 +207,42 @@ describe('stream slot', () => {
     expect(serializeMarkdown(editor.state.doc)).toBe(beforeMd);
     // A toast was set
     expect(useApp.getState().toast).toBeTruthy();
+
+    editor.destroy();
+  });
+  it('(g) QUICK RESTART: the cancelled stream cleanup does not break the new one', async () => {
+    await useChats.getState().init();
+    mockConfig.tokenMinMs = 30;
+    mockConfig.tokenMaxMs = 30;
+
+    const editor = createEditor();
+    const originalMd = serializeMarkdown(editor.state.doc);
+    const releaseSpy = vi.spyOn(api.chats, 'release');
+    editor.commands.setTextSelection(1);
+
+    expect(startPageStream(editor, { skill: '/ccq' })).toBe(true);
+    await vi.waitFor(() => expect(getSlot(editor)).not.toBeNull());
+    cancelPageStream(editor);
+    expect(isStreaming()).toBe(false);
+    releaseSpy.mockClear();
+
+    // Restart straight away, while the first stream is still winding down
+    expect(startPageStream(editor, { skill: '/ccq' })).toBe(true);
+    // Outlast the first stream's late cleanup
+    await new Promise((r) => setTimeout(r, 120));
+
+    // The second stream is still running and its card is intact
+    expect(isStreaming()).toBe(true);
+    expect(getSlot(editor)).not.toBeNull();
+    expect(releaseSpy).not.toHaveBeenCalled();
+
+    await vi.waitFor(() => expect(isStreaming()).toBe(false), { timeout: 5000 });
+    expect(getSlot(editor)).toBeNull();
+    expect(serializeMarkdown(editor.state.doc)).toContain('CCQ');
+
+    // The second stream was committed once: a single undo restores the original
+    editor.commands.undo();
+    expect(serializeMarkdown(editor.state.doc)).toBe(originalMd);
 
     editor.destroy();
   });

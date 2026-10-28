@@ -9,7 +9,7 @@ vi.mock('../src/editor/history', () => ({
 }));
 
 vi.mock('../src/files/fileActions', () => ({
-  saveDocument: vi.fn(),
+  saveDocument: vi.fn(() => Promise.resolve()),
 }));
 
 describe('globalKeys', () => {

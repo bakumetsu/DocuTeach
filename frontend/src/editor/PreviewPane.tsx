@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { useApp } from '../state/store';
 import { buildEditorExtensions } from './extensions-ui';
@@ -8,6 +8,8 @@ import { readPageStyle, pageCssVars } from './pageStyle';
 
 export function PreviewPane({ mode }: { mode: 'teacher' | 'student' }) {
   const source = useApp((s) => s.editor);
+  // The page style lives in the source doc's meta; re-render when it changes.
+  const [, refreshStyle] = useReducer((n: number) => n + 1, 0);
 
   // Compute initial JSON
   const initialJson = useMemo(() => {
@@ -31,6 +33,7 @@ export function PreviewPane({ mode }: { mode: 'teacher' | 'student' }) {
   useEffect(() => {
     if (!source) return;
 
+    let lastMeta = source.state.doc.attrs.meta;
     const handler = () => {
       const newJson =
         mode === 'student'
@@ -38,6 +41,11 @@ export function PreviewPane({ mode }: { mode: 'teacher' | 'student' }) {
           : source.getJSON();
 
       preview?.commands.setContent(newJson, { emitUpdate: false });
+      const meta = source.state.doc.attrs.meta;
+      if (meta !== lastMeta) {
+        lastMeta = meta;
+        refreshStyle();
+      }
     };
 
     source.on('update', handler);

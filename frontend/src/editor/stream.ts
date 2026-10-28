@@ -222,8 +222,12 @@ export function startPageStream(
       }
       return;
     } finally {
-      running = null;
-      void api.chats.release('page');
+      // Only the stream that is still current cleans up. A cancelled stream was
+      // already released by cancelPageStream, and a restart may own `running` now.
+      if (running?.id === id) {
+        running = null;
+        void api.chats.release('page');
+      }
     }
 
     // Commit: only if not aborted

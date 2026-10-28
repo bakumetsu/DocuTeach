@@ -3,6 +3,9 @@ import { render, cleanup, act, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import App from '../src/App';
 import { useApp } from '../src/state/store';
+import { setMeta } from '../src/editor/docio';
+import { updateMeta } from '../src/markdown/frontmatter';
+import { pageStyleToMeta, DEFAULT_PAGE } from '../src/editor/pageStyle';
 
 const lessonText = readFileSync('public/sample/lesson.md', 'utf-8');
 
@@ -77,4 +80,36 @@ describe('PreviewPane smoke', () => {
       expect(document.querySelector('.page-content')).not.toBeNull();
     });
   });
+
+  it.each(['student', 'teacher'] as const)(
+    '%s view follows a Page style change made while it is open',
+    async (view) => {
+      render(<App />);
+      await waitFor(() => {
+        expect(document.querySelector('.page-content')).not.toBeNull();
+      });
+      act(() => {
+        useApp.getState().setView(view);
+      });
+      await waitFor(() => {
+        expect(document.querySelector(`.page.view-${view}`)).not.toBeNull();
+      });
+
+      const editor = useApp.getState().editor!;
+      act(() => {
+        setMeta(
+          editor,
+          updateMeta(useApp.getState().docMeta, {
+            page: pageStyleToMeta({ ...DEFAULT_PAGE, font: 'Cambria', size: 16 }),
+          }),
+        );
+      });
+
+      await waitFor(() => {
+        const page = document.querySelector<HTMLElement>(`.page.view-${view}`)!;
+        expect(page.style.getPropertyValue('--page-size')).toBe('16');
+        expect(page.style.getPropertyValue('--page-font')).toContain('Cambria');
+      });
+    },
+  );
 });

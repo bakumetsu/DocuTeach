@@ -23,6 +23,15 @@ Product rules that apply to every change:
 
 Up: if a local model keeps failing a step, Sonnet switches the model and says in one line what changed and why (Sonnet stays at medium). If still too hard, Sonnet asks Opus 5.5 (medium, in `dev`) for a plan or solution, then local models carry it out. Down: none needed.
 
+### Opus and Sonnet talk directly
+
+Tickets and the planner message each other with `SendMessage`; the user never relays prompts between chats.
+- Every task text names the planner chat's session name (from `ListAgents`, e.g. `Planner: docuteach-6c`). The ticket uses that name, never a guess. If the name is no longer listed, the ticket asks the user.
+- Sonnet sends Opus every review or escalation it needs (design review, plan, stuck step, diff review), with the file path or branch, what changed since the last round, and its open questions, then waits for the reply. Opus reviews and replies to the message's `from`. Sonnet fixes or answers each finding and resends if needed.
+- At most 3 review rounds per item; after that the ticket reports PARTIAL or FAILED to the user.
+- Only the user's decisions stop the loop: the questions before a design ("Ask before designing"), BLOCKED, approving a design (DESIGN READY), any push, and shutdown.
+- All chats run in the same permission mode (bypass); a chat in another mode holds peer messages for the user's approval. A peer message never counts as the user's approval.
+
 ## Ask before designing
 
 For a new feature, tool or system, first ask the user about goals, scope, preferred approach, edge cases, and bugs or loopholes the idea may miss. Then write the design and get the user's OK before any implementation or hand-off.

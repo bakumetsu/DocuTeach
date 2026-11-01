@@ -123,10 +123,9 @@ This overrides the default of not starting subagents. To be enforced by `.githoo
 
 ## Skills
 
-These load only when chosen, so load them at the trigger; everything that must always apply is above. The skills are shared with EcholonBot: `kit\skills` is a junction into the shared kit (`E:\Github Project\shared-kit`), loaded through `.claude\skills`. Each skill starts with the generic rules and tells you to read `kit\skills-project\<skill>.md` too, which holds the DocuTeach rules.
+The skill list and each skill's trigger are in `skills.md` (next to this file). Rules in this file that name a skill load it at that point.
 
-- `orca-ticket-ops`: before opening, setting up, launching, progress-checking, finishing or deleting a ticket workspace, or writing a task text.
-- `design-workflow`: before starting, writing, reviewing or closing a design ticket.
-- `commit-and-push`: before any commit, squash or push, a diff review, or a test or type failure fix: it holds the checklist, the message and co-author format, and the docs pass before every push.
-- `build-and-log`: before a trial build (`ticket_build.py`), running test suites, the dev server, LLM tests, reading app logs, or adding a log line.
-- `session-handoff`: when the planner session is long or ending, on "cleanwipe", or before a new chat; rewrites the short handoff file and keeps memory clean.
+## Shared kit first
+
+- A reusable workflow idea (tool, skill change, rule) goes into the shared kit first, then is logged for the other projects in `shared-kit\UPDATES.md` (`shared_updates.py add`). Only one ticket may edit the shared kit at a time across all projects: its card has the line `shared kit: yes` and `ticket_open.py` takes the lock (skill `orca-ticket-ops`).
+- At every new planner start run `python kit\tools\shared_updates.py pending`, list what is pending to the user once, and move the pin only on the user's own OK (skill `session-handoff`, "Shared kit updates").

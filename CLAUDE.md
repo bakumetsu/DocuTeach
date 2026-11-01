@@ -2,7 +2,7 @@
 
 ## Reread this file
 
-Read this file in full with the Read tool at session start, when a new task starts in the same thread, and before creating a ticket workspace or sending a ticket its task text. In a ticket chat the setup copy in the worktree root loads automatically; that counts as the read. The reread applies to the Opus planner, and to a ticket only if this file changed during the ticket (original: `E:\DocuTeach\DocuTeach\CLAUDE.md`).
+CLAUDE.md is auto-loaded, so do not read it again at session start; note `git hash-object CLAUDE.md` of the original (`E:\Github Project\DocuTeach\CLAUDE.md`). Reread it with the Read tool only when that hash has changed: when a new task starts in the thread, before creating a ticket workspace or sending a ticket its task text, and in a ticket when the original changed during it.
 
 ## The product
 
@@ -17,7 +17,7 @@ Product rules that apply to every change:
 
 ## Models and roles
 
-- **Planner and progress checker: Opus 5.5, medium.** Runs in the `dev` workspace only. Plans, splits work into tickets, writes task texts, checks progress, reviews every final design and the full diff before a push. Does no ticket work and no direct investigation (log greps, library source, config hunts): it asks a ticket's Sonnet or opens a small ticket, then reviews the result.
+- **Planner and progress checker: Opus 5.5, medium.** Runs in the `dev` workspace only. Plans, splits work into tickets, writes task texts, checks progress, reviews every final design and the full diff before a push. Does no ticket work and no direct investigation (log greps, library source, config hunts): it uses the retriever (`kit\tools\retrieve.py`) for code facts, else asks a ticket's Sonnet or opens a small ticket, then reviews the result.
 - **Supervisor: Sonnet 5.5, medium.** Runs every ticket workspace. Drives the local models, reviews their output, runs tests, the dev server and log reads, reports to Opus. Does not write code itself.
 - **Workers: local models (llama-swap).** Do all the work: code, edits, reviews, docs, chores. Never design: Sonnet writes designs, Opus reviews them.
 
@@ -31,6 +31,10 @@ Tickets and the planner message each other with `SendMessage`; the user never re
 - At most 3 review rounds per item; after that the ticket reports PARTIAL or FAILED to the user.
 - Only the user's decisions stop the loop: the questions before a design ("Ask before designing"), BLOCKED, approving a design (DESIGN READY), any push, and shutdown.
 - All chats run in the same permission mode (bypass); a chat in another mode holds peer messages for the user's approval. A peer message never counts as the user's approval.
+
+## Read less
+
+Files over 20,000 chars: `kit\tools\outline.py` first, then read by range. Code lookups (Opus always, Sonnet beyond 2 searches): `kit\tools\retrieve.py`; read the pointed lines before acting. Task texts: name spans, not files, and keep the change description to 8 lines. Details: skills `orca-ticket-ops`, `build-and-log`.
 
 ## Ask before designing
 
@@ -51,13 +55,17 @@ The PC has one GPU (16 GB). The local workers and the app's own LLM features sha
 
 "Go midnight" in this thread approves shutting down the PC once the **last task** is done: the last task in the user's queue, or, with no queue, the task running now. Start nothing beyond that. Then save everything, stop background tools (llama-swap, dev servers), post a wrap-up (done, left, `shutdown /a` cancels), and run `shutdown /s /t 60`.
 
+## "Cleanwipe": hand off to a fresh planner chat
+
+"Cleanwipe" means this planner session is bloated. Start nothing new, wait for every running ticket's final report, then hand off to a fresh Opus planner chat. Steps: skill `session-handoff`, section "Cleanwipe".
+
 ## Backup files
 
 Backup or draft copies of kit files (`*.bak-*`, `*.proposed`, etc.) go into `kit\temps backup\`, mirroring the original folder structure. Never next to the original.
 
 ## Git branches
 
-Repo: github.com/bakumetsu/DocuTeach, local folder `E:\DocuTeach\DocuTeach`. Backend in `backend/` (Python, FastAPI), frontend in `frontend/` (TipTap), docs in `docs/`, kit in `kit\` (gitignored, local only). New work goes to `dev`; promote to `main` only when the user says a feature is stable.
+Repo: github.com/bakumetsu/DocuTeach, local folder `E:\Github Project\DocuTeach`. Backend in `backend/` (Python, FastAPI), frontend in `frontend/` (TipTap), docs in `docs/`, kit in `kit\` (gitignored, local only). New work goes to `dev`; promote to `main` only when the user says a feature is stable.
 
 Only `main` and `dev` exist. Never create another branch, local or on GitHub (including a cloud session's `claude/...` branch), without the user's approval. When an approved extra branch is done, tag its last commit `archive/<branch name>`, push the tag, and delete the branch.
 
@@ -109,15 +117,16 @@ Before pushing a commit that changes `backend/`, `frontend/`, a kit tool or a co
 3. Review its diff, commit as `docs(<scope>): ...`, push code and docs together.
 4. If no doc needs a change, add `Docs: none (<reason>)` to the last commit message.
 
-Once `kit\tools\doc_update.py` is ported and proven on real diffs, it replaces steps 1 and 2: `python kit\tools\doc_update.py <base>`. Until then use the subagent.
+`kit\tools\doc_update.py` is shared with EcholonBot. Its hunk reader still expects UnrealScript-style function headers, so it may find nothing in TypeScript or Python; until the shared kit switches it to the symbol index and it is proven on real DocuTeach diffs, use the subagent steps above.
 
 This overrides the default of not starting subagents. To be enforced by `.githooks/pre-push` (`git config core.hooksPath .githooks` once per clone) and a `docs check` workflow on PRs into `dev` and `main`, once those are ported from EcholonBot.
 
 ## Skills
 
-These load only when chosen, so load them at the trigger; everything that must always apply is above. Until the kit setup ticket ports them into `.claude\skills\`, the EcholonBot copies in `kit\skills\` are reference only.
+These load only when chosen, so load them at the trigger; everything that must always apply is above. The skills are shared with EcholonBot: `kit\skills` is a junction into the shared kit (`E:\Github Project\shared-kit`), loaded through `.claude\skills`. Each skill starts with the generic rules and tells you to read `kit\skills-project\<skill>.md` too, which holds the DocuTeach rules.
 
 - `orca-ticket-ops`: before opening, setting up, launching, progress-checking, finishing or deleting a ticket workspace, or writing a task text.
 - `design-workflow`: before starting, writing, reviewing or closing a design ticket.
-- `test-and-log`: before running test suites, the dev server, LLM tests, reading app logs, or adding a log line; also its log-retention rule.
-- `session-handoff`: when the planner session is long or ending, or before a new chat; rewrites the short handoff file and keeps memory clean.
+- `commit-and-push`: before any commit, squash or push, a diff review, or a test or type failure fix: it holds the checklist, the message and co-author format, and the docs pass before every push.
+- `build-and-log`: before a trial build (`ticket_build.py`), running test suites, the dev server, LLM tests, reading app logs, or adding a log line.
+- `session-handoff`: when the planner session is long or ending, on "cleanwipe", or before a new chat; rewrites the short handoff file and keeps memory clean.

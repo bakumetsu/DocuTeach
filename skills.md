@@ -9,3 +9,4 @@ The skills are shared with EcholonBot: `kit\skills` is a junction into the share
 - `commit-and-push`: before any commit, squash or push, a diff review, or a test or type failure fix: it holds the checklist, the message and co-author format, and the docs pass before every push.
 - `build-and-log`: before a trial build (`ticket_build.py`), running test suites, the dev server, LLM tests, reading app logs, or adding a log line.
 - `session-handoff`: when the planner session is long or ending, on "cleanwipe", or before a new chat; rewrites the short handoff file and keeps memory clean.
+- `impeccable` (opt-in via `[setup] skills_extra`, DocuTeach and Stash-Downloader only): before designing, redesigning, critiquing, auditing or polishing a frontend screen; its offline detector runs in `dt_checks.py` (warn mode).

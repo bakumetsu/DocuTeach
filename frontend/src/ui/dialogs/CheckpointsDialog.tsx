@@ -18,7 +18,7 @@ export function CheckpointsDialog({ open, onClose }: Props) {
     let cancelled = false;
     const load = async () => {
       setDeleted({});
-      const list = await api.docs.checkpoints.list('draft');
+      const list = await api.docs.checkpoints.list(useApp.getState().lessonId);
       if (!cancelled) {
         setCheckpoints(list);
       }
@@ -31,7 +31,7 @@ export function CheckpointsDialog({ open, onClose }: Props) {
 
   const handleDelete = useCallback(async (cp: Checkpoint) => {
     try {
-      await api.docs.checkpoints.remove('draft', cp.id);
+      await api.docs.checkpoints.remove(useApp.getState().lessonId, cp.id);
     } catch (e: unknown) {
       useApp.getState().showToast(
         'Checkpoint action failed: ' + (e instanceof Error ? e.message : String(e)),
@@ -45,7 +45,7 @@ export function CheckpointsDialog({ open, onClose }: Props) {
 
   const handleUndoDelete = useCallback(async (cp: Checkpoint) => {
     try {
-      await api.docs.checkpoints.create('draft', cp.name, cp.markdown);
+      await api.docs.checkpoints.restore(useApp.getState().lessonId, cp.id);
     } catch (e: unknown) {
       useApp.getState().showToast(
         'Checkpoint action failed: ' + (e instanceof Error ? e.message : String(e)),
@@ -59,7 +59,7 @@ export function CheckpointsDialog({ open, onClose }: Props) {
       return next;
     });
     try {
-      const list = await api.docs.checkpoints.list('draft');
+      const list = await api.docs.checkpoints.list(useApp.getState().lessonId);
       setCheckpoints(list);
     } catch (e: unknown) {
       useApp.getState().showToast(

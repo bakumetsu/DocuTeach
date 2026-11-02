@@ -7,7 +7,7 @@ import { EMPTY_META } from '../markdown/frontmatter'
 type Theme = 'light' | 'dark'
 type Background = 'gradient' | 'flat'
 type View = 'edit' | 'student' | 'teacher'
-type Dialog = null | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints'
+type Dialog = null | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints' | 'lessons'
 type SaveState =
   | { kind: 'saved'; at: string }
   | { kind: 'saving' }
@@ -27,6 +27,8 @@ interface AppState {
   toast: string | null
   warnings: string[]
   docMeta: Meta
+  lessonId: string
+  lessonTitle: string
   dialog: Dialog
   setTheme: (t: Theme) => void
   setBackground: (b: Background) => void
@@ -40,6 +42,8 @@ interface AppState {
   showToast: (msg: string) => void
   setWarnings: (w: string[]) => void
   setDocMeta: (m: Meta) => void
+  setLessonId: (id: string) => void
+  setLessonTitle: (t: string) => void
   setDialog: (d: Dialog) => void
 }
 
@@ -61,6 +65,8 @@ export const useApp = create<AppState>((set) => ({
   toast: null,
   warnings: [],
   docMeta: EMPTY_META,
+  lessonId: 'draft',
+  lessonTitle: '',
   dialog: null,
 
   setTheme: (t) => {
@@ -100,6 +106,8 @@ export const useApp = create<AppState>((set) => ({
   },
   setWarnings: (w) => set({ warnings: w }),
   setDocMeta: (m) => set({ docMeta: m }),
+  setLessonId: (id) => set({ lessonId: id }),
+  setLessonTitle: (t) => set({ lessonTitle: t }),
   setDialog: (d) => set({ dialog: d }),
 }))
 

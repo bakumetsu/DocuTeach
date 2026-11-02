@@ -53,7 +53,7 @@ export function insertFragment(
   opts?: { clearSlot?: boolean },
 ): InsertResult {
   try {
-    const { nodes, warnings } = parseFragment(markdown);
+    const { nodes, warnings } = parseFragment(markdown, { stripStyle: true });
     let toInsert: PMNode[];
     let fallback = false;
 

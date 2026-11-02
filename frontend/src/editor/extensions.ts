@@ -11,6 +11,7 @@ import { Mcq, McqQuestion, McqOption } from './nodes/Mcq'
 import { SplitPoint } from './nodes/SplitPoint'
 import { RawBlock } from './nodes/RawBlock'
 import { Align } from './nodes/Align'
+import { FontStyle } from './fontStyle'
 
 export const extensions = [
   DocMeta,
@@ -36,6 +37,7 @@ export const extensions = [
     content: 'paragraph (bulletList | orderedList)?',
   }),
   Highlight.configure({ multicolor: false }),
+  FontStyle,
   Table,
   TableRow,
   TableHeader.extend({

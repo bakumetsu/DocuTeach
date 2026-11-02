@@ -29,6 +29,7 @@ webview_hidden = collect_submodules(
     "webview",
     filter=lambda n: not any(x in n for x in ("android", "cocoa", "gtk", "qt", "cef")),
 )
+backend_hidden = collect_submodules("docuteach") + collect_submodules("uvicorn") + ["anyio._backends._asyncio"]
 
 version_info = VSVersionInfo(
     ffi=FixedFileInfo(
@@ -66,9 +67,9 @@ version_info = VSVersionInfo(
 
 a = Analysis(
     [str(launcher)],
-    pathex=[str(spec_dir)],
+    pathex=[str(spec_dir), str(repo_root / "backend")],
     datas=[(str(frontend_dist), "web")],
-    hiddenimports=webview_hidden,
+    hiddenimports=webview_hidden + backend_hidden,
     excludes=["tkinter", "tkinter.test", "test"],
     noarchive=False,
 )

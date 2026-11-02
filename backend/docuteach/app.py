@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+import logging
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,7 +11,7 @@ from fastapi import FastAPI
 from docuteach.api import chats_store, checkpoints, docs, lessons, status
 from docuteach.config import Settings, check_local_llm
 from docuteach.errors import install_error_handlers
-from docuteach.logs import RequestLogMiddleware, setup_logging
+from docuteach.logs import RequestLogMiddleware, close_logging, setup_logging
 from docuteach.security import TokenHostMiddleware
 from docuteach.store.library import Library
 
@@ -31,6 +32,22 @@ def create_app(settings: Settings) -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.state.library = library
     app.state.settings = settings
+    hooks: list[Callable[[], None]] = []
+    hooks.append(lambda: close_logging(settings.log_dir))
+    app.state.shutdown_hooks = hooks
+    _done: list[bool] = [False]
+
+    def shutdown() -> None:
+        if _done[0]:
+            return
+        _done[0] = True
+        for hook in hooks:
+            try:
+                hook()
+            except Exception:
+                logging.getLogger("docuteach").exception("shutdown hook failed")
+
+    app.state.shutdown = shutdown
 
     install_error_handlers(app)
 

@@ -32,6 +32,15 @@ def setup_logging(log_dir: Path) -> logging.Logger:
     return logger
 
 
+def close_logging(log_dir: Path) -> None:
+    logger = logging.getLogger("docuteach")
+    target = str(log_dir / "backend.log")
+    for h in list(logger.handlers):
+        if isinstance(h, RotatingFileHandler) and getattr(h, "baseFilename", None) == target:
+            logger.removeHandler(h)
+            h.close()
+
+
 class RequestLogMiddleware:
     """Pure ASGI middleware: one line per /api request. Never logs body text or user-typed names."""
 

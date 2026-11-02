@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/react'
 import { api } from '../api'
+import { onFlush } from '../api/kv'
 import { useApp } from '../state/store'
 import { docToMarkdown } from '../editor/docio'
 
@@ -47,10 +48,18 @@ export function startAutosave(editor: Editor, opts?: { delayMs?: number }): () =
     }
   }
 
+  const offFlush = onFlush(async () => {
+    if (timer) {
+      clear()
+      await save()
+    }
+  })
+
   controllers.set(editor, { clear, save })
   editor.on('update', handler)
 
   return () => {
+    offFlush()
     clear()
     editor.off('update', handler)
     controllers.delete(editor)

@@ -146,7 +146,9 @@ def _do_export_blocking(
         pdf = compile_pdf(rr.source)
 
     # Drop parser warnings for unlisted fonts — the renderer recomputes from what students see.
-    all_warnings: list[str] = [w for w in prepared.res.warnings if not w.startswith("unlisted_font:")]
+    all_warnings: list[str] = [
+        w for w in prepared.res.warnings if not w.startswith("unlisted_font:")
+    ]
     for w in rr.warnings:
         if w not in all_warnings:
             all_warnings.append(w)

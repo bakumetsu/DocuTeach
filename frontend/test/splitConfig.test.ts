@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  configFor,
   estimatePages,
   fileList,
+  modeOf,
   pagesLeftOut,
   parsePageRanges,
   readSplit,
@@ -207,5 +209,52 @@ describe('estimatePages', () => {
 
   it('returns at least one page for negative height', () => {
     expect(estimatePages(-100, page)).toBe(1)
+  })
+})
+
+describe('modeOf and configFor', () => {
+  it('modeOf returns the split mode for each lesson type', () => {
+    expect(modeOf({ lessonType: 'lesson', by: 'marker', ranges: '' })).toBe('marker')
+    expect(modeOf({ lessonType: 'lesson', by: 'pages', ranges: '1-3' })).toBe('pages')
+    expect(modeOf({ lessonType: 'exam', by: 'marker', ranges: '' })).toBe('exam')
+  })
+
+  it('configFor builds a marker config', () => {
+    expect(configFor('marker', '1-3')).toEqual({
+      lessonType: 'lesson',
+      by: 'marker',
+      ranges: '',
+    })
+  })
+
+  it('configFor builds a pages config keeping ranges', () => {
+    expect(configFor('pages', '1-3')).toEqual({
+      lessonType: 'lesson',
+      by: 'pages',
+      ranges: '1-3',
+    })
+  })
+
+  it('configFor builds an exam config with empty ranges', () => {
+    expect(configFor('exam', '1-3')).toEqual({
+      lessonType: 'exam',
+      by: 'marker',
+      ranges: '',
+    })
+  })
+
+  it('splitToMeta round-trips per mode', () => {
+    expect(splitToMeta(configFor('marker', '1-3,5-6'))).toEqual({
+      lesson_type: 'lesson',
+      split: { by: 'marker' },
+    })
+    expect(splitToMeta(configFor('pages', '1-3,5-6'))).toEqual({
+      lesson_type: 'lesson',
+      split: { by: 'pages', ranges: [[1, 3], [5, 6]] },
+    })
+    expect(splitToMeta(configFor('exam', '1-3,5-6'))).toEqual({
+      lesson_type: 'exam',
+      split: { by: 'marker' },
+    })
   })
 })

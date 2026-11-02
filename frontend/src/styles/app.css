@@ -977,6 +977,137 @@ body {
 .page-style-field {
   margin-bottom: var(--space-2);
 }
+
+/* ── Split dialog ─────────────────────────────────────────── */
+.dialog-footer-note {
+  margin-right: auto;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  align-self: center;
+}
+
+.split-sub {
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.dialog-body .split-cards {
+  display: grid;
+  gap: 8px;
+  margin-bottom: var(--space-2);
+}
+
+.dialog-body .split-card {
+  position: relative;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text);
+}
+
+.dialog-body .split-card[data-checked='true'] {
+  border-color: var(--acc);
+  background: var(--acc-soft);
+}
+
+.dialog-body .split-card:has(input:focus-visible) {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.dialog-body .split-card input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.split-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}
+
+[data-checked='true'] .split-icon {
+  background: var(--acc);
+  color: var(--acc-ink);
+}
+
+.split-desc {
+  display: block;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.dialog-body fieldset.split-detail {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-2);
+  margin-bottom: var(--space-2);
+  min-height: 64px;
+}
+
+.split-detail .split-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.split-detail input.bad {
+  border-color: var(--err);
+}
+
+.split-error {
+  color: var(--err);
+  font-size: var(--fs-sm);
+  margin: 6px 0 0;
+}
+
+.split-warn {
+  background: var(--note-bg);
+  border-left: 3px solid var(--warn);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: var(--fs-sm);
+  margin: 8px 0 0;
+}
+
+.split-muted {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  margin: 6px 0 0;
+}
+
+.split-files {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.split-files small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.split-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
 .page-style-field input,
 .page-style-field select {
   min-width: 0;

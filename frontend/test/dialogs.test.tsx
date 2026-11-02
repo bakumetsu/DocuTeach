@@ -88,7 +88,7 @@ describe('SplitDialog', () => {
 
     render(<SplitDialog open onClose={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: 'By page ranges' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Lesson + Homework, by page ranges' }))
     const input = screen.getByLabelText('Page ranges')
     fireEvent.change(input, { target: { value: '1-3, 2-5' } })
 
@@ -108,7 +108,7 @@ describe('SplitDialog', () => {
 
     render(<SplitDialog open onClose={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: 'By page ranges' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Lesson + Homework, by page ranges' }))
     const input = screen.getByLabelText('Page ranges')
     fireEvent.change(input, { target: { value: '1-3, 5-8' } })
 

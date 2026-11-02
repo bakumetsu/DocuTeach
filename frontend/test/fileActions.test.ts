@@ -13,7 +13,7 @@ import {
   restoreCheckpoint,
   type Checkpoint,
 } from '../src/files/fileActions';
-import { openFile, saveFile, resetFileHandle } from '../src/files/fileio';
+import { openFile, saveFile } from '../src/files/fileio';
 import { askConfirm, askText } from '../src/ui/ConfirmHost';
 
 vi.mock('../src/files/fileio', () => ({
@@ -29,7 +29,6 @@ vi.mock('../src/ui/ConfirmHost', () => ({
 
 const mockedOpenFile = vi.mocked(openFile);
 const mockedSaveFile = vi.mocked(saveFile);
-const mockedResetFileHandle = vi.mocked(resetFileHandle);
 const mockedAskConfirm = vi.mocked(askConfirm);
 const mockedAskText = vi.mocked(askText);
 
@@ -49,6 +48,8 @@ beforeEach(() => {
     editor,
     fileName: 'lesson.md',
     dirty: false,
+    lessonId: 'draft',
+    lessonTitle: '',
   });
 });
 
@@ -63,9 +64,9 @@ describe('fileActions', () => {
     await newDocument();
 
     expect(docToMarkdown(editor)).toBe('# New lesson\n');
-    expect(useApp.getState().fileName).toBe('lesson.md');
+    expect(useApp.getState().fileName).toBe('New lesson.md');
     expect(useApp.getState().dirty).toBe(false);
-    expect(mockedResetFileHandle).toHaveBeenCalled();
+    expect(useApp.getState().lessonId).not.toBe('draft');
 
     const checkpoints = await api.docs.checkpoints.list('draft');
     const beforeOpen = checkpoints.find((cp) => cp.name === 'Before open');
@@ -74,19 +75,15 @@ describe('fileActions', () => {
     expect(beforeOpen?.markdown).toBe(oldMarkdown);
   });
 
-  it('newDocument with dirty=true and cancelled confirm changes nothing', async () => {
-    const oldMarkdown = docToMarkdown(editor);
+  it('newDocument never asks for a discard confirm because lessons autosave', async () => {
     useApp.setState({ dirty: true });
-    mockedAskConfirm.mockResolvedValue(false);
 
     await newDocument();
 
-    expect(docToMarkdown(editor)).toBe(oldMarkdown);
-    expect(useApp.getState().fileName).toBe('lesson.md');
-    expect(useApp.getState().dirty).toBe(true);
+    expect(mockedAskConfirm).not.toHaveBeenCalled();
 
     const checkpoints = await api.docs.checkpoints.list('draft');
-    expect(checkpoints.some((cp) => cp.name === 'Before open')).toBe(false);
+    expect(checkpoints.some((cp) => cp.name === 'Before open')).toBe(true);
   });
 
   it('openDocument loads the opened file and updates state', async () => {
@@ -97,6 +94,9 @@ describe('fileActions', () => {
     expect(docToMarkdown(editor)).toBe('# Opened\n');
     expect(useApp.getState().fileName).toBe('x.md');
     expect(useApp.getState().dirty).toBe(false);
+
+    const lessons = await api.lessons.list();
+    expect(lessons.some((l) => l.title === 'x')).toBe(true);
   });
 
   it('restoreCheckpoint can be undone with one undo', async () => {

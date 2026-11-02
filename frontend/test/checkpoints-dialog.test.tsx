@@ -14,6 +14,7 @@ vi.mock('../src/api', () => ({
         list: vi.fn(),
         create: vi.fn(),
         remove: vi.fn(),
+        restore: vi.fn(),
       },
     },
   },
@@ -84,7 +85,7 @@ describe('CheckpointsDialog', () => {
     fireEvent.click(screen.getByText('Undo'));
 
     await waitFor(() => {
-      expect(api.docs.checkpoints.create).toHaveBeenCalledWith('draft', 'First', '# A');
+      expect(api.docs.checkpoints.restore).toHaveBeenCalledWith('draft', '1');
       expect(screen.getByText('First')).toBeTruthy();
     });
   });

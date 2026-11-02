@@ -13,10 +13,12 @@ import { kvInit } from './api/kv'
 async function main() {
   try {
     await kvInit()
+    const { bootstrapLesson } = await import('./files/lessons')
+    await bootstrapLesson()
   } catch {
     createRoot(document.getElementById('root')!).render(
       <>
-        <p>Could not load your saved lessons.</p>
+        <p>Could not load your lessons.</p>
         <button onClick={() => location.reload()}>Retry</button>
       </>,
     )

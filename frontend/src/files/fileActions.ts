@@ -1,8 +1,9 @@
 import { useApp } from '../state/store';
 import { docToMarkdown, replaceDocument } from '../editor/docio';
-import { openFile, saveFile, resetFileHandle } from './fileio';
+import { saveFile } from './fileio';
 import { askConfirm, askText } from '../ui/ConfirmHost';
 import { api } from '../api';
+import { createLesson, importMarkdownAsLesson } from './lessons';
 
 export interface Checkpoint {
   id: string;
@@ -11,52 +12,14 @@ export interface Checkpoint {
   markdown: string;
 }
 
-async function createBeforeOpenCheckpoint(): Promise<void> {
-  const { editor } = useApp.getState();
-  if (!editor) return;
-  await api.docs.checkpoints.create('draft', 'Before open', docToMarkdown(editor));
-}
-
 export async function newDocument(): Promise<void> {
-  const { editor, dirty, setDirty, setFileName, showToast } = useApp.getState();
-  if (!editor) {
-    showToast('No document');
-    return;
-  }
-
-  if (dirty) {
-    const ok = await askConfirm('Discard unsaved changes?', 'Discard');
-    if (!ok) return;
-  }
-
-  await createBeforeOpenCheckpoint();
-  replaceDocument(editor, '# New lesson\n');
-  resetFileHandle();
-  setFileName('lesson.md');
-  setDirty(false);
-  showToast('New document (Before open checkpoint kept)');
+  await createLesson();
+  useApp.getState().showToast('New lesson');
 }
 
 export async function openDocument(): Promise<void> {
-  const { editor, dirty, setDirty, setFileName, setWarnings, showToast } = useApp.getState();
-  if (!editor) {
-    showToast('No document');
-    return;
-  }
-
-  if (dirty) {
-    const ok = await askConfirm('Discard unsaved changes?', 'Discard');
-    if (!ok) return;
-  }
-
-  const opened = await openFile();
-  if (!opened) return;
-
-  await createBeforeOpenCheckpoint();
-  const warnings = replaceDocument(editor, opened.text);
-  setWarnings(warnings);
-  setFileName(opened.name);
-  setDirty(false);
+  const ok = await importMarkdownAsLesson();
+  if (ok) useApp.getState().showToast('Imported as a new lesson');
 }
 
 export async function saveDocument(forceAs = false): Promise<void> {
@@ -75,7 +38,7 @@ export async function saveDocument(forceAs = false): Promise<void> {
 }
 
 export async function saveCheckpoint(): Promise<void> {
-  const { editor, showToast } = useApp.getState();
+  const { editor, lessonId, showToast } = useApp.getState();
   if (!editor) {
     showToast('No document');
     return;
@@ -89,14 +52,14 @@ export async function saveCheckpoint(): Promise<void> {
   const name = await askText('Save checkpoint', 'Name', defaultName);
   if (!name) return;
 
-  const list = await api.docs.checkpoints.list('draft');
+  const list = await api.docs.checkpoints.list(lessonId);
   const nonExempt = list.filter((cp) => cp.name !== 'Before open');
   if (nonExempt.length >= 50) {
     const ok = await askConfirm('The oldest checkpoint will be removed. Continue?');
     if (!ok) return;
   }
 
-  await api.docs.checkpoints.create('draft', name, docToMarkdown(editor));
+  await api.docs.checkpoints.create(lessonId, name, docToMarkdown(editor));
   showToast('Checkpoint saved');
 }
 

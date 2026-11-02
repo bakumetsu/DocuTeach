@@ -20,10 +20,10 @@ const MENUS: MenuDef[] = [
   {
     label: 'File',
     items: [
-      { label: 'New', id: 'file.new' },
-      { label: 'Open…', id: 'file.open' },
-      { label: 'Save', id: 'file.save' },
-      { label: 'Save as…', id: 'file.saveAs' },
+      { label: 'New lesson', id: 'file.new' },
+      { label: 'Lessons…', id: 'file.lessons' },
+      { label: 'Import .md…', id: 'file.open' },
+      { label: 'Export .md…', id: 'file.saveAs' },
       { label: 'Page style…', id: 'tools.pageStyle' },
       { label: 'Split into files…', id: 'file.split' },
     ],

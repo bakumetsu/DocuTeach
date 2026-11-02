@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { api } from '../api';
 import type { ModelInfo, ModelState, SkillInfo, ChatMessage, ChatRequest, ChatRecord } from '../api/types';
 import { runPageSkill } from './pageBridge';
+import { useApp } from '../state/store';
 
 export interface Chat {
   id: string;
@@ -38,6 +39,7 @@ interface ChatState {
   stop: (chatId: string) => void;
   flushCache: (chatId: string) => void;
   persist: () => void;
+  abortAll: () => void;
 }
 
 // ── module-level state ──────────────────────────────────────────────
@@ -63,19 +65,23 @@ function matchSkill(text: string, skills: SkillInfo[]): { skill: string; rest: s
 
 // ── store ───────────────────────────────────────────────────────────
 export const useChats = create<ChatState>()((set, get) => {
+  // Map current chats to the persisted shape
+  function toRecords(): ChatRecord[] {
+    return get().chats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      model: c.model,
+      messages: c.messages,
+      refs: c.refs,
+    }));
+  }
+
   // Debounced persist helper (module-level timer)
   function schedulePersist() {
     if (persistTimer) clearTimeout(persistTimer);
+    const lessonId = useApp.getState().lessonId;
     persistTimer = setTimeout(() => {
-      const { chats } = get();
-      const records: ChatRecord[] = chats.map((c) => ({
-        id: c.id,
-        name: c.name,
-        model: c.model,
-        messages: c.messages,
-        refs: c.refs,
-      }));
-      void api.chats.save('draft', records);
+      void api.chats.save(lessonId, toRecords());
     }, 400);
   }
 
@@ -123,7 +129,7 @@ export const useChats = create<ChatState>()((set, get) => {
       const [models, skills, storedChats] = await Promise.all([
         api.models.list(),
         api.skills.list(),
-        api.chats.load('draft'),
+        api.chats.load(useApp.getState().lessonId),
       ]);
 
       const currentModel = (await api.models.current()) ?? models[0]?.id ?? '';
@@ -398,7 +404,7 @@ export const useChats = create<ChatState>()((set, get) => {
             case 'status':
               set((s) => ({
                 chats: s.chats.map((c) =>
-                  c.id === chatId ? { ...c, phase: ev.status } : c,
+                  c.id === chatId ? { ...c, phase: ev.status === 'thinking' ? 'generating' : ev.status } : c,
                 ),
               }));
               break;
@@ -479,6 +485,23 @@ export const useChats = create<ChatState>()((set, get) => {
 
     persist() {
       schedulePersist();
+    },
+
+    abortAll() {
+      const lessonId = useApp.getState().lessonId;
+      if (persistTimer) {
+        clearTimeout(persistTimer);
+        persistTimer = null;
+        void api.chats.save(lessonId, toRecords());
+      }
+      for (const [id, ctrl] of controllers) {
+        ctrl.abort();
+        controllers.delete(id);
+        void api.chats.release(id);
+      }
+      set((s) => ({
+        chats: s.chats.map((c) => ({ ...c, phase: 'idle' as const })),
+      }));
     },
   };
 });

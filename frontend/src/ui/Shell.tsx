@@ -10,6 +10,7 @@ import { PageStyleDialog } from './dialogs/PageStyleDialog';
 import { SplitDialog } from './dialogs/SplitDialog';
 import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
 import { CheckpointsDialog } from './dialogs/CheckpointsDialog';
+import { LessonsDialog } from './dialogs/LessonsDialog';
 import { ConfirmHost } from './ConfirmHost';
 import { installGlobalKeys } from '../editor/globalKeys';
 import { revert, redo } from '../editor/history';
@@ -68,6 +69,9 @@ export function Shell() {
       switch (id) {
         case 'file.new':
           newDocument();
+          break;
+        case 'file.lessons':
+          setDialog('lessons');
           break;
         case 'file.open':
           openDocument();
@@ -206,6 +210,7 @@ export function Shell() {
       <ShortcutsDialog open={dialog === 'shortcuts'} onClose={() => setDialog(null)} />
       <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
       <CheckpointsDialog open={dialog === 'checkpoints'} onClose={() => setDialog(null)} />
+      <LessonsDialog open={dialog === 'lessons'} onClose={() => setDialog(null)} />
       <ConfirmHost />
     </div>
   );

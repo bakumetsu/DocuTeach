@@ -38,6 +38,7 @@ export function Dialog({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        if (event.target instanceof HTMLElement && event.target.dataset.ownsEscape === 'true') return
         onClose()
         return
       }

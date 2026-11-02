@@ -24,7 +24,7 @@ export function startAutosave(editor: Editor, opts?: { delayMs?: number }): () =
   const save = async (): Promise<void> => {
     useApp.getState().setSaveState({ kind: 'saving' })
     try {
-      await api.docs.save('draft', docToMarkdown(editor))
+      await api.docs.save(useApp.getState().lessonId, docToMarkdown(editor))
       useApp.getState().setSaveState({ kind: 'saved', at: formatTime(new Date()) })
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)
@@ -76,7 +76,7 @@ export async function flushAutosave(editor: Editor): Promise<void> {
 
   useApp.getState().setSaveState({ kind: 'saving' })
   try {
-    await api.docs.save('draft', docToMarkdown(editor))
+    await api.docs.save(useApp.getState().lessonId, docToMarkdown(editor))
     useApp.getState().setSaveState({ kind: 'saved', at: formatTime(new Date()) })
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)

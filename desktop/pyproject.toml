@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 100
+
+[tool.pyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+include = ["."]
+exclude = [".venv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

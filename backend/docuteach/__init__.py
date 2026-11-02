@@ -1,0 +1,1 @@
+"""DocuTeach backend package."""

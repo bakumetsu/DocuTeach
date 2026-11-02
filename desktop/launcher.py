@@ -103,19 +103,33 @@ def _fatal(message: str, log_path: Path) -> int:
     return 1
 
 
-def _on_closing(window: Any) -> None:
-    try:
-        window.evaluate_js("window.__docuteachFlush()")
-    except Exception:
-        pass
-    deadline = time.monotonic() + 3.0
-    while time.monotonic() < deadline:
-        try:
-            if window.evaluate_js("window.__docuteachFlushed===true"):
-                return
-        except Exception:
-            pass
-        time.sleep(0.1)
+_closing_state: dict[str, bool] = {"flushed": False, "started": False}
+
+
+def _on_closing(window: Any) -> bool:
+    if _closing_state["flushed"]:
+        return True
+    if not _closing_state["started"]:
+        _closing_state["started"] = True
+
+        def _flush_and_destroy() -> None:
+            try:
+                window.evaluate_js("window.__docuteachFlush()")
+            except Exception:
+                pass
+            deadline = time.monotonic() + 3.0
+            while time.monotonic() < deadline:
+                try:
+                    if window.evaluate_js("window.__docuteachFlushed===true"):
+                        break
+                except Exception:
+                    pass
+                time.sleep(0.1)
+            _closing_state["flushed"] = True
+            window.destroy()
+
+        threading.Thread(target=_flush_and_destroy, daemon=True).start()
+    return False
 
 
 def _run_webview(url: str, profile_dir: Path, log: logging.Logger) -> int:
@@ -151,11 +165,7 @@ def _selftest() -> int:
         os.environ[DOCUTEACH_HOME_ENV] = tmp
         home = Path(tmp)
 
-        web_dir = home / "web"
-        web_dir.mkdir()
-        (web_dir / "index.html").write_text("<html><head></head><body></body></html>")
-        (web_dir / "sample").mkdir()
-        (web_dir / "sample" / "lesson.md").write_text("# Test\n")
+        web_dir = _web_dir()
 
         data_dir = home / "data"
         data_dir.mkdir()

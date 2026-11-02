@@ -4,6 +4,7 @@ import { useChats } from './chatStore';
 import { ChatTabs } from './ChatTabs';
 import { ChatView } from './ChatView';
 import { SkillsTab } from './SkillsTab';
+import { OfflineNotice } from './OfflineNotice';
 
 export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
   const models = useChats((s) => s.models);
@@ -29,6 +30,7 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
 
   return (
     <div className="assistant-body">
+      <OfflineNotice />
       {/* Pane tabs */}
       <div className="pane-tabs" role="tablist" aria-label="Pane tabs">
         <button

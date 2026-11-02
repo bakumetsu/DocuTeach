@@ -73,7 +73,7 @@ a = Analysis(
     noarchive=False,
 )
 
-pyz = a.pyz()  # type: ignore[attr-defined]
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,

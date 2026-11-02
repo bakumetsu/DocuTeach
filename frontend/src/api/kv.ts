@@ -17,6 +17,12 @@ interface KeyState {
 
 const store = new Map<string, string>()
 const keyStates = new Map<string, KeyState>()
+const flushHooks = new Set<() => Promise<void>>()
+
+export function onFlush(fn: () => Promise<void>): () => void {
+  flushHooks.add(fn)
+  return () => { flushHooks.delete(fn) }
+}
 
 export function isStoreMode(): boolean {
   return _token.length > 0
@@ -147,8 +153,9 @@ declare global {
 
 window.__docuteachFlushed = false
 
-window.__docuteachFlush = (): Promise<void> => {
+window.__docuteachFlush = async (): Promise<void> => {
   window.__docuteachFlushed = false
+  await Promise.allSettled([...flushHooks].map((h) => h()))
   const promises: Promise<void>[] = []
   for (const [key, s] of keyStates) {
     if (s.debounceTimer !== null) {
@@ -164,9 +171,8 @@ window.__docuteachFlush = (): Promise<void> => {
     }
     if (s.inFlight !== null) promises.push(s.inFlight)
   }
-  return Promise.all(promises).then(() => {
-    window.__docuteachFlushed = true
-  })
+  await Promise.all(promises)
+  window.__docuteachFlushed = true
 }
 
 document.addEventListener('visibilitychange', () => {

@@ -198,4 +198,27 @@ describe('kv — store mode (meta token present)', () => {
 
     window.removeEventListener('docuteach:save-error', listener)
   })
+
+  it('onFlush hook runs before pending values are flushed', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { kvSet, onFlush } = await import('../src/api/kv')
+
+    onFlush(async () => {
+      kvSet('hooked', 'v')
+    })
+
+    const flushPromise = window.__docuteachFlush()
+    await vi.runOnlyPendingTimersAsync()
+    await flushPromise
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_store/hooked',
+      expect.objectContaining({ method: 'PUT' })
+    )
+    expect(window.__docuteachFlushed).toBe(true)
+  })
 })

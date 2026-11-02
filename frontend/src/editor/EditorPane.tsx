@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import type { Editor } from '@tiptap/core';
 import { useApp } from '../state/store';
 import { buildEditorExtensions } from './extensions-ui';
 import { installPageHandlers } from './pageHandlers';
@@ -45,6 +46,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
   const meta = useApp((s) => s.docMeta);
   const prevMeta = useRef(meta);
   const stopAutosave = useRef<(() => void) | null>(null);
+  const createdEditor = useRef<Editor | null>(null);
 
   const editor = useEditor({
     extensions: buildEditorExtensions({
@@ -56,6 +58,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
       attributes: { class: 'page-content', spellcheck: 'true' },
     },
     onCreate: ({ editor: created }) => {
+      createdEditor.current = created;
       useApp.getState().setEditor(created);
       useApp.getState().setWarnings(initialJson.warnings);
       stopAutosave.current = startAutosave(created);
@@ -70,7 +73,10 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     onDestroy: () => {
       stopAutosave.current?.();
       stopAutosave.current = null;
-      useApp.getState().setEditor(null);
+      if (useApp.getState().editor === createdEditor.current) {
+        useApp.getState().setEditor(null);
+      }
+      createdEditor.current = null;
     },
   });
 

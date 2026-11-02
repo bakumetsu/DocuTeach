@@ -172,6 +172,29 @@ window.__docuteachFlush = async (): Promise<void> => {
     if (s.inFlight !== null) promises.push(s.inFlight)
   }
   await Promise.all(promises)
+  for (let round = 0; round < 5; round++) {
+    let hasWork = false
+    const followUps: Promise<void>[] = []
+    for (const [key, s] of keyStates) {
+      if (s.debounceTimer !== null) {
+        clearTimeout(s.debounceTimer)
+        s.debounceTimer = null
+      }
+      if (s.pending !== null || s.inFlight !== null) {
+        hasWork = true
+        if (s.pending !== null && s.inFlight === null) {
+          const op = s.pending
+          s.pending = null
+          s.inFlight = doSend(key, op).finally(() => {
+            s.inFlight = null
+          })
+        }
+        if (s.inFlight !== null) followUps.push(s.inFlight)
+      }
+    }
+    if (!hasWork) break
+    await Promise.all(followUps)
+  }
   window.__docuteachFlushed = true
 }
 

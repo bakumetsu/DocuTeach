@@ -48,7 +48,14 @@ def make_server(
                 self.wfile.write(body)
 
         def _read_body(self) -> bytes | None:
-            length = int(self.headers.get("Content-Length", "0"))
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                self._respond(400, b"bad content-length")
+                return None
+            if length < 0:
+                self._respond(400, b"bad content-length")
+                return None
             if length > MAX_BODY:
                 self._respond(413, b"payload too large")
                 return None

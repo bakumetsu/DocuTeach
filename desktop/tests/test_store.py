@@ -102,7 +102,8 @@ class TestAtomicWrite:
         with pytest.raises(RuntimeError, match="simulated crash"):
             store.put(key, "new content", 2)
 
-        # Original was moved to .bak before _replace was called
+        # The live file must survive the crash unchanged, and .bak holds a copy
+        assert json.loads(path.read_text(encoding="utf-8"))["value"] == "old content"
         bak = path.with_name(path.name + ".bak")
         assert bak.is_file()
         data = json.loads(bak.read_text(encoding="utf-8"))

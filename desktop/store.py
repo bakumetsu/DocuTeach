@@ -5,6 +5,7 @@ from __future__ import annotations
 import errno
 import json
 import os
+import shutil
 import sys
 import threading
 import time
@@ -75,10 +76,16 @@ class Store:
             if path.is_file():
                 bak_path = path.with_name(path.name + ".bak")
                 try:
-                    os.replace(path, bak_path)
+                    shutil.copy2(path, bak_path)
                 except OSError:
                     pass
-            self._replace(tmp_path, path)
+            try:
+                self._replace(tmp_path, path)
+            except OSError as e:
+                tmp_path.unlink(missing_ok=True)
+                if e.errno == _ENOSPC:
+                    raise StoreFull(str(e)) from e
+                raise
             self._last_seq[key] = seq
             return "ok"
 

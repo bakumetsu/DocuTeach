@@ -14,11 +14,15 @@ import tempfile
 import threading
 import time
 import webbrowser
-from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from server import make_server
+if not hasattr(sys, "_MEIPASS"):  # type: ignore[attr-defined]
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+
+from docuteach.config import Settings
+
+from server import BackendServer, bind_loopback, build_app
 from store import InstanceLock, Store
 
 try:
@@ -64,6 +68,22 @@ def _web_dir() -> Path:
     if hasattr(sys, "_MEIPASS"):  # type: ignore[attr-defined]
         return Path(sys._MEIPASS) / "web"  # type: ignore[attr-defined]
     return Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+
+def _make_backend(
+    data_dir: Path, log_dir: Path, web_dir: Path, token: str
+) -> tuple[BackendServer, int]:
+    sock = bind_loopback()
+    port = sock.getsockname()[1]
+    settings = Settings(data_dir=data_dir.parent, log_dir=log_dir, token=token, port=port)
+    store = Store(data_dir)
+    server = BackendServer(build_app(settings, store, web_dir))
+    try:
+        server.start(sock)
+    except Exception:
+        sock.close()
+        raise
+    return server, port
 
 
 def _setup_logging(log_path: Path) -> None:
@@ -145,7 +165,7 @@ def _run_webview(url: str, profile_dir: Path, log: logging.Logger) -> int:
     return 0
 
 
-def _run_browser(url: str, server: ThreadingHTTPServer, lock: InstanceLock) -> int:
+def _run_browser(url: str, server: BackendServer, lock: InstanceLock) -> int:
     webbrowser.open(url)
 
     def _block() -> None:
@@ -154,8 +174,7 @@ def _run_browser(url: str, server: ThreadingHTTPServer, lock: InstanceLock) -> i
     t = threading.Thread(target=_block, daemon=True)
     t.start()
     t.join()
-    server.shutdown()
-    server.server_close()
+    server.stop()
     lock.release()
     return 0
 
@@ -169,14 +188,10 @@ def _selftest() -> int:
 
         data_dir = home / "data"
         data_dir.mkdir()
-        store = Store(data_dir)
         token = secrets.token_urlsafe(32)
 
-        server = make_server(web_dir, store, token, port=0)
-        port = server.server_port
+        server, port = _make_backend(data_dir, home / "logs", web_dir, token)
         host = f"127.0.0.1:{port}"
-        t = threading.Thread(target=server.serve_forever, daemon=True)
-        t.start()
 
         try:
             # 1 – GET / contains token meta
@@ -231,9 +246,34 @@ def _selftest() -> int:
             if r.status != 403:
                 print(f"selftest fail: GET /_store no-token status={r.status}")
                 return 1
+
+            # 5 – GET /api/status with token -> 200, json has "version"
+            c = http.client.HTTPConnection("127.0.0.1", port)
+            c.request(
+                "GET", "/api/status",
+                headers={"X-DocuTeach-Token": token, "Host": host},
+            )
+            r = c.getresponse()
+            status_data = json.loads(r.read().decode())
+            c.close()
+            if r.status != 200 or "version" not in status_data:
+                print(f"selftest fail: GET /api/status status={r.status}")
+                return 1
+
+            # 6 – GET /api/lessons with token -> 200
+            c = http.client.HTTPConnection("127.0.0.1", port)
+            c.request(
+                "GET", "/api/lessons",
+                headers={"X-DocuTeach-Token": token, "Host": host},
+            )
+            r = c.getresponse()
+            r.read()
+            c.close()
+            if r.status != 200:
+                print(f"selftest fail: GET /api/lessons status={r.status}")
+                return 1
         finally:
-            server.shutdown()
-            server.server_close()
+            server.stop()
 
     print("selftest ok")
     return 0
@@ -261,19 +301,16 @@ def main(argv: list[str]) -> int:
         lock.release()
         return _fatal(f"Store directory not writable: {e}", log_path)
 
-    store = Store(data_dir)
     token = secrets.token_urlsafe(32)
     web_dir = _web_dir()
 
     try:
-        server = make_server(web_dir, store, token, port=0)
-    except OSError as e:
+        server, port = _make_backend(data_dir, log_path.parent, web_dir, token)
+    except Exception as e:
         lock.release()
-        return _fatal(f"Failed to bind server: {e}", log_path)
+        return _fatal(f"Failed to start the backend: {e}", log_path)
 
-    port = server.server_port
     url = f"http://127.0.0.1:{port}/"
-    threading.Thread(target=server.serve_forever, daemon=True).start()
 
     rc: int
     if webview_installed():
@@ -287,8 +324,7 @@ def main(argv: list[str]) -> int:
         rc = _run_browser(url, server, lock)
         return rc
 
-    server.shutdown()
-    server.server_close()
+    server.stop()
     lock.release()
     return rc
 

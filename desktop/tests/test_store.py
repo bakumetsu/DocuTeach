@@ -5,15 +5,15 @@ from __future__ import annotations
 import errno
 import http.client
 import json
-import threading
 import urllib.parse
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 import pytest
+from docuteach.config import Settings
 
-from server import make_server
+from server import BackendServer, bind_loopback, build_app
 from store import InstanceLock, Store
 
 # ---------------------------------------------------------------------------
@@ -51,13 +51,13 @@ def token() -> str:
 def server_ctx(
     tmp_path: Path, web_dir: Path, store: Store, token: str
 ) -> Generator[dict[str, Any], None, None]:
-    server = make_server(web_dir, store, token, port=0)
-    port = server.server_address[1]
-    t = threading.Thread(target=server.serve_forever, daemon=True)
-    t.start()
-    yield {"server": server, "port": port, "token": token, "store": store, "web_dir": web_dir}
-    server.shutdown()
-    server.server_close()
+    sock = bind_loopback()
+    port = sock.getsockname()[1]
+    settings = Settings(data_dir=tmp_path, log_dir=tmp_path / "logs", token=token, port=port)
+    srv = BackendServer(build_app(settings, store, web_dir))
+    srv.start(sock)
+    yield {"server": srv, "port": port, "token": token, "store": store, "web_dir": web_dir}
+    srv.stop()
 
 
 def _req(

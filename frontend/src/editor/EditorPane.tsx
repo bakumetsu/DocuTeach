@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import type { Editor } from '@tiptap/core';
 import { useApp } from '../state/store';
 import { buildEditorExtensions } from './extensions-ui';
 import { installPageHandlers } from './pageHandlers';
@@ -46,7 +45,6 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
   const meta = useApp((s) => s.docMeta);
   const prevMeta = useRef(meta);
   const stopAutosave = useRef<(() => void) | null>(null);
-  const createdEditor = useRef<Editor | null>(null);
 
   const editor = useEditor({
     extensions: buildEditorExtensions({
@@ -57,12 +55,6 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     editorProps: {
       attributes: { class: 'page-content', spellcheck: 'true' },
     },
-    onCreate: ({ editor: created }) => {
-      createdEditor.current = created;
-      useApp.getState().setEditor(created);
-      useApp.getState().setWarnings(initialJson.warnings);
-      stopAutosave.current = startAutosave(created);
-    },
     onTransaction: ({ editor: current }) => {
       const m = current?.state.doc.attrs.meta;
       if (m !== prevMeta.current) {
@@ -70,15 +62,19 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
         useApp.getState().setDocMeta(m);
       }
     },
-    onDestroy: () => {
+  });
+
+  useEffect(() => {
+    if (!editor) return;
+    useApp.getState().setEditor(editor);
+    useApp.getState().setWarnings(initialJson.warnings);
+    stopAutosave.current = startAutosave(editor);
+    return () => {
       stopAutosave.current?.();
       stopAutosave.current = null;
-      if (useApp.getState().editor === createdEditor.current) {
-        useApp.getState().setEditor(null);
-      }
-      createdEditor.current = null;
-    },
-  });
+      if (useApp.getState().editor === editor) useApp.getState().setEditor(null);
+    };
+  }, [editor, initialJson]);
 
   useEffect(() => {
     if (!editor) return;

@@ -22,6 +22,8 @@
   --badge-planned-bg: #e9ecef;
   --badge-planned-fg: #495057;
   --page-bg: #ffffff;
+  --page-text: #1f2937;
+  --page-subtle: #f3f4f6;
   --shadow: 0 6px 24px rgba(60, 50, 140, 0.14);
   --shadow-sm: 0 2px 8px rgba(60, 50, 140, 0.10);
   --backdrop: rgba(20, 20, 50, 0.4);
@@ -66,6 +68,8 @@
   --badge-planned-bg: #2b2b4a;
   --badge-planned-fg: #c4c4e6;
   --page-bg: #ffffff;
+  --page-text: #1f2937;
+  --page-subtle: #f3f4f6;
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --backdrop: rgba(0, 0, 0, 0.6);

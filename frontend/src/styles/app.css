@@ -921,3 +921,63 @@ body {
   font-size: var(--fs-sm);
   cursor: pointer;
 }
+
+/* ── Dialog layout ────────────────────────────────────────── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: var(--backdrop);
+  padding: var(--space-2);
+}
+.dialog {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dialog-body {
+  overflow-y: auto;
+}
+.dialog-header {
+  padding: var(--space-2) var(--space-3) 0;
+}
+.dialog-header h2 {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-title);
+}
+.dialog-body fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.page-style-field {
+  margin-bottom: var(--space-2);
+}
+.page-style-field input,
+.page-style-field select {
+  min-width: 0;
+}
+.page-style-preview {
+  margin: var(--space-2) 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--page-bg);
+  color: var(--page-text, var(--text));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+}
+.page-style-actions button {
+  min-height: var(--target);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+}

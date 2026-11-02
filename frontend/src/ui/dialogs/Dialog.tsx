@@ -82,6 +82,7 @@ export function Dialog({
               <button
                 type="button"
                 ref={primaryButtonRef}
+                className="primary"
                 onClick={onOk}
                 disabled={okDisabled}
               >

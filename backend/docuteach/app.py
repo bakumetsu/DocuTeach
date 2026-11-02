@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from docuteach.api import chats_store, checkpoints, docs, lessons, status
+from docuteach.api import chats_store, checkpoints, docs, export, lessons, status
+from docuteach.api.export import ExportGate
 from docuteach.config import Settings, check_local_llm
 from docuteach.errors import install_error_handlers
 from docuteach.logs import RequestLogMiddleware, close_logging, setup_logging
@@ -32,6 +33,7 @@ def create_app(settings: Settings) -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.state.library = library
     app.state.settings = settings
+    app.state.export_gate = ExportGate()
     hooks: list[Callable[[], None]] = []
     hooks.append(lambda: close_logging(settings.log_dir))
     app.state.shutdown_hooks = hooks
@@ -55,6 +57,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(docs.router, prefix="/api")
     app.include_router(checkpoints.router, prefix="/api")
     app.include_router(chats_store.router, prefix="/api")
+    app.include_router(export.router, prefix="/api")
     app.include_router(status.router, prefix="/api")
 
     # Middleware: last-added is outermost.

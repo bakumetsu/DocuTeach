@@ -11,6 +11,8 @@ dependencies = [
     "pyyaml",
     "markdown-it-py",
     "anyio",
+    "typst",
+    "pypdf",
 ]
 
 [project.optional-dependencies]

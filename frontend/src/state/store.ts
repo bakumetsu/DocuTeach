@@ -5,6 +5,7 @@ import type { Meta } from '../markdown/frontmatter'
 import { EMPTY_META } from '../markdown/frontmatter'
 
 type Theme = 'light' | 'dark'
+type Background = 'gradient' | 'flat'
 type View = 'edit' | 'student' | 'teacher'
 type Dialog = null | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints'
 type SaveState =
@@ -15,6 +16,7 @@ type SaveState =
 
 interface AppState {
   theme: Theme
+  background: Background
   view: View
   assistantWidth: number
   assistantCollapsed: boolean
@@ -27,6 +29,7 @@ interface AppState {
   docMeta: Meta
   dialog: Dialog
   setTheme: (t: Theme) => void
+  setBackground: (b: Background) => void
   setView: (v: View) => void
   setAssistantWidth: (w: number) => void
   setAssistantCollapsed: (c: boolean) => void
@@ -47,6 +50,7 @@ let toastTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useApp = create<AppState>((set) => ({
   theme: loadJson<Theme>('theme', 'light'),
+  background: loadJson<Background>('background', 'gradient'),
   view: 'edit',
   assistantWidth: loadJson<number>('assistantWidth', 380),
   assistantCollapsed: loadJson<boolean>('assistantCollapsed', false),
@@ -63,6 +67,11 @@ export const useApp = create<AppState>((set) => ({
     document.documentElement.dataset.theme = t
     saveJson('theme', t)
     set({ theme: t })
+  },
+  setBackground: (b) => {
+    document.documentElement.dataset.bg = b
+    saveJson('background', b)
+    set({ background: b })
   },
   setView: (v) => set({ view: v }),
   setAssistantWidth: (w) => {
@@ -97,4 +106,6 @@ export const useApp = create<AppState>((set) => ({
 export function initTheme(): void {
   const t = loadJson<Theme>('theme', 'light')
   document.documentElement.dataset.theme = t
+  const bg = loadJson<Background>('background', 'gradient')
+  document.documentElement.dataset.bg = bg
 }

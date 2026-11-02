@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { ChevronsRight, ChevronsLeft } from 'lucide-react';
+import { ChevronsLeft } from 'lucide-react';
 import { useApp, initTheme } from '../state/store';
 import { MenuBar } from './MenuBar';
 import { Toolbar } from './Toolbar';
@@ -149,11 +149,7 @@ export function Shell() {
 
   return (
     <div className="shell">
-      <div className="topbars">
-        <MenuBar onAction={handleMenuAction} />
-        <Toolbar />
-        <ViewTabs />
-      </div>
+      <div className="topbars"><MenuBar onAction={handleMenuAction} /><div className="island"><ViewTabs /><Toolbar /></div></div>
 
       <div className="workspace">
         <div className="doc-pane" ref={docPaneRef}>
@@ -176,21 +172,12 @@ export function Shell() {
           className={`assistant-pane${assistantCollapsed ? ' collapsed' : ''}`}
           style={{ width: assistantCollapsed ? undefined : assistantWidth }}
         >
-          <div className="pane-header">
-            <span>Assistant</span>
-            <button
-              className="icon-btn"
-              aria-label={assistantCollapsed ? 'Expand assistant' : 'Collapse assistant'}
-              onClick={toggleCollapse}
-            >
-              {assistantCollapsed ? (
-                <ChevronsLeft size={16} />
-              ) : (
-                <ChevronsRight size={16} />
-              )}
-            </button>
-          </div>
-          {!assistantCollapsed && <AssistantPane />}
+          {assistantCollapsed ? (
+            <button className="icon-btn" aria-label="Expand assistant" onClick={toggleCollapse}><ChevronsLeft size={16} /></button>
+          ) : (
+            <AssistantPane onCollapse={toggleCollapse} />
+          )}
+
         </div>
       </div>
 

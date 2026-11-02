@@ -55,11 +55,6 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     editorProps: {
       attributes: { class: 'page-content', spellcheck: 'true' },
     },
-    onCreate: ({ editor: created }) => {
-      useApp.getState().setEditor(created);
-      useApp.getState().setWarnings(initialJson.warnings);
-      stopAutosave.current = startAutosave(created);
-    },
     onTransaction: ({ editor: current }) => {
       const m = current?.state.doc.attrs.meta;
       if (m !== prevMeta.current) {
@@ -67,12 +62,19 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
         useApp.getState().setDocMeta(m);
       }
     },
-    onDestroy: () => {
+  });
+
+  useEffect(() => {
+    if (!editor) return;
+    useApp.getState().setEditor(editor);
+    useApp.getState().setWarnings(initialJson.warnings);
+    stopAutosave.current = startAutosave(editor);
+    return () => {
       stopAutosave.current?.();
       stopAutosave.current = null;
-      useApp.getState().setEditor(null);
-    },
-  });
+      if (useApp.getState().editor === editor) useApp.getState().setEditor(null);
+    };
+  }, [editor, initialJson]);
 
   useEffect(() => {
     if (!editor) return;

@@ -167,6 +167,16 @@ export function ChatView() {
           </div>
         ))}
 
+        {chat.messages.length === 0 && !isStreaming && (
+          <div className="chat-empty">
+            <p>Ask about your lesson, or pick a skill.</p>
+            <div className="chat-empty-chips">
+              <button className="chip-btn" onClick={() => handlePick('/ccq')}>/ccq</button>
+              <button className="chip-btn" onClick={() => handlePick('/drills')}>/drills</button>
+              <button className="chip-btn" onClick={() => handlePick('/pitfalls')}>/pitfalls</button>
+            </div>
+          </div>
+        )}
         {chat.phase === 'swapping' && (
           <div className="msg assistant">
             <span className="phase-line">Loading model…</span>

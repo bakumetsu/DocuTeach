@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
-import { Loader2, Eraser } from 'lucide-react';
+import { Loader2, Eraser, ChevronsRight } from 'lucide-react';
 import { useChats } from './chatStore';
 import { ChatTabs } from './ChatTabs';
 import { ChatView } from './ChatView';
 import { SkillsTab } from './SkillsTab';
 
-export function AssistantPane() {
+export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
   const models = useChats((s) => s.models);
   const modelStatus = useChats((s) => s.modelStatus);
   const chats = useChats((s) => s.chats);
@@ -29,45 +29,6 @@ export function AssistantPane() {
 
   return (
     <div className="assistant-body">
-      {/* Header strip */}
-      <div className="assistant-header">
-        <select
-          className="model-select"
-          aria-label="Model"
-          value={chat.model}
-          onChange={(e) => void selectModel(activeId, e.target.value)}
-        >
-          {models.map((m) => (
-            <option key={m.id} value={m.id} disabled={modelStatus[m.id]?.status === 'loading'}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-
-        {ms?.status === 'loading' && (
-          <span className="spin" aria-label="Loading model">
-            <Loader2 size={14} />
-          </span>
-        )}
-
-        {ms?.status === 'failed' && (
-          <span className="model-error">
-            <span>{ms.error}</span>
-            <button className="retry-btn" onClick={() => retryModel(activeId)}>
-              Retry
-            </button>
-          </span>
-        )}
-
-        <button
-          className="icon-btn"
-          aria-label="Flush cache"
-          onClick={() => flushCache(activeId)}
-        >
-          <Eraser size={14} />
-        </button>
-      </div>
-
       {/* Pane tabs */}
       <div className="pane-tabs" role="tablist" aria-label="Pane tabs">
         <button
@@ -86,6 +47,52 @@ export function AssistantPane() {
         >
           Skills
         </button>
+
+        <span className="pane-tabs-end">
+          <select
+            className="model-select"
+            aria-label="Model"
+            value={chat.model}
+            onChange={(e) => void selectModel(activeId, e.target.value)}
+          >
+            {models.map((m) => (
+              <option key={m.id} value={m.id} disabled={modelStatus[m.id]?.status === 'loading'}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+
+          {ms?.status === 'loading' && (
+            <span className="spin" aria-label="Loading model">
+              <Loader2 size={14} />
+            </span>
+          )}
+
+          {ms?.status === 'failed' && (
+            <span className="model-error">
+              <span>{ms.error}</span>
+              <button className="retry-btn" onClick={() => retryModel(activeId)}>
+                Retry
+              </button>
+            </span>
+          )}
+
+          <button
+            className="icon-btn"
+            aria-label="Flush cache"
+            onClick={() => flushCache(activeId)}
+          >
+            <Eraser size={14} />
+          </button>
+
+          <button
+            className="icon-btn"
+            aria-label="Collapse assistant"
+            onClick={onCollapse}
+          >
+            <ChevronsRight size={16} />
+          </button>
+        </span>
       </div>
 
       {/* Body */}

@@ -8,6 +8,7 @@ interface MenuItem {
   id?: string;
   // checkbox-style (theme toggle)
   checkbox?: boolean;
+  kind?: 'theme' | 'bg';
 }
 
 interface MenuDef {
@@ -23,6 +24,7 @@ const MENUS: MenuDef[] = [
       { label: 'Open…', id: 'file.open' },
       { label: 'Save', id: 'file.save' },
       { label: 'Save as…', id: 'file.saveAs' },
+      { label: 'Page style…', id: 'tools.pageStyle' },
       { label: 'Split into files…', id: 'file.split' },
     ],
   },
@@ -36,12 +38,11 @@ const MENUS: MenuDef[] = [
     ],
   },
   {
-    label: 'Tools',
-    items: [{ label: 'Page style…', id: 'tools.pageStyle' }],
-  },
-  {
     label: 'Options',
-    items: [{ label: 'Dark theme', checkbox: true }],
+    items: [
+      { label: 'Dark theme', checkbox: true, kind: 'theme' },
+      { label: 'Gradient background', checkbox: true, kind: 'bg' },
+    ],
   },
   {
     label: 'Help',
@@ -69,6 +70,8 @@ export function MenuBar({ onAction }: MenuBarProps) {
 
   const theme = useApp((s) => s.theme);
   const setTheme = useApp((s) => s.setTheme);
+  const background = useApp((s) => s.background);
+  const setBackground = useApp((s) => s.setBackground);
   const saveState = useApp((s) => s.saveState);
   const fileName = useApp((s) => s.fileName);
   const dirty = useApp((s) => s.dirty);
@@ -90,13 +93,17 @@ export function MenuBar({ onAction }: MenuBarProps) {
     (menuIdx: number, itemIdx: number) => {
       const item = MENUS[menuIdx].items[itemIdx];
       if (item.checkbox) {
-        setTheme(theme === 'dark' ? 'light' : 'dark');
+        if (item.kind === 'bg') {
+          setBackground(background === 'gradient' ? 'flat' : 'gradient');
+        } else {
+          setTheme(theme === 'dark' ? 'light' : 'dark');
+        }
       } else if (item.id) {
         onAction(item.id);
       }
       closeMenu();
     },
-    [theme, setTheme, onAction, closeMenu],
+    [theme, background, setTheme, setBackground, onAction, closeMenu],
   );
 
   // Focus management
@@ -207,14 +214,14 @@ export function MenuBar({ onAction }: MenuBarProps) {
                   }}
                   type="button"
                   role={item.checkbox ? 'menuitemcheckbox' : 'menuitem'}
-                  aria-checked={item.checkbox ? theme === 'dark' : undefined}
+                  aria-checked={item.checkbox ? (item.kind === 'bg' ? background === 'gradient' : theme === 'dark') : undefined}
                   tabIndex={-1}
                   className={`menu-item${activeItem === ii ? ' active' : ''}`}
                   onClick={() => activateItem(mi, ii)}
                   onMouseEnter={() => setActiveItem(ii)}
                 >
                   {item.checkbox && (
-                    <span className="check">{theme === 'dark' ? '✓' : ''}</span>
+                    <span className="check">{item.kind === 'bg' ? (background === 'gradient' ? '✓' : '') : (theme === 'dark' ? '✓' : '')}</span>
                   )}
                   <span>{item.label}</span>
                 </button>

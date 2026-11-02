@@ -1,0 +1,229 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Thì hiện tại hoàn thành: Đã và đang",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Cô ấy đã sống ở Hà Nội từ năm 2019.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Cô ấy ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "đã sống",
+       "đã ở"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " ở Hà Nội.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "Chọn thì đúng:",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "sống",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "đã sống",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "đang sống",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Lưu ý",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Chú ý vào thời gian.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "Table",
+    "rows": [
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Thì",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Ví dụ",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Hiện tại hoàn thành",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Cô ấy ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Blank",
+         "answers": [
+          "đã sống"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " ở đây.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Quá khứ đơn",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Cô ấy sống ở đây | trong 2019.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ]
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}

@@ -1,0 +1,204 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Present Perfect",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Heading",
+    "level": 2,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Unfinished Time",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Heading",
+    "level": 3,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Forms",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "We form it with ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "have/has + past participle",
+      "marks": [
+       "bold"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ", ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "not",
+      "marks": [
+       "italic"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " the past simple.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Use ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "underlined text",
+      "marks": [
+       "underline"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " and ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "highlighted text",
+      "marks": [
+       "highlight"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " and ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "both",
+      "marks": [
+       "underline",
+       "highlight"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Also ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "bold ",
+      "marks": [
+       "bold"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "italic",
+      "marks": [
+       "bold",
+       "italic"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " for nested marks.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "First line",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Break"
+     },
+     {
+      "type": "Text",
+      "text": "Second line after hard break.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": []
+}

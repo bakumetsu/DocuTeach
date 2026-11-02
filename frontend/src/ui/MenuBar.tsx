@@ -24,6 +24,7 @@ const MENUS: MenuDef[] = [
       { label: 'Open…', id: 'file.open' },
       { label: 'Save', id: 'file.save' },
       { label: 'Save as…', id: 'file.saveAs' },
+      { label: 'Page style…', id: 'tools.pageStyle' },
       { label: 'Split into files…', id: 'file.split' },
     ],
   },
@@ -35,10 +36,6 @@ const MENUS: MenuDef[] = [
       { label: 'Save checkpoint…', id: 'edit.checkpoint' },
       { label: 'Checkpoints…', id: 'edit.checkpoints' },
     ],
-  },
-  {
-    label: 'Tools',
-    items: [{ label: 'Page style…', id: 'tools.pageStyle' }],
   },
   {
     label: 'Options',

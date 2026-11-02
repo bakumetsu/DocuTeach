@@ -1,16 +1,36 @@
 import { BubbleMenu } from '@tiptap/react/menus'
 import { TextSelection } from '@tiptap/pm/state'
 import type { Editor } from '@tiptap/core'
-import { SquareDashedBottom } from 'lucide-react'
+import {
+  SquareDashedBottom,
+  MessageCircleQuestion,
+  ListChecks,
+  TriangleAlert,
+  MoreHorizontal,
+} from 'lucide-react'
+import { useState } from 'react'
 import { useApp } from '../state/store'
 import { insertBlank } from './commands'
 import { startPageStream } from './stream'
 
+const SKILLS = [
+  { skill: '/ccq', label: 'Generate CCQ', Icon: MessageCircleQuestion },
+  { skill: '/drills', label: 'Generate 5 Drills', Icon: ListChecks },
+  { skill: '/pitfalls', label: 'Generate Pitfalls', Icon: TriangleAlert },
+]
+
+const MAX_VISIBLE = 4
+
 export function SelectionPopover({ editor }: { editor: Editor }) {
+  const [showMore, setShowMore] = useState(false)
+
   const getSelectedText = (): string => {
     const { from, to } = editor.state.selection
     return editor.state.doc.textBetween(from, to, ' ')
   }
+
+  const visibleSkills = SKILLS.slice(0, MAX_VISIBLE)
+  const hiddenSkills = SKILLS.slice(MAX_VISIBLE)
 
   return (
     <BubbleMenu
@@ -32,35 +52,52 @@ export function SelectionPopover({ editor }: { editor: Editor }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => insertBlank(editor)}
         >
-          <SquareDashedBottom size={14} />
+          <SquareDashedBottom size={16} />
         </button>
-        <button
-          type="button"
-          aria-label="Generate CCQ"
-          title="Generate CCQ"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => startPageStream(editor, { skill: '/ccq', selection: getSelectedText() })}
-        >
-          + CCQ
-        </button>
-        <button
-          type="button"
-          aria-label="Generate 5 Drills"
-          title="Generate 5 Drills"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => startPageStream(editor, { skill: '/drills', selection: getSelectedText() })}
-        >
-          + 5 Drills
-        </button>
-        <button
-          type="button"
-          aria-label="Generate Pitfalls"
-          title="Generate Pitfalls"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => startPageStream(editor, { skill: '/pitfalls', selection: getSelectedText() })}
-        >
-          + Pitfalls
-        </button>
+        {visibleSkills.map(({ skill, label, Icon }) => (
+          <button
+            key={skill}
+            type="button"
+            aria-label={label}
+            title={label}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => startPageStream(editor, { skill, selection: getSelectedText() })}
+          >
+            <Icon size={16} />
+          </button>
+        ))}
+        {hiddenSkills.length > 0 && (
+          <div className="popover-more-wrap">
+            <button
+              type="button"
+              aria-label="More skills"
+              title="More skills"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setShowMore((v) => !v)}
+            >
+              <MoreHorizontal size={16} />
+            </button>
+            {showMore && (
+              <div className="popover-more-list">
+                {hiddenSkills.map(({ skill, label, Icon }) => (
+                  <button
+                    key={skill}
+                    type="button"
+                    className="popover-more-item"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setShowMore(false)
+                      startPageStream(editor, { skill, selection: getSelectedText() })
+                    }}
+                  >
+                    <Icon size={16} />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </BubbleMenu>
   )

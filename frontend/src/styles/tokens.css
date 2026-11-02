@@ -89,6 +89,24 @@
   --ground: var(--bg);
 }
 
+/* the worksheet is paper: always light, also in dark mode */
+.page {
+  --text: #23233a;
+  --muted: #5d5d82;
+  --border: #e1e3f4;
+  --acc: #5a46d0;
+  --acc-soft: #ebe8fd;
+  --acc-ink: #ffffff;
+  --note-bg: #fff2d6;
+  --note-border: #e8a33a;
+  --danger: #b91c1c;
+  --warn-bg: #fff2d6;
+  --ok: #15703a;
+  --ok-bg: #dcfce7;
+  --page-text: #1f2937;
+  --page-subtle: #f3f4f6;
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;

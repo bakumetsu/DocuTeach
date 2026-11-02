@@ -1,22 +1,24 @@
 .page {
-  background: #ffffff;
+  background: var(--page-bg);
   width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 297mm;
   margin: 16px auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  box-shadow: var(--shadow);
   padding: var(--page-mt, 12mm) var(--page-mr, 15mm) var(--page-mb, 12mm) var(--page-ml, 15mm);
   font-family: var(--page-font, Arial, "Noto Sans", sans-serif);
   font-size: calc(var(--page-size, 12) * 1pt);
   line-height: var(--page-line, 1.65);
-  color: #1f2937;
+  color: var(--page-text);
 }
 
-/* ── Loading state ─────────────────────────────────────────── */
+/* ── Loading state ─────────────────────────────────────────────── */
 .page.loading {
   opacity: .5;
 }
 
-/* ── ProseMirror root ──────────────────────────────────────── */
+/* ── ProseMirror root ──────────────────────────────────────────── */
 .page-content {
   outline: none;
   min-height: 60vh;
@@ -67,15 +69,15 @@
 
 .page-content table th {
   font-weight: bold;
-  background: #f3f4f6;
+  background: var(--page-subtle);
 }
 
-/* ── Notes ─────────────────────────────────────────────────── */
+/* ── Notes ─────────────────────────────────────────────────────── */
 .note {
   background: var(--note-bg);
-  border-left: 4px solid var(--note-border);
-  border-radius: 4px;
-  padding: .5em .8em;
+  border-left: 3px solid var(--note-border);
+  border-radius: var(--radius-ctl);
+  padding: .4em .7em;
   margin: .8em 0;
   position: relative;
 }
@@ -97,7 +99,7 @@
   margin: 0;
 }
 
-/* ── Blanks ────────────────────────────────────────────────── */
+/* ── Blanks ────────────────────────────────────────────────────── */
 .blank {
   display: inline-block;
   min-width: 4ch;
@@ -109,7 +111,7 @@
 }
 
 .blank-more {
-  font-size: .7em;
+  font-size: 11px;
   vertical-align: super;
 }
 
@@ -118,7 +120,7 @@
   min-width: 5ch;
   height: 1em;
   border-bottom: 2px dotted var(--danger);
-  background: rgba(220, 38, 38, .06);
+  background: var(--warn-bg);
 }
 
 .view-teacher .blank-main {
@@ -135,7 +137,7 @@
   border-bottom: 1px solid currentColor;
 }
 
-/* ── MCQ ───────────────────────────────────────────────────── */
+/* ── MCQ ───────────────────────────────────────────────────────── */
 .mcq {
   margin: .8em 0;
   counter-reset: opt;
@@ -177,7 +179,7 @@
 
 .view-edit .mcq-option[data-correct="true"] .mcq-letter {
   background: var(--acc);
-  color: #fff;
+  color: var(--acc-ink);
   border-color: var(--acc);
 }
 
@@ -185,8 +187,12 @@
   background: var(--ok-bg);
 }
 
-.view-teacher .mcq-option[data-correct="true"] .mcq-letter::after {
-  content: " ✓";
+.view-teacher .mcq-option[data-correct="true"]::after {
+  content: "✓";
+  color: var(--ok);
+  font-weight: 700;
+  margin-left: .4em;
+  flex-shrink: 0;
 }
 
 .mcq-warn {
@@ -203,7 +209,7 @@
   border: none;
 }
 
-/* ── Split ─────────────────────────────────────────────────── */
+/* ── Split ─────────────────────────────────────────────────────── */
 .split {
   border-top: 2px dashed var(--muted);
   margin: 1.2em 0;
@@ -225,9 +231,9 @@
   margin: 1em 0;
 }
 
-/* ── Raw block ─────────────────────────────────────────────── */
+/* ── Raw block ─────────────────────────────────────────────────── */
 .raw {
-  background: #f3f4f6;
+  background: var(--page-subtle);
   border-radius: 4px;
   padding: .5em .8em;
   margin: .8em 0;
@@ -248,7 +254,7 @@
   margin-bottom: .3em;
 }
 
-/* ── Numbering (section 7) ─────────────────────────────────── */
+/* ── Numbering (section 7) ─────────────────────────────────────── */
 .page-content > ol {
   list-style: none;
   padding-left: 0;
@@ -273,7 +279,7 @@
   font-weight: 600;
 }
 
-/* ── Warnings strip ────────────────────────────────────────── */
+/* ── Warnings strip ────────────────────────────────────────────── */
 .warn-strip {
   position: fixed;
   top: 48px;
@@ -282,13 +288,14 @@
   z-index: 100;
   background: var(--acc-soft);
   border: 1px solid var(--acc);
-  border-radius: 6px;
+  border-radius: var(--radius-ctl);
   padding: 6px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-md);
   max-width: 90vw;
+  box-shadow: var(--shadow-sm);
 }
 
 .warn-strip button {
@@ -299,31 +306,33 @@
   line-height: 1;
   color: inherit;
   padding: 2px 4px;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .warn-count {
   color: var(--muted);
 }
 
-/* ── Toast ─────────────────────────────────────────────────── */
+/* ── Toast ─────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
-  background: #1f2937;
-  color: #fff;
+  background: var(--text);
+  color: var(--panel);
   border-radius: 20px;
   padding: 8px 18px;
-  font-size: 13px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  font-size: var(--fs-md);
+  box-shadow: var(--shadow);
 }
 
-/* ── Incoming (streaming) card ─────────────────────────────── */
+/* ── Incoming (streaming) card ─────────────────────────────────── */
 .incoming-card {
   border: 2px dashed var(--acc);
-  border-radius: 6px;
+  border-radius: var(--radius-ctl);
   background: var(--acc-soft);
   padding: .6em .8em;
   margin: .6em 0;
@@ -351,6 +360,8 @@
   font-size: .9em;
   color: var(--muted);
   padding: 0 4px;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .incoming-text {
@@ -366,31 +377,62 @@
   margin-top: .3em;
 }
 
-/* ── Selection popover ─────────────────────────────────────── */
+/* ── Selection popover ─────────────────────────────────────────── */
 .selection-popover {
   display: flex;
   flex-direction: row;
-  gap: 4px;
+  gap: 2px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
-  padding: 2px;
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow);
+  padding: 4px;
 }
 
 .selection-popover button {
-  font-size: 12px;
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: 8px;
   color: inherit;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  width: var(--target);
+  height: var(--target);
 }
 
 .selection-popover button:hover {
   background: var(--acc-soft);
+}
+
+/* ── Popover "more" list ───────────────────────────────────────── */
+.popover-more-wrap {
+  position: relative;
+}
+
+.popover-more-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow);
+  padding: 4px;
+  z-index: 10;
+}
+
+.selection-popover .popover-more-item {
+  width: auto;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: var(--fs-md);
+  white-space: nowrap;
 }

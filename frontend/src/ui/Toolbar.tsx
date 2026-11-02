@@ -238,7 +238,8 @@ export function Toolbar() {
       <select
         className="tb-select"
         aria-label="Paragraph style"
-        value={fmt.block === 'other' ? '' : fmt.block}
+        disabled={!canEdit}
+        value={canEdit ? (fmt.block === 'other' ? '' : fmt.block) : ''}
         onChange={(e) => {
           const v = e.target.value
           if (v === 'paragraph' || v === 'h1' || v === 'h2') {

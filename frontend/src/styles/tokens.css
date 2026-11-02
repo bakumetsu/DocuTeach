@@ -45,6 +45,7 @@
 :root[data-theme="dark"] {
   --bg: #14142a;
   --bg-grad: linear-gradient(135deg, #14142a, #1d1535);
+  --ground: var(--bg-grad);
   --panel: #1e1e38;
   --text: #ececf8;
   --muted: #a9a9d2;

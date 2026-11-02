@@ -7,6 +7,25 @@ export type SplitConfig = {
   ranges: string
 }
 
+export type SplitMode = 'marker' | 'pages' | 'exam'
+
+export function modeOf(cfg: SplitConfig): SplitMode {
+  if (cfg.lessonType === 'exam') return 'exam'
+  if (cfg.by === 'pages') return 'pages'
+  return 'marker'
+}
+
+export function configFor(mode: SplitMode, ranges: string): SplitConfig {
+  switch (mode) {
+    case 'pages':
+      return { lessonType: 'lesson', by: 'pages', ranges }
+    case 'exam':
+      return { lessonType: 'exam', by: 'marker', ranges: '' }
+    default:
+      return { lessonType: 'lesson', by: 'marker', ranges: '' }
+  }
+}
+
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v)
 }

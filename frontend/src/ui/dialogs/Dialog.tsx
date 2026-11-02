@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 
 interface DialogProps {
   open: boolean
@@ -7,7 +7,9 @@ interface DialogProps {
   onClose: () => void
   onOk?: () => void
   okDisabled?: boolean
+  initialFocus?: RefObject<HTMLElement | null>
   children: ReactNode
+  footerNote?: ReactNode
 }
 
 export function Dialog({
@@ -16,7 +18,9 @@ export function Dialog({
   onClose,
   onOk,
   okDisabled,
+  initialFocus,
   children,
+  footerNote,
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const primaryButtonRef = useRef<HTMLButtonElement>(null)
@@ -29,7 +33,8 @@ export function Dialog({
     const panel = panelRef.current
     const primaryButton = primaryButtonRef.current
 
-    primaryButton?.focus()
+    const focusTarget = initialFocus?.current ?? primaryButton
+    focusTarget?.focus()
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -59,7 +64,7 @@ export function Dialog({
     return () => {
       panel?.removeEventListener('keydown', handleKeyDown)
     }
-  }, [open, onClose])
+  }, [open, onClose, initialFocus])
 
   if (!open) return null
 
@@ -77,6 +82,7 @@ export function Dialog({
         </header>
         <div className="dialog-body">{children}</div>
         <footer className="dialog-footer">
+          {footerNote ? <span className="dialog-footer-note">{footerNote}</span> : null}
           {onOk ? (
             <>
               <button

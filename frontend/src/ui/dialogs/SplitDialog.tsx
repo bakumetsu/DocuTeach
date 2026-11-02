@@ -258,7 +258,7 @@ export function SplitDialog({
         </label>
       </fieldset>
 
-      <div className="split-detail">
+      <fieldset className="split-detail" disabled={broken || !editor}>
         {mode === 'marker' ? (
           hasSP ? (
             <div className="split-marker-set">
@@ -333,7 +333,7 @@ export function SplitDialog({
         {mode === 'exam' ? (
           <p className="split-muted">Exam papers are not split.</p>
         ) : null}
-      </div>
+      </fieldset>
 
       <div className="split-files">
         <small>Export will make</small>

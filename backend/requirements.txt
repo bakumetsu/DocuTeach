@@ -5,6 +5,8 @@ pydantic>=2
 pyyaml
 markdown-it-py
 anyio
+typst
+pypdf
 
 # dev
 pytest

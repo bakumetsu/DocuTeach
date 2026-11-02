@@ -1,0 +1,48 @@
+"""Application factory for DocuTeach."""
+
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from docuteach.api import chats_store, checkpoints, docs, lessons, status
+from docuteach.config import Settings, check_local_llm
+from docuteach.errors import install_error_handlers
+from docuteach.logs import RequestLogMiddleware, setup_logging
+from docuteach.security import TokenHostMiddleware
+from docuteach.store.library import Library
+
+
+def create_app(settings: Settings) -> FastAPI:
+    if not settings.token:
+        raise ValueError("settings.token must not be empty")
+    check_local_llm(settings)
+
+    library = Library(settings)
+
+    @asynccontextmanager  # pyright: ignore[reportDeprecated]
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        setup_logging(settings.log_dir)
+        library.startup()
+        yield
+
+    app = FastAPI(lifespan=lifespan)
+    app.state.library = library
+    app.state.settings = settings
+
+    install_error_handlers(app)
+
+    app.include_router(lessons.router, prefix="/api")
+    app.include_router(docs.router, prefix="/api")
+    app.include_router(checkpoints.router, prefix="/api")
+    app.include_router(chats_store.router, prefix="/api")
+    app.include_router(status.router, prefix="/api")
+
+    # Middleware: last-added is outermost.
+    # Security must be outermost, logging inner.
+    app.add_middleware(RequestLogMiddleware)
+    app.add_middleware(TokenHostMiddleware, token=settings.token, port=settings.port)
+
+    return app

@@ -33,9 +33,18 @@ function getSnapshot() {
   return state;
 }
 
+// Each prompt clears the host state when it answers, so the dialog closes.
 export function askConfirm(message: string, okLabel = 'OK'): Promise<boolean> {
   return new Promise((resolve) => {
-    setState({ kind: 'confirm', message, okLabel, resolve });
+    setState({
+      kind: 'confirm',
+      message,
+      okLabel,
+      resolve: (v) => {
+        setState(null);
+        resolve(v);
+      },
+    });
   });
 }
 
@@ -48,7 +57,10 @@ export function askText(title: string, label: string, initial: string): Promise<
       title,
       label,
       initial,
-      resolve,
+      resolve: (v) => {
+        setState(null);
+        resolve(v);
+      },
     });
   });
 }

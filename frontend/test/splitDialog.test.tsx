@@ -249,4 +249,59 @@ describe('SplitDialog', () => {
 
     expect(document.activeElement).toBe(checked[0])
   })
+
+  it('Enter in the ranges field presses OK when valid', () => {
+    const editor = createEditor()
+    useApp.setState({
+      editor,
+      docMeta: editor.state.doc.attrs.meta,
+    })
+
+    const onClose = vi.fn()
+    render(<SplitDialog open onClose={onClose} />)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Lesson + Homework, by page ranges' }))
+    const input = screen.getByLabelText('Page ranges') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '1-3' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(onClose).toHaveBeenCalled()
+    expect(editor.state.doc.attrs.meta.raw).toContain('by: pages')
+  })
+
+  it('no editor: OK disabled and all radios disabled', () => {
+    const editor = createEditor()
+    const meta = editor.state.doc.attrs.meta
+    useApp.setState({ editor: null, docMeta: meta })
+
+    render(<SplitDialog open onClose={vi.fn()} />)
+
+    const ok = screen.getByRole('button', { name: 'OK' }) as HTMLButtonElement
+    expect(ok.disabled).toBe(true)
+
+    const markerRadio = screen.getByRole('radio', {
+      name: 'Lesson + Homework, at a split point',
+    }) as HTMLInputElement
+    const pagesRadio = screen.getByRole('radio', {
+      name: 'Lesson + Homework, by page ranges',
+    }) as HTMLInputElement
+    const examRadio = screen.getByRole('radio', { name: 'Exam' }) as HTMLInputElement
+    expect(markerRadio.matches(':disabled')).toBe(true)
+    expect(pagesRadio.matches(':disabled')).toBe(true)
+    expect(examRadio.matches(':disabled')).toBe(true)
+  })
+
+  it('focus follows stored choice: exam radio focused when meta is exam', () => {
+    const editor = createEditor()
+    const meta = parseMarkdown('---\nlesson_type: exam\n---\n\nHello').doc.attrs.meta
+    useApp.setState({
+      editor,
+      docMeta: meta,
+    })
+
+    render(<SplitDialog open onClose={vi.fn()} />)
+
+    const examRadio = screen.getByRole('radio', { name: 'Exam' }) as HTMLInputElement
+    expect(document.activeElement).toBe(examRadio)
+  })
 })

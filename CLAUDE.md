@@ -82,7 +82,7 @@ Each ticket (`fix-`, `feat-` or `design-<name>`) is an Orca workspace: a child o
 
 Every final ticket report, every progress report Opus passes on, and every wrap-up starts with a **state line**, then a plain-English summary, then the technical details:
 
-1. **State line:** `<name> (T-XX): <STATE>: <who acts next>` (`<name>` = the ticket name, `T-XX` / `D-XX` = its backlog ID from `kit\designs\backlog.md`), using exactly one of these states (and set the matching Orca status):
+1. **State line:** `<name> (T-XX): <STATE>: <who acts next>` (`<name>` = the ticket name, `T-XX` / `D-XX` = its backlog ID from `backlog.md`, next to this file), using exactly one of these states (and set the matching Orca status):
 
    | State line (`<name> (T-XX): ...`) | Meaning | Orca status |
    |---|---|---|

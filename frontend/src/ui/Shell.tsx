@@ -62,7 +62,7 @@ export function Shell() {
     };
   }, [view]);
 
-  // â”€â”€ Menu bar actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Menu bar actions ──────────────────────────────────────
   const handleMenuAction = useCallback(
     (id: string) => {
       switch (id) {
@@ -109,7 +109,7 @@ export function Shell() {
     [setDialog],
   );
 
-  // â”€â”€ Gutter drag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Gutter drag ────────────────────────────────────────────
   const handleGutterPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -142,7 +142,7 @@ export function Shell() {
     setAssistantWidth(380);
   }, [setAssistantWidth]);
 
-  // â”€â”€ Collapse / expand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Collapse / expand ──────────────────────────────────────
   const toggleCollapse = useCallback(() => {
     setAssistantCollapsed(!assistantCollapsed);
   }, [assistantCollapsed, setAssistantCollapsed]);

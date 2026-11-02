@@ -2,11 +2,12 @@ import type { DocuTeachApi, ChatRecord, ChatRequest, StreamEvent } from '../type
 import { mockConfig, sleep } from './config'
 import { setCurrentModel, getCurrentModel } from './models'
 import { scriptFor, tokenize } from './script'
+import { kvGet, kvSet } from '../kv'
 
 const CHATS_PREFIX = 'docuteach:v1:chats:'
 
 function readJson<T>(key: string): T | null {
-  const raw = localStorage.getItem(key)
+  const raw = kvGet(key)
   if (raw === null) return null
   try {
     return JSON.parse(raw) as T
@@ -95,7 +96,7 @@ export const mockChats: DocuTeachApi['chats'] = {
     return Promise.resolve(readJson<ChatRecord[]>(CHATS_PREFIX + docId) ?? [])
   },
   save(docId: string, chats: ChatRecord[]): Promise<void> {
-    localStorage.setItem(CHATS_PREFIX + docId, JSON.stringify(chats))
+    kvSet(CHATS_PREFIX + docId, JSON.stringify(chats))
     return Promise.resolve()
   },
   release(chatId: string): Promise<void> {

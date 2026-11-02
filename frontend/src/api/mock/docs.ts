@@ -1,4 +1,5 @@
 import type { DocuTeachApi, DocRecord, Checkpoint } from '../types'
+import { kvGet, kvSet } from '../kv'
 
 const DOC_PREFIX = 'docuteach:v1:doc:'
 const CKPT_PREFIX = 'docuteach:v1:ckpt:'
@@ -6,7 +7,7 @@ const CKPT_CAP = 50
 const BEFORE_OPEN_NAME = 'Before open'
 
 function readJson<T>(key: string): T | null {
-  const raw = localStorage.getItem(key)
+  const raw = kvGet(key)
   if (raw === null) return null
   try {
     return JSON.parse(raw) as T
@@ -16,7 +17,7 @@ function readJson<T>(key: string): T | null {
 }
 
 function writeJson(key: string, value: unknown): void {
-  localStorage.setItem(key, JSON.stringify(value))
+  kvSet(key, JSON.stringify(value))
 }
 
 function pruneCheckpoints(list: Checkpoint[]): Checkpoint[] {

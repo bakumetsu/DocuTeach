@@ -1,0 +1,319 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "What is 2+2?",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "three",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "four",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "five",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "She ______ in Hanoi since 2019.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "lives",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "has lived",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "is living",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Distractors",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "lives",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ": present simple cannot take ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "since",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ".",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "Which tenses are correct?",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "has lived",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "have lived",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "is living",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": true
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Some context paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Mcq",
+    "question": [],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "option A",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "option B",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Choose the best answer:",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Mcq",
+    "question": [],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "option one",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "option two",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Just one tick:",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "BulletList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "[x] only",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}

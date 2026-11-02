@@ -1,0 +1,575 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "lesson_type: lesson\nsplit: {by: marker}\npage: {font: Arial, size: 12, line: 1.65, margins_mm: [12, 15, 12, 15]}",
+   "data": {
+    "lesson_type": "lesson",
+    "split": {
+     "by": "marker"
+    },
+    "page": {
+     "font": "Arial",
+     "size": 12,
+     "line": 1.65,
+     "margins_mm": [
+      12,
+      15,
+      12,
+      15
+     ]
+    }
+   },
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Present Perfect: Finished and Unfinished Time",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "We use the present perfect for finished time and for unfinished time.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "The form is ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "have/has + past participle",
+      "marks": [
+       "bold"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ", ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "not",
+      "marks": [
+       "italic"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " the past simple.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Heading",
+    "level": 2,
+    "content": [
+     {
+      "type": "Text",
+      "text": "1. Rule",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Use ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "underlined time words",
+      "marks": [
+       "underline"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " and ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "highlighted examples",
+      "marks": [
+       "highlight"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " carefully.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "CCQ",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Is the action finished? (Not necessarily.)",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     },
+     {
+      "type": "BulletList",
+      "items": [
+       {
+        "type": "ListItem",
+        "content": [
+         {
+          "type": "Text",
+          "text": "Does she still live there? (Yes.)",
+          "marks": [],
+          "style": null
+         }
+        ],
+        "nested": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "Heading",
+    "level": 2,
+    "content": [
+     {
+      "type": "Text",
+      "text": "2. Practice",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "OrderedList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "She ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Blank",
+        "answers": [
+         "has lived",
+         "'s lived"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": " in Hanoi for six years.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "He ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Blank",
+        "answers": [
+         "has worked",
+         "'s worked"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": " here since 2018.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "They ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Blank",
+        "answers": [
+         "have seen",
+         "'ve seen"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": " the film twice.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   },
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "Choose the correct sentence:",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "She lives in Hanoi since 2019.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "She has lived in Hanoi since 2019.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "She is living in Hanoi since 2019.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Distractors",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "lives",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ": present simple cannot take ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "since",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ".",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "Table",
+    "rows": [
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Tense",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Example",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Present perfect",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "She ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Blank",
+         "answers": [
+          "has lived"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " here.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Past simple",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "She lived here | in 2019.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ]
+    ]
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Remember: since + starting point, for + duration.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "center"
+   },
+   {
+    "type": "SplitPoint",
+    "label": "Homework starts here"
+   },
+   {
+    "type": "Heading",
+    "level": 2,
+    "content": [
+     {
+      "type": "Text",
+      "text": "3. Homework",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "BulletList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Write five sentences with the present perfect.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Use ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "since",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": " or ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "for",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": " in every sentence.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Check one sentence with a past simple contrast.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Cô ấy đã sống ở Hà Nội từ năm 2019.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": []
+}

@@ -1,0 +1,108 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "First paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "RawBlock",
+    "text": "```python\nprint(\"kept as written\")\n```"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Second paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "RawBlock",
+    "text": "> quoted"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Third paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "RawBlock",
+    "text": "<!-- note to self -->"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Fourth paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "RawBlock",
+    "text": "***"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Fifth paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "RawBlock",
+    "text": "::: box\nUnknown div text.\n:::"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Last paragraph.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": [
+  "5 unsupported block(s) kept as written"
+ ]
+}

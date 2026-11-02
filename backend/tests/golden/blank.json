@@ -1,0 +1,178 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Nice to meet ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "you"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "She ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "has lived",
+       "'s lived"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " in Hanoi for six years.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "The answer is ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "a|b"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " and ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "c}d"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " and ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "e\\f"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "This is a literal {{ not a blank.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "An empty blank: ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "bold",
+      "marks": [
+       "bold"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "you"
+      ],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": []
+}

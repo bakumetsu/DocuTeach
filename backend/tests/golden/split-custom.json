@@ -1,0 +1,92 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Read the passage and answer the questions.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "The present perfect is used for unfinished time.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "We form it with ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "have/has + past participle",
+      "marks": [
+       "bold"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "SplitPoint",
+    "label": "Exam part B"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Write a short paragraph about your weekend.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Do not forget to check your spelling and punctuation.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": []
+}

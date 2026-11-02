@@ -10,6 +10,7 @@ import type { Node as PMNode } from '@tiptap/pm/model';
  * - `splitPoint` and all other nodes/marks are preserved.
  * - Doc attr `meta` is replaced by `{ raw: '', data: null, broken: false }`.
  * - An empty result gets one empty paragraph.
+ * - Marks (including fontStyle, which is presentation, not teacher content) are preserved, also on blanks.
  */
 export function projectStudent(doc: PMNode): PMNode {
   const children = transformChildren(doc);
@@ -65,7 +66,7 @@ function transformNode(node: PMNode): PMNode | null {
 
   // Non-text leaf (e.g. image, splitPoint, blank-as-leaf)
   if (node.isLeaf) {
-    return node.type.create(attrs);
+    return node.type.create(attrs, null, node.marks);
   }
 
   // Branch node: recurse into children

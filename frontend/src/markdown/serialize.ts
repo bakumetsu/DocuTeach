@@ -122,7 +122,11 @@ export function serializeMarkdown(doc: PMNode): string {
   const blocks: string[] = []
   for (let i = 0; i < doc.childCount; i++) {
     const child = doc.child(i)
-    if (child.type.name === 'paragraph' && child.textContent === '') continue
+    if (child.type.name === 'paragraph') {
+      let hasBlank = false
+      child.forEach((c) => { if (c.type.name === 'blank') hasBlank = true })
+      if (child.textContent === '' && !hasBlank) continue
+    }
     let block = blockToLines(child)
     if (
       (child.type.name === 'paragraph' || child.type.name === 'heading') &&

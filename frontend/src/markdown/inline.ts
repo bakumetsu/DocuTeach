@@ -10,7 +10,7 @@ export function inlineToNodes(children: Token[] | null, schema: Schema): PMNode[
 
   const result: PMNode[] = []
   const activeMarks: Mark[] = []
-  const spanStack: Mark[][] = []
+  const spanStack: { added: Mark[]; removed: Mark[] }[] = []
 
   // --- helpers ---------------------------------------------------------
 
@@ -90,7 +90,10 @@ export function inlineToNodes(children: Token[] | null, schema: Schema): PMNode[
       }
 
       case 'span_open': {
-        const classes: string[] = (token.meta as { classes?: string[] } | undefined)?.classes ?? []
+        const meta = token.meta as { classes?: string[]; font?: string; size?: number } | undefined
+        const classes: string[] = meta?.classes ?? []
+        const font = meta?.font
+        const size = meta?.size
         const marks: Mark[] = []
         for (const c of classes) {
           switch (c) {
@@ -100,20 +103,46 @@ export function inlineToNodes(children: Token[] | null, schema: Schema): PMNode[
             case 'hl': marks.push(schema.marks.highlight.create()); break
           }
         }
+        const removed: Mark[] = []
+        if (font !== undefined || size !== undefined) {
+          const outerIdx = activeMarks.findIndex((m) => m.type.name === 'fontStyle')
+          if (outerIdx !== -1) {
+            const outer = activeMarks[outerIdx]
+            const outerAttrs = outer.attrs as { font?: string | null; size?: number | null }
+            marks.push(
+              schema.marks.fontStyle.create({
+                font: font ?? outerAttrs.font ?? null,
+                size: size ?? outerAttrs.size ?? null,
+              }),
+            )
+            activeMarks.splice(outerIdx, 1)
+            removed.push(outer)
+          } else {
+            marks.push(
+              schema.marks.fontStyle.create({
+                font: font ?? null,
+                size: size ?? null,
+              }),
+            )
+          }
+        }
         for (const m of marks) addMark(m)
-        spanStack.push(marks)
+        spanStack.push({ added: marks, removed })
         break
       }
 
       case 'span_close': {
-        const marks = spanStack.pop() ?? []
-        for (const m of marks) removeMarkByRef(m)
+        const entry = spanStack.pop() ?? { added: [], removed: [] }
+        for (const m of entry.added) removeMarkByRef(m)
+        for (const m of entry.removed) addMark(m)
         break
       }
 
       case 'blank': {
         const answers: string[] = (token.meta as { answers?: string[] } | undefined)?.answers ?? []
-        result.push(schema.nodes.blank.create({ answers }))
+        const fontStyleMark = activeMarks.find((m) => m.type.name === 'fontStyle')
+        const fontMarks: Mark[] = fontStyleMark ? [fontStyleMark] : []
+        result.push(schema.nodes.blank.create({ answers }, null, fontMarks))
         break
       }
 

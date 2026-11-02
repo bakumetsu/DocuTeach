@@ -1,16 +1,19 @@
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { escapeInline, escapeLineStart, escapeAnswer, escapeCellPipes } from './escape'
+import { canonicalFont, validFontName, validSize } from '../editor/fontStyle'
 
 const CANONICAL = ['underline', 'highlight', 'bold', 'italic'] as const
 type MarkName = (typeof CANONICAL)[number]
 
-interface TextLeaf { kind: 'text'; s: string; marks: MarkName[] }
-interface BlankLeaf { kind: 'blank'; answers: string[] }
+interface Style { font: string | null; size: number | null }
+interface TextLeaf { kind: 'text'; s: string; marks: MarkName[]; style: Style | null }
+interface BlankLeaf { kind: 'blank'; answers: string[]; style: Style | null }
 interface BrLeaf { kind: 'br' }
 type Leaf = TextLeaf | BlankLeaf | BrLeaf
 
 interface Group { kind: 'group'; mark: MarkName; items: Node[]; forceSpan?: boolean }
-type Node = Leaf | Group
+interface StyleGroup { kind: 'style'; style: Style; items: Node[] }
+type Node = Leaf | Group | StyleGroup
 
 function markName(mark: { type: { name: string } }): MarkName | null {
   const n = mark.type.name
@@ -21,15 +24,32 @@ function sortMarks(marks: MarkName[]): MarkName[] {
   return [...marks].sort((a, b) => CANONICAL.indexOf(a) - CANONICAL.indexOf(b))
 }
 
+function computeStyle(child: PMNode): Style | null {
+  const m = child.marks.find(x => x.type.name === 'fontStyle')
+  if (!m) return null
+  let font: string | null = m.attrs.font ? canonicalFont(String(m.attrs.font)) : null
+  let size: number | null = typeof m.attrs.size === 'number' ? m.attrs.size : (m.attrs.size ? Number(m.attrs.size) : null)
+  if (font !== null && !validFontName(font)) font = null
+  if (size !== null && !validSize(size)) size = null
+  if (font === null && size === null) return null
+  return { font, size }
+}
+
+function sameStyle(a: Style | null, b: Style | null): boolean {
+  if (a === null && b === null) return true
+  if (a === null || b === null) return false
+  return a.font === b.font && a.size === b.size
+}
+
 function toEvents(parent: PMNode, cell: boolean): Leaf[] {
   const events: Leaf[] = []
   for (const child of parent.children ?? []) {
     if (child.type.name === 'text') {
-      events.push({ kind: 'text', s: child.textContent ?? '', marks: sortMarks(child.marks.map(markName).filter(Boolean) as MarkName[]) })
+      events.push({ kind: 'text', s: child.textContent ?? '', marks: sortMarks(child.marks.map(markName).filter(Boolean) as MarkName[]), style: computeStyle(child) })
     } else if (child.type.name === 'blank') {
-      events.push({ kind: 'blank', answers: (child.attrs.answers ?? []) as string[] })
+      events.push({ kind: 'blank', answers: (child.attrs.answers ?? []) as string[], style: computeStyle(child) })
     } else if (child.type.name === 'hardBreak') {
-      if (cell) events.push({ kind: 'text', s: ' ', marks: [] })
+      if (cell) events.push({ kind: 'text', s: ' ', marks: [], style: null })
       else events.push({ kind: 'br' })
     }
   }
@@ -72,9 +92,47 @@ function buildTree(leaves: Leaf[], depth: number): Node[] {
   return result
 }
 
+function buildStyleTree(leaves: Leaf[]): Node[] {
+  const result: Node[] = []
+  let i = 0
+  while (i < leaves.length) {
+    const leaf = leaves[i]
+    if ((leaf.kind === 'text' || leaf.kind === 'blank') && leaf.style !== null) {
+      const group: Leaf[] = [leaf]
+      let j = i + 1
+      while (j < leaves.length) {
+        const lj = leaves[j]
+        if ((lj.kind === 'text' || lj.kind === 'blank') && lj.style !== null && sameStyle(lj.style, leaf.style)) {
+          group.push(lj)
+          j++
+        } else break
+      }
+      result.push({ kind: 'style', style: leaf.style, items: buildTree(group, 0) })
+      i = j
+    } else {
+      const run: Leaf[] = [leaf]
+      let j = i + 1
+      while (j < leaves.length) {
+        const lj = leaves[j]
+        if (!((lj.kind === 'text' || lj.kind === 'blank') && lj.style !== null)) {
+          run.push(lj)
+          j++
+        } else break
+      }
+      result.push(...buildTree(run, 0))
+      i = j
+    }
+  }
+  return result
+}
+
 function touchingPrePass(items: Node[]): void {
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
+    if (item.kind === 'style') {
+      touchingPrePass(item.items)
+      continue
+    }
     if (item.kind !== 'group') continue
     touchingPrePass(item.items)
     if (i > 0) {
@@ -111,6 +169,7 @@ function nextFirstChar(items: Node[], idx: number): string {
   if (n.kind === 'text') return n.s[0] ?? ''
   if (n.kind === 'group') return '*'
   if (n.kind === 'blank') return '{'
+  if (n.kind === 'style') return '['
   return ''
 }
 
@@ -141,6 +200,17 @@ function render(items: Node[], st: St, wholeLine: Set<Leaf>): string {
     } else if (item.kind === 'br') {
       out += '\\\n'
       st.lineStart = true
+    } else if (item.kind === 'style') {
+      st.lineStart = false
+      const inner = render(item.items, st, wholeLine)
+      const lead = (inner.match(/^\s*/) ?? [''])[0]
+      const trail = (inner.match(/\s*$/) ?? [''])[0]
+      const core = inner.trim()
+      if (!core) { out += inner; continue }
+      const parts: string[] = []
+      if (item.style.font) parts.push(`font="${item.style.font}"`)
+      if (item.style.size !== null) parts.push(`size=${item.style.size}`)
+      out += lead + '[' + core + ']{' + parts.join(' ') + '}' + trail
     } else {
       const prevChar = out.length ? out[out.length - 1] : ''
       st.lineStart = false
@@ -174,7 +244,7 @@ export function serializeInline(parent: PMNode, opts?: { cell?: boolean; lineSta
   const cell = !!opts?.cell
   const lineStart = opts?.lineStart !== false
   const leaves = toEvents(parent, cell)
-  const items = buildTree(leaves, 0)
+  const items = buildStyleTree(leaves)
   touchingPrePass(items)
   const wholeLine = new Set<Leaf>()
   let seg: Node[] = []

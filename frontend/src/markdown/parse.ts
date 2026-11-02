@@ -65,7 +65,7 @@ export function parseMarkdown(text: string): ParseResult {
   }
 }
 
-export function parseFragment(mdText: string): { nodes: PMNode[]; warnings: string[] } {
+export function parseFragment(mdText: string, opts?: { stripStyle?: boolean }): { nodes: PMNode[]; warnings: string[] } {
   try {
     let src = mdText;
     if (src.charCodeAt(0) === 0xfeff) src = src.slice(1);
@@ -82,10 +82,28 @@ export function parseFragment(mdText: string): { nodes: PMNode[]; warnings: stri
     if (env.warnings) warnings.push(...env.warnings);
     warnings.push(...ctx.warnings);
 
-    return { nodes, warnings };
+    const finalNodes = opts?.stripStyle ? nodes.map((n) => stripFontStyle(n)) : nodes;
+    return { nodes: finalNodes, warnings };
   } catch (e) {
     const warnings = ['Parse error: ' + (e instanceof Error ? e.message : String(e))];
     const para = schema.nodes.paragraph.create({}, [schema.text(mdText)]);
     return { nodes: [para], warnings };
   }
+}
+
+export function stripFontStyle(node: PMNode): PMNode {
+  const filteredMarks = node.marks.filter((m) => m.type.name !== 'fontStyle');
+  if (node.isText) {
+    return node.mark(filteredMarks);
+  }
+  if (node.isLeaf) {
+    return node.type.create(node.attrs, null, filteredMarks);
+  }
+  const kids: PMNode[] = [];
+  node.forEach((child) => kids.push(stripFontStyle(child)));
+  return node.type.create(
+    node.attrs,
+    kids,
+    filteredMarks,
+  );
 }

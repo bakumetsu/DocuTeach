@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 from PyInstaller.utils.win32.versioninfo import (
     FixedFileInfo,
     StringFileInfo,
@@ -68,7 +68,12 @@ version_info = VSVersionInfo(
 a = Analysis(
     [str(launcher)],
     pathex=[str(spec_dir), str(repo_root / "backend")],
-    datas=[(str(frontend_dist), "web")],
+    datas=[
+        (str(frontend_dist), "web"),
+        (str(repo_root / "backend" / "docuteach" / "export" / "fonts"), "docuteach/export/fonts"),
+        (str(repo_root / "backend" / "docuteach" / "md" / "fonts.json"), "docuteach/md"),
+        *collect_data_files("docx"),
+    ],
     hiddenimports=webview_hidden + backend_hidden,
     excludes=["tkinter", "tkinter.test", "test"],
     noarchive=False,

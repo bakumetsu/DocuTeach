@@ -327,14 +327,18 @@ async def test_api_export_unknown_part(client: httpx.AsyncClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_api_export_teacher_docx_not_available(client: httpx.AsyncClient) -> None:
-    md = "Just content."
+async def test_api_export_teacher_docx_ok(client: httpx.AsyncClient) -> None:
+    md = "Just content. {{go}}"
     resp = await client.post(
         "/api/export",
         json={"markdown": md, "title": "T", "target": "teacher_docx", "part": 1},
     )
-    assert resp.status_code == 501
-    assert _json(resp)["code"] == "not_available"
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    assert ".docx" in resp.headers["content-disposition"]
+    assert resp.content.startswith(b"PK")
 
 
 @pytest.mark.anyio

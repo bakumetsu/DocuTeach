@@ -8,7 +8,7 @@ interface MenuItem {
   id?: string;
   // checkbox-style (theme toggle)
   checkbox?: boolean;
-  kind?: 'theme' | 'bg';
+  kind?: 'theme' | 'bg' | 'spell';
 }
 
 interface MenuDef {
@@ -42,6 +42,7 @@ const MENUS: MenuDef[] = [
     items: [
       { label: 'Dark theme', checkbox: true, kind: 'theme' },
       { label: 'Gradient background', checkbox: true, kind: 'bg' },
+      { label: 'Spell check', checkbox: true, kind: 'spell' },
     ],
   },
   {
@@ -73,6 +74,8 @@ export function MenuBar({ onAction }: MenuBarProps) {
   const setTheme = useApp((s) => s.setTheme);
   const background = useApp((s) => s.background);
   const setBackground = useApp((s) => s.setBackground);
+  const spellcheck = useApp((s) => s.spellcheck);
+  const setSpellcheck = useApp((s) => s.setSpellcheck);
   const saveState = useApp((s) => s.saveState);
   const fileName = useApp((s) => s.fileName);
   const dirty = useApp((s) => s.dirty);
@@ -96,6 +99,8 @@ export function MenuBar({ onAction }: MenuBarProps) {
       if (item.checkbox) {
         if (item.kind === 'bg') {
           setBackground(background === 'gradient' ? 'flat' : 'gradient');
+        } else if (item.kind === 'spell') {
+          setSpellcheck(!spellcheck);
         } else {
           setTheme(theme === 'dark' ? 'light' : 'dark');
         }
@@ -104,7 +109,7 @@ export function MenuBar({ onAction }: MenuBarProps) {
       }
       closeMenu();
     },
-    [theme, background, setTheme, setBackground, onAction, closeMenu],
+    [theme, background, spellcheck, setTheme, setBackground, setSpellcheck, onAction, closeMenu],
   );
 
   // Focus management
@@ -215,14 +220,14 @@ export function MenuBar({ onAction }: MenuBarProps) {
                   }}
                   type="button"
                   role={item.checkbox ? 'menuitemcheckbox' : 'menuitem'}
-                  aria-checked={item.checkbox ? (item.kind === 'bg' ? background === 'gradient' : theme === 'dark') : undefined}
+                  aria-checked={item.checkbox ? (item.kind === 'bg' ? background === 'gradient' : item.kind === 'spell' ? spellcheck : theme === 'dark') : undefined}
                   tabIndex={-1}
                   className={`menu-item${activeItem === ii ? ' active' : ''}`}
                   onClick={() => activateItem(mi, ii)}
                   onMouseEnter={() => setActiveItem(ii)}
                 >
                   {item.checkbox && (
-                    <span className="check">{item.kind === 'bg' ? (background === 'gradient' ? '✓' : '') : (theme === 'dark' ? '✓' : '')}</span>
+                    <span className="check">{item.kind === 'bg' ? (background === 'gradient' ? '✓' : '') : item.kind === 'spell' ? (spellcheck ? '✓' : '') : (theme === 'dark' ? '✓' : '')}</span>
                   )}
                   <span>{item.label}</span>
                 </button>

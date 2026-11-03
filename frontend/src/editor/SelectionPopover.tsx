@@ -7,11 +7,13 @@ import {
   ListChecks,
   TriangleAlert,
   MoreHorizontal,
+  CornerUpLeft,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useApp } from '../state/store'
 import { insertBlank } from './commands'
 import { startPageStream } from './stream'
+import { replyWithSelection } from '../assistant/reply'
 
 const SKILLS = [
   { skill: '/ccq', label: 'Generate CCQ', Icon: MessageCircleQuestion },
@@ -66,6 +68,15 @@ export function SelectionPopover({ editor }: { editor: Editor }) {
             <Icon size={16} />
           </button>
         ))}
+        <button
+          type="button"
+          aria-label="Reply"
+          title="Reply"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => replyWithSelection(getSelectedText())}
+        >
+          <CornerUpLeft size={16} />
+        </button>
         {hiddenSkills.length > 0 && (
           <div className="popover-more-wrap">
             <button

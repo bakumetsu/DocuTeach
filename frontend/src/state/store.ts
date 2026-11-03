@@ -17,6 +17,7 @@ type SaveState =
 interface AppState {
   theme: Theme
   background: Background
+  spellcheck: boolean
   view: View
   assistantWidth: number
   assistantCollapsed: boolean
@@ -32,6 +33,7 @@ interface AppState {
   dialog: Dialog
   setTheme: (t: Theme) => void
   setBackground: (b: Background) => void
+  setSpellcheck: (on: boolean) => void
   setView: (v: View) => void
   setAssistantWidth: (w: number) => void
   setAssistantCollapsed: (c: boolean) => void
@@ -55,6 +57,7 @@ let toastTimer: ReturnType<typeof setTimeout> | null = null
 export const useApp = create<AppState>((set) => ({
   theme: loadJson<Theme>('theme', 'light'),
   background: loadJson<Background>('background', 'gradient'),
+  spellcheck: loadJson<boolean>('spellcheck', true),
   view: 'edit',
   assistantWidth: loadJson<number>('assistantWidth', 380),
   assistantCollapsed: loadJson<boolean>('assistantCollapsed', false),
@@ -78,6 +81,10 @@ export const useApp = create<AppState>((set) => ({
     document.documentElement.dataset.bg = b
     saveJson('background', b)
     set({ background: b })
+  },
+  setSpellcheck: (on) => {
+    saveJson('spellcheck', on)
+    set({ spellcheck: on })
   },
   setView: (v) => set({ view: v }),
   setAssistantWidth: (w) => {

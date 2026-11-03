@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardPaste, Send, Square, Plus } from 'lucide-react';
+import { ClipboardPaste, Send, Square, Plus, CornerUpLeft } from 'lucide-react';
+import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
 import { useApp } from '../state/store';
 import { insertFromChat } from './pageBridge';
@@ -16,6 +17,7 @@ export function ChatView() {
   const skills = useChats((s) => s.skills);
   const attachText = useChats((s) => s.attachText);
   const removeRef = useChats((s) => s.removeRef);
+  const focusNonce = useChats((s) => s.focusNonce);
 
   const view = useApp((s) => s.view);
   const showToast = useApp((s) => s.showToast);
@@ -24,9 +26,11 @@ export function ChatView() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [slashDismissed, setSlashDismissed] = useState(false);
+  const [replyAt, setReplyAt] = useState<{ text: string; top: number; left: number } | null>(null);
 
   const msgRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const input = inputs[activeId] ?? '';
   const isEdit = view === 'edit';
@@ -49,6 +53,10 @@ export function ChatView() {
       msgRef.current.scrollTop = msgRef.current.scrollHeight;
     }
   }, [chat?.messages]);
+
+  useEffect(() => {
+    if (focusNonce > 0) inputRef.current?.focus();
+  }, [focusNonce]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const nextValue = e.target.value;
@@ -135,6 +143,23 @@ export function ChatView() {
     e.target.value = '';
   };
 
+  const handleMsgMouseUp = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+    const text = sel.toString();
+    const node = sel.anchorNode;
+    const el = node instanceof Element ? node : node?.parentElement;
+    if (!text.trim() || !el?.closest('.msg-content')) return;
+    const box = msgRef.current;
+    const r = sel.getRangeAt(0).getBoundingClientRect?.();
+    const b = box?.getBoundingClientRect();
+    setReplyAt({
+      text,
+      top: r && b ? r.top - b.top + (box?.scrollTop ?? 0) - 30 : 0,
+      left: r && b ? r.left - b.left : 0,
+    });
+  };
+
   if (!chat) return null;
 
   const ms = modelStatus[chat.model];
@@ -144,7 +169,7 @@ export function ChatView() {
 
   return (
     <div className="chat-view">
-      <div className="chat-messages" ref={msgRef}>
+      <div className="chat-messages" ref={msgRef} onMouseUp={handleMsgMouseUp} onMouseDown={() => setReplyAt(null)}>
         {chat.messages.map((msg, i) => (
           <div key={i} className={`msg ${msg.role}`}>
             <div className="msg-bubble">
@@ -186,6 +211,26 @@ export function ChatView() {
           <div className="msg assistant">
             <span className="phase-line">Writing…</span>
           </div>
+        )}
+        {replyAt && (
+          <button
+            type="button"
+            className="icon-btn chat-reply-btn"
+            aria-label="Reply"
+            title="Reply"
+            style={{ top: replyAt.top, left: replyAt.left }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={() => {
+              replyWithSelection(replyAt.text);
+              setReplyAt(null);
+              window.getSelection()?.removeAllRanges();
+            }}
+          >
+            <CornerUpLeft size={14} />
+          </button>
         )}
       </div>
 
@@ -232,6 +277,7 @@ export function ChatView() {
           onChange={handleFile}
         />
         <textarea
+          ref={inputRef}
           aria-label="Message"
           value={input}
           onChange={handleInputChange}

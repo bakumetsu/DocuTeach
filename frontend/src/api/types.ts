@@ -52,6 +52,7 @@ export interface DocuTeachApi {
              remove(id: string): Promise<void>
              restore(id: string): Promise<LessonInfo> }
   status:  () => Promise<ApiStatus>
+  fonts:   { openFolder(): Promise<void> }
   exports: { plan(markdown: string, title: string): Promise<ExportPart[]>
              download(markdown: string, title: string, target: ExportTarget, part: number): Promise<ExportResult> }
   docs:    { load(id: string): Promise<DocRecord | null>

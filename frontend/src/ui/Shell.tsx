@@ -21,6 +21,7 @@ import {
   saveCheckpoint,
 } from '../files/fileActions';
 import { AssistantPane } from '../assistant/AssistantPane';
+import { api } from '../api';
 
 export function Shell() {
   const assistantWidth = useApp((s) => s.assistantWidth);
@@ -99,6 +100,9 @@ export function Shell() {
           break;
         case 'help.shortcuts':
           setDialog('shortcuts');
+          break;
+        case 'help.installFonts':
+          api.fonts.openFolder().catch(() => useApp.getState().showToast('Could not open the fonts folder'));
           break;
         case 'help.about':
           setDialog('about');

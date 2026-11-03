@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeAll } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor, act, within } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import App from '../src/App'
 import { useApp } from '../src/state/store'
@@ -313,5 +313,44 @@ describe('Toolbar', () => {
     })
 
     expect(screen.queryByRole('menu', { name: 'Font list' })).toBeNull()
+  })
+
+  it.each([
+    ['Font', 'Font list'],
+    ['Size', 'Size list'],
+  ])('moves through the %s list with the arrow keys', async (button, menuName) => {
+    useApp.setState({ view: 'edit' })
+    await renderApp()
+    const trigger = screen.getByRole('button', { name: button })
+    act(() => {
+      fireEvent.click(trigger)
+    })
+    const items = within(await screen.findByRole('menu', { name: menuName })).getAllByRole('menuitem')
+    const key = (k: string) =>
+      act(() => {
+        fireEvent.keyDown(document.activeElement as HTMLElement, { key: k })
+      })
+    expect(document.activeElement).toBe(items[0])
+    key('ArrowDown')
+    expect(document.activeElement).toBe(items[1])
+    key('ArrowUp')
+    expect(document.activeElement).toBe(items[0])
+    key('ArrowUp')
+    expect(document.activeElement).toBe(items[items.length - 1])
+    key('Home')
+    expect(document.activeElement).toBe(items[0])
+    key('End')
+    expect(document.activeElement).toBe(items[items.length - 1])
+    key('Escape')
+    expect(screen.queryByRole('menu', { name: menuName })).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('has Help > Install fonts, matching the DOCX warning', async () => {
+    await renderApp()
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Help' }))
+    })
+    expect(screen.getByRole('menuitem', { name: 'Install fonts' })).toBeTruthy()
   })
 })

@@ -80,22 +80,22 @@ Each ticket (`fix-`, `feat-` or `design-<name>`) is an Orca workspace: a child o
 
 ### Ticket reports
 
-Every final ticket report, every progress report Opus passes on, and every wrap-up starts with a **state line**, then a plain-English summary, then the technical details:
+Every final ticket report, every progress report Opus passes on, and every wrap-up starts with a **header**, then a highlighted summary; the full format (Status line, Review, Decision, the page) is in skill `orca-ticket-ops`, "Ticket reports":
 
-1. **State line:** `<name> (T-XX): <STATE>: <who acts next>` (`<name>` = the ticket name, `T-XX` / `D-XX` = its backlog ID from `backlog.md`, next to this file), using exactly one of these states (and set the matching Orca status):
+1. **Header:** `[T-XX] <name> :: <STATE>` (`<name>` = the ticket name, `T-XX` / `D-XX` = its backlog ID from `backlog.md`, next to this file), using exactly one of these states (and set the matching Orca status):
 
-   | State line (`<name> (T-XX): ...`) | Meaning | Orca status |
+   | Header (`[T-XX] <name> :: ...`) | Meaning | Orca status |
    |---|---|---|
-   | `<name> (T-XX): PASSED: merged locally, ready to push` | All bars met, merged into local `dev`; goes out with the next push after the Opus diff review | `completed` |
-   | `<name> (T-XX): PARTIAL: needs your review` | Some bars met; the fix helps but does not solve it; not merged | `in-review` |
-   | `<name> (T-XX): FAILED: needs your review` | Bars not met, or the fix made things worse; not merged | `in-review` |
-   | `<name> (T-XX): BLOCKED: needs your answer` | Cannot continue without information from the user | `todo` |
-   | `<name> (T-XX): DESIGN READY: needs your approval` | Design passed the Opus review and waits for the user's OK | `in-review` |
-   | `<name> (T-XX): RUNNING: <what it is doing now>` | Progress check only | `in-progress` |
+   | `[T-XX] <name> :: PASSED` | All bars met, merged into local `dev` (or a kit-only change, shown as NO CODE); goes out with the next push after the Opus final review | `completed` |
+   | `[T-XX] <name> :: PARTIAL` | Some bars met; the fix helps but does not solve it; not merged | `in-review` |
+   | `[T-XX] <name> :: FAILED` | Bars not met, or the fix made things worse; not merged | `in-review` |
+   | `[T-XX] <name> :: BLOCKED` | Cannot continue without information from the user | `todo` |
+   | `[T-XX] <name> :: DESIGN READY` | Design passed the Opus review and waits for the user's OK | `in-review` |
+   | `[T-XX] <name> :: RUNNING` | Progress check only | `in-progress` |
 
-2. **TL;DR (3 to 4 sentences, everyday language):** the core problem, the fix made, the test outcome (passed, partial or failed, with one headline number), and the exact decision or action needed from the user ("No decision needed" when none). No code names, endpoint paths, node names or variable names.
-3. **Why it isn't merged** (only PARTIAL, FAILED, BLOCKED): everyday language, no jargon.
-4. **`### Engineering Details`:** everything else below this divider: commits, test counts per suite, golden-file results, export checks, model and timings for LLM tests, what was not measured.
+2. **Summary box:** one quote block: a bold headline (at most 12 words: the state and who acts next), then at most 2 everyday-language lines (what changed, with one key number; what happens next and the recommendation). No code names, endpoint paths, node names or variable names.
+3. **Why it isn't merged** (only PARTIAL, FAILED, BLOCKED): everyday language, no jargon; in the chat text it is one of the two summary lines.
+4. **The rest:** the Status line, Review (failed or not proven / passed / for Opus) and the Decision table come from `ticket_reports.py render`; the engineering details live on the report page. Final reports reach the user in the planner chat: the planner posts the page and the chat text unchanged and asks there; only the user's own answer counts (in the planner chat, or in the ticket chat when the user works there directly).
 
 ## Commit messages (Conventional Commits)
 

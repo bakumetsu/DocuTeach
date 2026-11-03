@@ -8,11 +8,11 @@ export function hasToken(): boolean {
 
 export const enc = encodeURIComponent
 
-export async function request<T>(
+async function rawFetch(
   method: string,
   path: string,
   opts?: { body?: unknown; signal?: AbortSignal },
-): Promise<T> {
+): Promise<Response> {
   const headers: Record<string, string> = { 'X-DocuTeach-Token': token }
   const hasBody = opts?.body !== undefined
   if (hasBody) {
@@ -45,6 +45,15 @@ export async function request<T>(
     throw new ApiError(code, res.status, message)
   }
 
+  return res
+}
+
+export async function request<T>(
+  method: string,
+  path: string,
+  opts?: { body?: unknown; signal?: AbortSignal },
+): Promise<T> {
+  const res = await rawFetch(method, path, opts)
   const text = await res.text()
   if (!text) return undefined as T
   try {
@@ -55,4 +64,14 @@ export async function request<T>(
     }
     throw err
   }
+}
+
+export async function requestBlob(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<{ blob: Blob; headers: Headers }> {
+  const res = await rawFetch(method, path, body !== undefined ? { body } : undefined)
+  const blob = await res.blob()
+  return { blob, headers: res.headers }
 }

@@ -1,5 +1,6 @@
 import { request, enc } from './client'
 import { mockApi } from '../mock'
+import { httpExports } from './export'
 import { ApiError } from '../types'
 import type {
   DocuTeachApi,
@@ -53,6 +54,7 @@ export const httpApi: DocuTeachApi = {
       return { llm: 'offline', model: null, version: '' }
     }
   },
+  exports: httpExports,
   // tickets 8 and 9 replace these with real backend routes
   models: mockApi.models,
   chat: mockApi.chat,

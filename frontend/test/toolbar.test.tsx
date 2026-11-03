@@ -168,11 +168,11 @@ describe('Toolbar', () => {
     expect(boldAfter.hasAttribute('aria-disabled')).toBe(false)
   })
 
-  it('marks Export as disabled', async () => {
+  it('Export button is enabled', async () => {
     await renderApp()
 
     const exportButton = screen.getByRole('button', { name: 'Export' })
-    expect(exportButton.getAttribute('aria-disabled')).toBe('true')
+    expect(exportButton.hasAttribute('aria-disabled')).toBe(false)
   })
 
   it('moves focus to the next toolbar button on ArrowRight', async () => {

@@ -24,8 +24,11 @@ import {
   Rows3,
   Columns3,
   Trash2,
+  FileText,
+  BookOpen,
 } from 'lucide-react'
 import { useApp } from '../state/store'
+import { ApiError } from '../api/types'
 import { Popover } from './Popover'
 import { revert, redo, canUndo, canRedo } from '../editor/history'
 import {
@@ -41,6 +44,8 @@ import {
   formatState,
 } from '../editor/formatting'
 import { insertTeacherNote, insertMcq, insertBlank, insertSplitPoint } from '../editor/commands'
+import { loadExportPlan, runExport } from '../files/exportActions'
+import type { ExportPart, ExportTarget } from '../api/types'
 
 type Align = 'left' | 'center' | 'right' | 'justify'
 type Block = 'paragraph' | 'h1' | 'h2'
@@ -91,6 +96,13 @@ function useEditorToolbarState(): void {
   }, [editor])
 }
 
+function exportLabel(part: ExportPart, target: ExportTarget): string {
+  const kind = target === 'student_pdf' ? 'PDF' : 'DOCX'
+  if (part.targets.length > 1)
+    return target === 'student_pdf' ? 'Student worksheet (PDF)' : 'Teacher guide (DOCX)'
+  return `${part.label} (${kind})`
+}
+
 export function Toolbar() {
   useEditorToolbarState()
 
@@ -106,6 +118,7 @@ export function Toolbar() {
   const [alignAnchor, setAlignAnchor] = useState<HTMLElement | null>(null)
   const [tableAnchor, setTableAnchor] = useState<HTMLElement | null>(null)
   const [exportAnchor, setExportAnchor] = useState<HTMLElement | null>(null)
+  const [plan, setPlan] = useState<ExportPart[] | null>(null)
 
   const barRef = useRef<HTMLDivElement>(null)
 
@@ -229,6 +242,15 @@ export function Toolbar() {
     if (!canEdit || !redoOk) return
     redo()
   }
+  const loadPlan = () => {
+    setPlan(null)
+    loadExportPlan()
+      .then(setPlan)
+      .catch((err: unknown) => {
+        useApp.getState().showToast(err instanceof ApiError ? err.message : 'Could not prepare the export')
+        setPlan([])
+      })
+  }
 
   const AlignIcon = ALIGN_ICON[align]
   const dimEdit = !canEdit
@@ -324,14 +346,17 @@ export function Toolbar() {
       <button
         ref={setExportAnchor}
         type="button"
-        className="tb-btn dim"
+        className="tb-btn"
         tabIndex={15 === activeIdx ? 0 : -1}
         aria-label="Export"
         title="Export"
         aria-haspopup="menu"
         aria-expanded={open === 'export'}
-        aria-disabled="true"
-        onClick={() => setOpen(open === 'export' ? null : 'export')}
+        onClick={() => {
+          const next = open === 'export' ? null : 'export'
+          setOpen(next)
+          if (next === 'export') loadPlan()
+        }}
       >
         <Download size={16} />
       </button>
@@ -410,13 +435,30 @@ export function Toolbar() {
       </Popover>
 
       <Popover anchor={exportAnchor} open={open === 'export'} onClose={() => setOpen(null)}>
-        <div className="tb-menu">
-          <div className="tb-menu-item disabled" aria-disabled="true">
-            Student worksheet (PDF)
-          </div>
-          <div className="tb-menu-item disabled" aria-disabled="true">
-            Teacher guide (DOCX)
-          </div>
+        <div className="tb-menu" role="menu" aria-label="Export">
+          {plan === null ? (
+            <div className="tb-menu-item disabled" aria-disabled="true">Preparing…</div>
+          ) : plan.length === 0 ? (
+            <div className="tb-menu-item disabled" aria-disabled="true">Export is not available</div>
+          ) : (
+            plan.flatMap((part) =>
+              part.targets.map((target) => (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="tb-menu-item"
+                  key={`${part.label}-${target}`}
+                  onClick={() => {
+                    setOpen(null)
+                    void runExport(part, target)
+                  }}
+                >
+                  {target === 'student_pdf' ? <FileText size={16} /> : <BookOpen size={16} />}
+                  <span>{exportLabel(part, target)}</span>
+                </button>
+              )),
+            )
+          )}
           <div className="dialog-footer">
             <button type="button" className="tb-insert" onClick={() => setDialog('split')}>
               Split into files…

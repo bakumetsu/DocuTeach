@@ -4,6 +4,7 @@ import { mockModels } from './models'
 import { mockChat, mockChats } from './chat'
 import { mockSkills } from './skills'
 import { mockLessons, mockStatus } from './lessons'
+import { mockExports } from './exports'
 
 export const mockApi: DocuTeachApi = {
   models: mockModels,
@@ -13,4 +14,5 @@ export const mockApi: DocuTeachApi = {
   lessons: mockLessons,
   status: mockStatus,
   docs: mockDocs,
+  exports: mockExports,
 }

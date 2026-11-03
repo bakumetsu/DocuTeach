@@ -26,6 +26,10 @@ export interface ChatRecord {
 }
 export interface LessonInfo { id: string; title: string; createdAt: string; updatedAt: string }
 export interface ApiStatus { llm: 'online' | 'offline'; model: string | null; version: string }
+export type ExportTarget = 'student_pdf' | 'teacher_docx'
+export interface ExportPart { part: number; label: string; filename: string; targets: ExportTarget[] }
+export interface ExportWarning { code: string; message: string }
+export interface ExportResult { blob: Blob; filename: string; warnings: ExportWarning[] }
 export class ApiError extends Error {
   code: string
   status: number
@@ -48,6 +52,8 @@ export interface DocuTeachApi {
              remove(id: string): Promise<void>
              restore(id: string): Promise<LessonInfo> }
   status:  () => Promise<ApiStatus>
+  exports: { plan(markdown: string, title: string): Promise<ExportPart[]>
+             download(markdown: string, title: string, target: ExportTarget, part: number): Promise<ExportResult> }
   docs:    { load(id: string): Promise<DocRecord | null>
              save(id: string, markdown: string): Promise<DocRecord>
              checkpoints: { list(id: string): Promise<Checkpoint[]>

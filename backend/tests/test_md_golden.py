@@ -17,13 +17,14 @@ _MISSING = "__missing__"
 
 def _require_fixtures() -> None:
     if not FIXTURES.is_dir():
-        pytest.skip("frontend fixtures not found")
+        pytest.fail("frontend fixtures not found")
 
 
 def _fixture_stems() -> list[str]:
     if not FIXTURES.is_dir():
         return [_MISSING]
-    return sorted(path.stem for path in FIXTURES.glob("*.md") if path.is_file())
+    stems = sorted(path.stem for path in FIXTURES.glob("*.md") if path.is_file())
+    return stems or [_MISSING]
 
 
 def _golden_message(fixture_stems: set[str], golden_stems: set[str]) -> str:
@@ -48,7 +49,7 @@ def test_every_fixture_has_a_golden() -> None:
 def test_fixture_matches_golden(stem: str) -> None:
     _require_fixtures()
     if stem == _MISSING:
-        pytest.skip("frontend fixtures not found")
+        pytest.fail("frontend fixtures not found")
     fixture_text = (FIXTURES / f"{stem}.md").read_text(encoding="utf-8")
     result = parse_markdown(fixture_text)
     golden_text = (GOLDEN / f"{stem}.json").read_text(encoding="utf-8")
@@ -61,7 +62,7 @@ def test_fixture_matches_golden(stem: str) -> None:
 def test_parse_never_raises(stem: str) -> None:
     _require_fixtures()
     if stem == _MISSING:
-        pytest.skip("frontend fixtures not found")
+        pytest.fail("frontend fixtures not found")
     text = (FIXTURES / f"{stem}.md").read_text(encoding="utf-8").lstrip("\ufeff")
     baseline = parse_markdown(text)
     crlf = parse_markdown(text.replace("\n", "\r\n"))

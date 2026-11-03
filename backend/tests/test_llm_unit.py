@@ -267,3 +267,37 @@ def test_build_messages_planned_skill() -> None:
     with pytest.raises(ApiError) as exc_info:
         svc.build_messages(req, 100_000)
     assert exc_info.value.code == "skill_planned"
+
+
+# ---------------------------------------------------------------------------
+# LlmService active-chat bookkeeping
+# ---------------------------------------------------------------------------
+
+
+def _chat_request() -> ChatRequest:
+    return ChatRequest(
+        chatId="c1",
+        model="byteshape",
+        messages=[ChatMessage(role="user", content="hi")],
+    )
+
+
+@pytest.mark.anyio
+async def test_dropped_request_does_not_leave_chat_busy() -> None:
+    svc = _make_service(load_settings())
+    req = _chat_request()
+    await svc.prepare(req)  # request dropped before the stream generator ever runs
+    messages = await svc.prepare(req)  # no chat_busy
+    assert messages[-1]["content"] == "hi"
+
+
+@pytest.mark.anyio
+async def test_events_rejects_second_stream_on_live_chat() -> None:
+    svc = _make_service(load_settings())
+    req = _chat_request()
+    svc._active.add("c1")  # pyright: ignore[reportPrivateUsage]
+    out = [ev async for ev in svc.events(req, [])]
+    assert out == [
+        {"type": "error", "code": "chat_busy", "message": "This chat is already generating"}
+    ]
+    assert "c1" in svc._active  # pyright: ignore[reportPrivateUsage]

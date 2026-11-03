@@ -38,9 +38,9 @@ FIXTURES = Path(__file__).resolve().parents[2] / "frontend" / "test" / "fixtures
 GOLDENS = Path(__file__).parent / "golden"
 
 
-def _skip_if_no_fixtures() -> None:
-    if not FIXTURES.is_dir():
-        pytest.skip("frontend fixtures not found")
+def _require_fixtures() -> None:
+    if not FIXTURES.is_dir() or not any(FIXTURES.glob("*.md")):
+        pytest.fail("frontend fixtures not found")
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ def _collect_visible_text(doc: Doc) -> str:
 
 
 def test_no_secret_leak_in_fixtures() -> None:
-    _skip_if_no_fixtures()
+    _require_fixtures()
     for path in sorted(FIXTURES.glob("*.md")):
         text = path.read_text(encoding="utf-8")
         doc = parse_markdown(text).doc

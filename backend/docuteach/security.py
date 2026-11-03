@@ -57,8 +57,17 @@ class TokenHostMiddleware:
         await self._app(scope, receive, send)
 
     def _host_ok(self, host: str) -> bool:
-        # Strip port from host header
-        if ":" in host:
+        # Strip port from host header; keep a bracketed IPv6 literal intact
+        if host.startswith("["):
+            end = host.find("]")
+            if end == -1:
+                return False
+            host_part = host[1:end]
+            rest = host[end + 1 :]
+            if rest and not rest.startswith(":"):
+                return False
+            port_part = rest[1:]
+        elif ":" in host:
             host_part, _, port_part = host.rpartition(":")
         else:
             host_part = host
@@ -68,7 +77,7 @@ class TokenHostMiddleware:
             # Accept any port on loopback hosts
             return host_part in ("127.0.0.1", "localhost", "::1")
         else:
-            return host_part in ("127.0.0.1", "localhost") and port_part == str(self._port)
+            return host_part in ("127.0.0.1", "localhost", "::1") and port_part == str(self._port)
 
     async def _forbidden(self, send: Send, reason: str) -> None:
         body = json.dumps({"code": "forbidden", "message": reason}).encode()

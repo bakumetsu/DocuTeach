@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
@@ -11,8 +12,8 @@ from docx import Document
 
 from docuteach.export.answer_key import KeyLine, build_answer_key
 from docuteach.export.docx_render import DocxResult, render_docx
-from docuteach.export.typst_inline import PageStyle, read_page_style
-from docuteach.md.model import Doc
+from docuteach.export.typst_inline import DEFAULT_PAGE, PageStyle, read_page_style
+from docuteach.md.model import Doc, Meta, Paragraph, Table, Text
 from docuteach.md.parser import parse_markdown
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "leak.md"
@@ -181,3 +182,49 @@ def test_spec_ships_font_data() -> None:
     assert "fonts" in spec
     assert "fonts.json" in spec
     assert 'collect_data_files("docx")' in spec
+
+
+def test_docx_xml_child_order() -> None:
+    md = (
+        'Plain [big]{font="Roboto" size=14 .u} text **bold**.\n\n'
+        "Which one?\n- [ ] one\n- [x] two\n"
+    )
+    data = _docx(md).data
+    root = ET.fromstring(zipfile.ZipFile(io.BytesIO(data)).read("word/document.xml"))
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+    seen_rpr_with_fonts = False
+    for rpr in root.iter(f'{{{ns["w"]}}}rPr'):
+        children = [child.tag.split("}")[-1] for child in rpr]
+        if "rFonts" in children:
+            seen_rpr_with_fonts = True
+            assert children.index("rFonts") == 0, f"rFonts not first: {children}"
+        if "sz" in children:
+            sz_idx = children.index("sz")
+            for name in ("szCs", "highlight", "u"):
+                if name in children:
+                    assert sz_idx < children.index(name), f"sz before {name}: {children}"
+
+    seen_ppr_with_shd = False
+    for ppr in root.iter(f'{{{ns["w"]}}}pPr'):
+        children = [child.tag.split("}")[-1] for child in ppr]
+        if "shd" in children:
+            seen_ppr_with_shd = True
+            shd_idx = children.index("shd")
+            for name in ("ind", "jc", "spacing"):
+                if name in children:
+                    assert shd_idx < children.index(name), f"shd before {name}: {children}"
+
+    assert seen_rpr_with_fonts, "no rPr with rFonts found"
+    assert seen_ppr_with_shd, "no pPr with shd found"
+
+
+def test_docx_empty_table_block_is_skipped() -> None:
+    doc = Doc(
+        meta=Meta(),
+        blocks=(Table(rows=()), Paragraph(content=(Text("after"),))),
+    )
+    result = render_docx(doc, DEFAULT_PAGE)
+    texts = _texts(result.data)
+    assert "after" in texts
+    assert len(Document(io.BytesIO(result.data)).tables) == 0

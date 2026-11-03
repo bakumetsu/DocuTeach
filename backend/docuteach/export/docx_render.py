@@ -236,8 +236,12 @@ class _Builder:
         container.add_paragraph()
 
     def _table(self, block: Table, container: BlockItemContainer) -> None:
+        if not block.rows:
+            return
         rows = len(block.rows)
-        cols = max(len(r) for r in block.rows)
+        cols = max((len(r) for r in block.rows), default=0)
+        if cols == 0:
+            return
         table = self._add_table(container, rows, cols)
         table.style = "Table Grid"
         for i, row in enumerate(block.rows):

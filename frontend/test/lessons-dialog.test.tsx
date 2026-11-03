@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react';
 import { Editor } from '@tiptap/core';
 import { extensions } from '../src/editor/extensions';
 import { parseMarkdown } from '../src/markdown/parse';
@@ -151,8 +151,8 @@ describe('LessonsDialog', () => {
       expect(screen.getByText('Other')).toBeDefined();
     });
 
-    const openButtons = screen.getAllByLabelText('Open');
-    fireEvent.click(openButtons[1]);
+    const li = screen.getByText('Other').closest('li')!;
+    fireEvent.click(within(li).getByLabelText('Open'));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();

@@ -85,6 +85,8 @@ const ALIGN_ICON: Record<Align, typeof AlignLeft> = {
   justify: AlignJustify,
 }
 
+const SORTED_FONTS = [...FONTS].sort((a, b) => a.name.localeCompare(b.name))
+
 const ALIGNS: Align[] = ['left', 'center', 'right', 'justify']
 
 // Re-renders the toolbar whenever the editor emits a transaction or a
@@ -433,7 +435,7 @@ export function Toolbar() {
             <span className="tb-check" aria-hidden="true">{fmt.font === null ? '✓' : ''}</span>
             <span>Default</span>
           </button>
-          {FONTS.map((f) => (
+          {SORTED_FONTS.map((f) => (
             <button
               key={f.name}
               type="button"

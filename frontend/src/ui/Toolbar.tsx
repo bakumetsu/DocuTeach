@@ -26,6 +26,8 @@ import {
   Trash2,
   FileText,
   BookOpen,
+  Type,
+  ChevronDown,
 } from 'lucide-react'
 import { useApp } from '../state/store'
 import { ApiError } from '../api/types'
@@ -42,7 +44,12 @@ import {
   tableOp,
   inTable,
   formatState,
+  setFont,
+  setSize,
+  SIZE_PRESETS,
 } from '../editor/formatting'
+import { FONTS } from '../editor/fontStyle'
+import { readPageStyle } from '../editor/pageStyle'
 import { insertTeacherNote, insertMcq, insertBlank, insertSplitPoint } from '../editor/commands'
 import { loadExportPlan, runExport } from '../files/exportActions'
 import type { ExportPart, ExportTarget } from '../api/types'
@@ -67,6 +74,8 @@ const NO_FMT: Fmt = {
   canAlign: false,
   canUndo: false,
   canRedo: false,
+  font: null,
+  size: null,
 }
 
 const ALIGN_ICON: Record<Align, typeof AlignLeft> = {
@@ -75,6 +84,8 @@ const ALIGN_ICON: Record<Align, typeof AlignLeft> = {
   right: AlignRight,
   justify: AlignJustify,
 }
+
+const SORTED_FONTS = [...FONTS].sort((a, b) => a.name.localeCompare(b.name))
 
 const ALIGNS: Align[] = ['left', 'center', 'right', 'justify']
 
@@ -109,15 +120,18 @@ export function Toolbar() {
   const view = useApp((s) => s.view)
   const editor = useApp((s) => s.editor)
   const setDialog = useApp((s) => s.setDialog)
+  const docMeta = useApp((s) => s.docMeta)
 
   const [activeIdx, setActiveIdx] = useState(0)
-  const [open, setOpen] = useState<null | 'align' | 'table' | 'export'>(null)
+  const [open, setOpen] = useState<null | 'font' | 'size' | 'align' | 'table' | 'export'>(null)
   const [rows, setRows] = useState(3)
   const [cols, setCols] = useState(3)
 
   const [alignAnchor, setAlignAnchor] = useState<HTMLElement | null>(null)
   const [tableAnchor, setTableAnchor] = useState<HTMLElement | null>(null)
   const [exportAnchor, setExportAnchor] = useState<HTMLElement | null>(null)
+  const [fontAnchor, setFontAnchor] = useState<HTMLElement | null>(null)
+  const [sizeAnchor, setSizeAnchor] = useState<HTMLElement | null>(null)
   const [plan, setPlan] = useState<ExportPart[] | null>(null)
 
   const barRef = useRef<HTMLDivElement>(null)
@@ -126,6 +140,7 @@ export function Toolbar() {
   const ed = editor
 
   const fmt: Fmt = ed ? formatState(ed) : NO_FMT
+  const page = readPageStyle(docMeta)
   const align: Align = ed ? currentAlign(ed) : 'left'
   const alignOk = ed ? canAlign(ed) : false
   const inTbl = ed ? inTable(ed) : false
@@ -234,6 +249,16 @@ export function Toolbar() {
     if (!ed || !canEdit) return
     insertSplitPoint(ed)
   }
+  const doFont = (name: string | null) => {
+    if (!ed || !canEdit) return
+    setFont(ed, name)
+    setOpen(null)
+  }
+  const doSize = (n: number | null) => {
+    if (!ed || !canEdit) return
+    setSize(ed, n)
+    setOpen(null)
+  }
   const doRevert = () => {
     if (!canEdit || !undoOk) return
     revert()
@@ -277,15 +302,58 @@ export function Toolbar() {
 
       <span className="tb-sep" aria-hidden="true" />
 
-      {btn(0, dimEdit, 'Bold', () => doFormat('bold'), <Bold size={16} />, { pressed: fmt.bold })}
-      {btn(1, dimEdit, 'Italic', () => doFormat('italic'), <Italic size={16} />, { pressed: fmt.italic })}
-      {btn(2, dimEdit, 'Underline', () => doFormat('underline'), <Underline size={16} />, { pressed: fmt.underline })}
-      {btn(3, dimEdit, 'Highlight', () => doFormat('highlight'), <Highlighter size={16} />, { pressed: fmt.highlight })}
+      <button
+        ref={setFontAnchor}
+        type="button"
+        className={`tb-btn tb-font${dimEdit ? ' dim' : ''}`}
+        tabIndex={0 === activeIdx ? 0 : -1}
+        aria-label="Font"
+        title={`Font: ${fmt.font === 'mixed' ? 'mixed' : typeof fmt.font === 'string' ? fmt.font : `${page.font} (default)`}`}
+        aria-haspopup="menu"
+        aria-expanded={open === 'font'}
+        aria-disabled={dimEdit || undefined}
+        data-set={typeof fmt.font === 'string' ? 'true' : undefined}
+        onClick={() => {
+          if (dimEdit) return
+          setOpen(open === 'font' ? null : 'font')
+        }}
+      >
+        <Type size={16} />
+        <ChevronDown size={12} />
+      </button>
+
+      <button
+        ref={setSizeAnchor}
+        type="button"
+        className={`tb-btn tb-size${dimEdit ? ' dim' : ''}`}
+        tabIndex={1 === activeIdx ? 0 : -1}
+        aria-label="Size"
+        title={`Size: ${fmt.size === 'mixed' ? 'mixed' : typeof fmt.size === 'number' ? String(fmt.size) : `${page.size} (default)`}`}
+        aria-haspopup="menu"
+        aria-expanded={open === 'size'}
+        aria-disabled={dimEdit || undefined}
+        onClick={() => {
+          if (dimEdit) return
+          setOpen(open === 'size' ? null : 'size')
+        }}
+      >
+        <span className={`tb-size-val${fmt.size === null ? ' muted' : ''}`}>
+          {fmt.size === 'mixed' ? '' : fmt.size ?? page.size}
+        </span>
+        <ChevronDown size={12} />
+      </button>
 
       <span className="tb-sep" aria-hidden="true" />
 
-      {btn(4, dimEdit, 'Bullet list', () => doList('bullet'), <List size={16} />, { pressed: fmt.bullet })}
-      {btn(5, dimEdit, 'Numbered list', () => doList('ordered'), <ListOrdered size={16} />, { pressed: fmt.ordered })}
+      {btn(2, dimEdit, 'Bold', () => doFormat('bold'), <Bold size={16} />, { pressed: fmt.bold })}
+      {btn(3, dimEdit, 'Italic', () => doFormat('italic'), <Italic size={16} />, { pressed: fmt.italic })}
+      {btn(4, dimEdit, 'Underline', () => doFormat('underline'), <Underline size={16} />, { pressed: fmt.underline })}
+      {btn(5, dimEdit, 'Highlight', () => doFormat('highlight'), <Highlighter size={16} />, { pressed: fmt.highlight })}
+
+      <span className="tb-sep" aria-hidden="true" />
+
+      {btn(6, dimEdit, 'Bullet list', () => doList('bullet'), <List size={16} />, { pressed: fmt.bullet })}
+      {btn(7, dimEdit, 'Numbered list', () => doList('ordered'), <ListOrdered size={16} />, { pressed: fmt.ordered })}
 
       <span className="tb-sep" aria-hidden="true" />
 
@@ -293,7 +361,7 @@ export function Toolbar() {
         ref={setAlignAnchor}
         type="button"
         className={`tb-btn${dimEdit || !alignOk ? ' dim' : ''}`}
-        tabIndex={6 === activeIdx ? 0 : -1}
+        tabIndex={8 === activeIdx ? 0 : -1}
         aria-label="Align"
         title={alignOk ? 'Alignment' : 'Alignment works on top-level paragraphs and headings'}
         aria-haspopup="menu"
@@ -311,7 +379,7 @@ export function Toolbar() {
         ref={setTableAnchor}
         type="button"
         className={`tb-btn${dimEdit ? ' dim' : ''}`}
-        tabIndex={7 === activeIdx ? 0 : -1}
+        tabIndex={9 === activeIdx ? 0 : -1}
         aria-label="Table"
         title="Table"
         aria-haspopup="menu"
@@ -327,27 +395,27 @@ export function Toolbar() {
 
       <span className="tb-sep" aria-hidden="true" />
 
-      {btn(8, dimEdit, 'Blank', doBlank, <SquareDashedBottom size={16} />)}
-      {btn(9, dimEdit, 'Note', doNote, <StickyNote size={16} />)}
-      {btn(10, dimEdit, 'Choice', doChoice, <ListChecks size={16} />)}
-      {btn(11, dimEdit, 'Split', doSplit, <Scissors size={16} />, {
+      {btn(10, dimEdit, 'Blank', doBlank, <SquareDashedBottom size={16} />)}
+      {btn(11, dimEdit, 'Note', doNote, <StickyNote size={16} />)}
+      {btn(12, dimEdit, 'Choice', doChoice, <ListChecks size={16} />)}
+      {btn(13, dimEdit, 'Split', doSplit, <Scissors size={16} />, {
         title: hasSplit ? 'Go to the split point' : 'Add split point',
       })}
 
       <span className="tb-sep" aria-hidden="true" />
 
-      {btn(12, !canEdit || !undoOk, 'Revert', doRevert, <Undo2 size={16} />, { title: 'Revert' })}
-      {btn(13, !canEdit || !redoOk, 'Redo', doRedo, <Redo2 size={16} />, { title: 'Redo' })}
+      {btn(14, !canEdit || !undoOk, 'Revert', doRevert, <Undo2 size={16} />, { title: 'Revert' })}
+      {btn(15, !canEdit || !redoOk, 'Redo', doRedo, <Redo2 size={16} />, { title: 'Redo' })}
 
       <span className="tb-grow" aria-hidden="true" />
 
-      {btn(14, false, 'Page style', () => setDialog('pageStyle'), <FileCog size={16} />)}
+      {btn(16, false, 'Page style', () => setDialog('pageStyle'), <FileCog size={16} />)}
 
       <button
         ref={setExportAnchor}
         type="button"
         className="tb-btn"
-        tabIndex={15 === activeIdx ? 0 : -1}
+        tabIndex={17 === activeIdx ? 0 : -1}
         aria-label="Export"
         title="Export"
         aria-haspopup="menu"
@@ -360,6 +428,63 @@ export function Toolbar() {
       >
         <Download size={16} />
       </button>
+
+      <Popover anchor={fontAnchor} open={open === 'font'} onClose={() => setOpen(null)}>
+        <div className="tb-menu" role="menu" aria-label="Font list">
+          <button type="button" role="menuitem" className="tb-menu-item" onClick={() => doFont(null)}>
+            <span className="tb-check" aria-hidden="true">{fmt.font === null ? '✓' : ''}</span>
+            <span>Default</span>
+          </button>
+          {SORTED_FONTS.map((f) => (
+            <button
+              key={f.name}
+              type="button"
+              role="menuitem"
+              className="tb-menu-item"
+              style={{ fontFamily: f.stack }}
+              aria-label={f.name}
+              onClick={() => doFont(f.name)}
+            >
+              <span className="tb-check" aria-hidden="true">{fmt.font === f.name ? '✓' : ''}</span>
+              <span>{f.name}</span>
+            </button>
+          ))}
+          {typeof fmt.font === 'string' && !FONTS.some((f) => f.name === fmt.font) && (
+            <button type="button" role="menuitem" className="tb-menu-item">
+              <span className="tb-check" aria-hidden="true">✓</span>
+              <span>{fmt.font} (not bundled)</span>
+            </button>
+          )}
+        </div>
+      </Popover>
+
+      <Popover anchor={sizeAnchor} open={open === 'size'} onClose={() => setOpen(null)}>
+        <div className="tb-menu" role="menu" aria-label="Size list">
+          <button type="button" role="menuitem" className="tb-menu-item" onClick={() => doSize(null)}>
+            <span className="tb-check" aria-hidden="true">{fmt.size === null ? '✓' : ''}</span>
+            <span>Default</span>
+          </button>
+          {SIZE_PRESETS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              role="menuitem"
+              className="tb-menu-item"
+              aria-label={`${n} pt`}
+              onClick={() => doSize(n)}
+            >
+              <span className="tb-check" aria-hidden="true">{fmt.size === n ? '✓' : ''}</span>
+              <span>{String(n)}</span>
+            </button>
+          ))}
+          {typeof fmt.size === 'number' && !SIZE_PRESETS.includes(fmt.size) && (
+            <button type="button" role="menuitem" className="tb-menu-item" aria-label={`${fmt.size} pt`}>
+              <span className="tb-check" aria-hidden="true">✓</span>
+              <span>{String(fmt.size)}</span>
+            </button>
+          )}
+        </div>
+      </Popover>
 
       <Popover anchor={alignAnchor} open={open === 'align'} onClose={() => setOpen(null)}>
         <div className="tb-menu" role="menu" aria-label="Alignment">

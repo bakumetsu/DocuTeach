@@ -1,4 +1,5 @@
 .page {
+  position: relative;
   background: var(--page-bg);
   width: 210mm;
   max-width: 100%;
@@ -468,4 +469,25 @@
   left: calc(-1 * var(--page-ml, 15mm));
   right: calc(-1 * var(--page-mr, 15mm));
   margin: 0;
+}
+
+/* ── Table handle ──────────────────────────────────────────────── */
+.table-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page-bg);
+  color: inherit;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.table-handle:hover {
+  background: var(--page-subtle);
 }

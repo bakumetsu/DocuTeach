@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from docuteach.api.deps import get_settings
 from docuteach.config import Settings
 from docuteach.errors import ApiError
+from docuteach.export.docx_render import render_docx
 from docuteach.export.names import content_disposition, sanitize_filename
 from docuteach.export.split import PlanPart, cut_pdf, plan_parts
 from docuteach.export.typst_inline import PageStyle, read_page_style
@@ -120,7 +121,7 @@ def _warning_items(texts: list[str]) -> list[dict[str, str]]:
 
 def _do_export_blocking(
     body: ExportBody, settings: Settings
-) -> tuple[bytes, str, list[dict[str, str]]]:
+) -> tuple[bytes, str, list[dict[str, str]], str]:
     prepared = _prepare(body.markdown, settings)
 
     part = next((p for p in prepared.parts if p.part == body.part), None)
@@ -129,9 +130,18 @@ def _do_export_blocking(
     if body.target not in part.targets:
         raise ApiError("bad_request", "That part has no such file", 422)
     if body.target == "teacher_docx":
-        raise ApiError(
-            "not_available", "Teacher DOCX export is not available yet", 501
+        result = render_docx(prepared.res.doc, prepared.page)
+        all_warnings: list[str] = [
+            w for w in prepared.res.warnings if not w.startswith("unlisted_font:")
+        ]
+        for w in result.warnings:
+            if w not in all_warnings:
+                all_warnings.append(w)
+        filename = sanitize_filename(body.title, part.label, "teacher")
+        media_type = (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
+        return result.data, filename, _warning_items(all_warnings), media_type
     if body.target != "student_pdf":
         raise ApiError("bad_request", "That part has no such file", 422)
 
@@ -154,7 +164,7 @@ def _do_export_blocking(
             all_warnings.append(w)
 
     filename = sanitize_filename(body.title, part.label, "student")
-    return pdf, filename, _warning_items(all_warnings)
+    return pdf, filename, _warning_items(all_warnings), "application/pdf"
 
 
 # ---------------------------------------------------------------------------
@@ -195,8 +205,10 @@ async def do_export(
     async with gate.slot():
         try:
             with anyio.fail_after(settings.export_timeout_s):
-                pdf, filename, warning_items = await anyio.to_thread.run_sync(
-                    _do_export_blocking, body, settings
+                data, filename, warning_items, media_type = (
+                    await anyio.to_thread.run_sync(
+                        _do_export_blocking, body, settings
+                    )
                 )
         except TimeoutError:
             raise ApiError("export_timeout", "The export took too long", 504) from None
@@ -207,4 +219,4 @@ async def do_export(
             json.dumps(warning_items, ensure_ascii=False), safe=""
         ),
     }
-    return Response(content=pdf, media_type="application/pdf", headers=headers)
+    return Response(content=data, media_type=media_type, headers=headers)

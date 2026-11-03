@@ -13,6 +13,7 @@ dependencies = [
     "anyio",
     "typst",
     "pypdf",
+    "python-docx",
 ]
 
 [project.optional-dependencies]

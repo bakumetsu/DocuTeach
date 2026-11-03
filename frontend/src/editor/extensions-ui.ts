@@ -4,6 +4,7 @@ import { extensions } from './extensions'
 import { EditorKeymaps } from './keymaps'
 import { SplitGuard } from './guards'
 import { StreamSlot } from './stream'
+import { PageBreaks } from './pageBreaksPlugin'
 import { TeacherNoteView } from './nodeviews/TeacherNoteView'
 import { BlankView } from './nodeviews/BlankView'
 import { McqView, McqOptionView } from './nodeviews/McqView'
@@ -60,6 +61,7 @@ export function buildEditorExtensions(opts?: { onSplitBlocked?: () => void; with
   }
 
   result.push(EditorKeymaps)
+  result.push(PageBreaks)
   result.push(SplitGuard.configure({ onBlocked: opts?.onSplitBlocked }))
 
   if (opts?.withStream) {

@@ -1,8 +1,8 @@
-# DocuTeach Frontend Architecture
+# DocuTeach Architecture
 
 ## Overview
 
-DocuTeach is a local, private editor for an English grammar teacher. A single Markdown document is the source of truth; answers live only inside the document (`{{answer}}` blanks, `[x]` options). The frontend is the only code that exists today. It is a React 19 single-page application built with Vite, using TipTap 3 (ProseMirror) as the editing engine. A mock backend runs in the browser via `localStorage`. No server code, no export pipeline, and no real LLM integration exist yet; those are planned.
+DocuTeach is a local, private editor for an English grammar teacher. A single Markdown document is the source of truth; answers live only inside the document (`{{answer}}` blanks, `[x]` options). The frontend is a React 19 single-page application built with Vite, using TipTap 3 (ProseMirror) as the editing engine. A FastAPI backend (`backend/`) stores lessons, exports the student PDF and teacher DOCX, and streams drafts from a local llama-swap endpoint. When the page has no backend token (plain `pnpm dev`), the frontend falls back to a mock backend in the browser via `localStorage`. A Windows desktop launcher (`desktop/`) bundles both.
 
 Product invariants enforced in code:
 
@@ -17,13 +17,13 @@ All source lives under `frontend/src/`.
 | Folder | Responsibility |
 |--------|---------------|
 | `main.tsx`, `App.tsx` | Entry point and root component. |
-| `api/` | `types.ts` defines `interface DocuTeachApi` (models, `chat.stream`, chats, skills, docs with checkpoints). `index.ts` exports `api = mockApi`. `api/mock/` implements the mock (chat, config, docs, models, script, skills). Docs and checkpoints are persisted in `localStorage` under keys prefixed `docuteach:v1:doc:` and `docuteach:v1:ckpt:`. |
+| `api/` | `types.ts` defines `interface DocuTeachApi` (models, `chat.stream`, chats, skills, docs with checkpoints, export). `index.ts` exports `api = hasToken() ? httpApi : mockApi`. `api/http/` is the real client (`client.ts` sends `X-DocuTeach-Token` to `/api`, `stream.ts` reads the chat stream, `export.ts` downloads exports). `api/mock/` implements the mock (chat, config, docs, models, script, skills). Docs and checkpoints are persisted in `localStorage` under keys prefixed `docuteach:v1:doc:` and `docuteach:v1:ckpt:`. |
 | `markdown/` | Pure Markdown parse/serialise layer. `parse.ts` (`parseMarkdown`, `parseFragment`), `serialize.ts`, `serialize-inline.ts`, `blocks.ts`, `inline.ts`, `escape.ts`, `frontmatter.ts` (YAML → `Meta`), `md.ts` (`createMd`: markdown-it with `html:false`, `linkify:false`), `rules/` (custom markdown-it rules for blank, comment, div, mark, raw, span, table). |
 | `editor/` | TipTap integration. `extensions.ts` (extension list, StarterKit). `nodes/` (Align, Blank, DocMeta, Mcq/McqQuestion/McqOption, RawBlock, SplitPoint, TeacherNote). `nodeviews/` (React views for Blank, Mcq, Raw, Split, TeacherNote). `EditorPane.tsx`, `PreviewPane.tsx`. `project.ts` (`projectStudent`). `ViewContext.ts` (`ViewMode`). `stream.ts` (StreamSlot, `startPageStream`, `cancelPageStream`). `insert.ts` (`validateFragment`, `plainParagraphs`, `insertFragment`). `history.ts` (revert/redo, `setDraftCanceller`). `guards.ts` (SplitGuard). `docio.ts` (`docToMarkdown`, `docJsonFromMarkdown`). Plus commands, formatting, keymaps, numbering, page style, split config, selection popover, page handlers, initial doc, UI extensions. |
-| `assistant/` | `AssistantPane.tsx`, `ChatTabs.tsx`, `ChatView.tsx`, `SkillsTab.tsx`, `SlashList.tsx`. `chatStore.ts` (zustand `useChats`). `pageBridge.ts` (`setPageHandlers`, `runPageSkill`, `insertFromChat`). |
-| `files/` | `fileio.ts` (File System Access API open/save, `hasFsAccess`). `fileActions.ts` (`newDocument`, `openDocument`, `saveDocument`, `saveCheckpoint`, `restoreCheckpoint`). `autosave.ts` (`startAutosave`, `flushAutosave`). `fsaccess.d.ts` (type shims). |
+| `assistant/` | `AssistantPane.tsx`, `ChatTabs.tsx`, `ChatView.tsx`, `SkillsTab.tsx`, `SlashList.tsx`, `OfflineNotice.tsx` and `aiNotice.ts` (offline or busy notice with Retry). `chatStore.ts` (zustand `useChats`). `pageBridge.ts` (`setPageHandlers`, `runPageSkill`, `insertFromChat`). |
+| `files/` | `exportActions.ts` (`loadExportPlan`, `runExport`). `fileio.ts` (File System Access API open/save, `hasFsAccess`). `fileActions.ts` (`newDocument`, `openDocument`, `saveDocument`, `saveCheckpoint`, `restoreCheckpoint`). `autosave.ts` (`startAutosave`, `flushAutosave`). `fsaccess.d.ts` (type shims). |
 | `state/` | `store.ts` (zustand `useApp`: theme, view, assistantWidth, assistantCollapsed, saveState, fileName, dirty, editor, toast, warnings, docMeta, dialog). `persist.ts` (`loadJson`/`saveJson` to `localStorage`, prefix `docuteach:v1:`). |
-| `ui/` | Shell, MenuBar, Toolbar, ViewTabs, Popover, ConfirmHost, dialogs (Dialog, CheckpointsDialog, HelpDialogs, PageStyleDialog, SplitDialog). |
+| `ui/` | Shell, MenuBar, Toolbar, ViewTabs, Popover, ConfirmHost, dialogs (Dialog, CheckpointsDialog, HelpDialogs, LessonsDialog, PageStyleDialog, SplitDialog). The toolbar holds font and size controls and the Export menu. |
 | `styles/` | `app.css`, `page.css`, `tokens.css`. |
 
 ## Custom blocks and the Markdown round trip
@@ -61,9 +61,9 @@ Three view modes are available via `ViewTabs` (state `view`: `'edit' | 'student'
 
 The student view therefore never receives teacher content.
 
-## Mock API layer
+## API layer
 
-`api/index.ts` exports `api = mockApi`, an object implementing `DocuTeachApi`; the UI imports `api` only, so it does not depend on the mock directly. The mock lives in `api/mock/` and uses `localStorage`:
+`api/index.ts` exports `api`, an object implementing `DocuTeachApi`: the HTTP client when the page carries a backend token, otherwise the mock. The UI imports `api` only. The mock lives in `api/mock/` and uses `localStorage`:
 
 - **Docs** – stored under key prefix `docuteach:v1:doc:`. Autosave writes under id `'draft'` via `api.docs.save('draft', markdown)`.
 - **Checkpoints** – stored under key prefix `docuteach:v1:ckpt:`. Cap of 50 per document; the `'Before open'` checkpoint is exempt from the UI cap check.
@@ -78,11 +78,13 @@ The student view therefore never receives teacher content.
 2. Appended tokens are held in plugin state and rendered as a widget; the meta flag `addToHistory: false` keeps them out of the history stack.
 3. On completion the accumulated text is parsed (`parseFragment`), validated (`validateFragment`), and inserted by `insertFragment` in a single transaction. Invalid output falls back to plain paragraphs (`plainParagraphs`).
 4. The single transaction is **one undo step**.
+5. Before the insert a checkpoint named `Before AI: <skill>` is saved, so the draft can be rolled back.
 
 Constraints:
 
 - Only one stream runs at a time; a second attempt toasts "Wait for the current draft or press Esc".
-- Escape cancels via `cancelPageStream`.
+- Escape cancels via `cancelPageStream`; an aborted request cancels the upstream LLM request.
+- Stream errors `llm_offline`, `llm_busy` and `chat_busy` set the assistant notice (`aiNotice.ts`) instead of inserting anything.
 - If the user presses Undo while streaming, `history.ts` first calls the registered draft canceller (`setDraftCanceller`) to abort the stream, then proceeds with the normal undo.
 
 ## Save, autosave and checkpoints
@@ -112,7 +114,47 @@ script-src 'self';
 object-src 'none'
 ```
 
-Network connections are allowed only to the page origin and to loopback hosts (`localhost`, `127.0.0.1`) on any port, for the planned local LLM endpoint. Fonts are bundled via `@fontsource` (noto-sans, noto-serif). `test/network.test.ts` scans `index.html` and all `src/` files to assert no non-local URLs appear.
+Network connections are allowed only to the page origin and to loopback hosts (`localhost`, `127.0.0.1`) on any port, for the local backend and LLM endpoint. Fonts are bundled via `@fontsource` (the list is in `editor/fonts.json`), with matching variable fonts in `backend/docuteach/export/fonts/` for the PDF. `test/network.test.ts` scans `index.html` and all `src/` files to assert no non-local URLs appear.
+
+## Backend
+
+`backend/docuteach/` — Python 3.12, FastAPI, strict pyright, ruff, pytest; golden tests in `backend/tests/golden`.
+
+`app.py` app factory · `config.py` `Settings` (llm_base_url `http://127.0.0.1:8080`, slots 4, checkpoint_cap 50, trash_days 30, export_timeout_s 120, model_allowlist `["byteshape"]`, allow_all_models `False`) · `security.py` token+host middleware (`X-DocuTeach-Token`) · `errors.py` `ApiError` · `logs.py` local logs
+
+### `md/`
+- Reader/writer mirroring frontend model: parser, frontmatter, inline spans (incl. font/size), blank/block/table rules, numbering
+- `project.py` student projection (removes teacher content) · `fonts.json` font list
+
+### `store/`
+- Lessons on disk under data dir (`lessons/`), checkpoints, trash (30 d), D-07 import
+
+### `api/`
+- `/lessons` (list, create, patch, delete, restore) · `/lessons/{id}/doc` (get, put) · `/lessons/{id}/checkpoints` (list, create, delete, restore) · `/lessons/{id}/chats` (get, put)
+- `/models` · `/models/current` · `/models/select` · `/skills` · `/status`
+- `/chat/stream` · `/chats/{id}/release` · `/export/plan` · `/export`
+
+### `llm/`
+- `client.py` `LlmClient` → local llama-swap · `models.py` lists/selects (allowlist unless `allow_all_models`)
+- `slots.py` `SlotTable` one-chat-one-KV-slot (LRU, never evicts generating) · `stream.py` `LlmService` token streaming
+
+### `skills/`
+- `registry.py` prompts (CCQ note, drills, pitfalls…) · `validate.py` checks output vs schema; invalid → plain text
+
+### `export/`
+- `split.py` plan: parts target `student_pdf` or `teacher_docx`. Modes: none (Student + Teacher copy) / page ranges (Part N + Teacher guide) / split marker (Lesson, Homework + Teacher guide) / default (one part, both targets)
+- Student PDF: `typst_render.py`/`typst_inline.py` via `typst`; `fonts/` variable fonts; pypdf cuts ranges
+- Teacher DOCX: `docx_render.py`/`docx_inline.py`/`docx_xml.py` via python-docx; `answer_key.py` builds key; `names.py` sanitises
+- POST `/export`: thread + gate (`export_timeout_s`); returns file + `X-DocuTeach-Warnings` (URL-encoded JSON)
+
+## Desktop app
+
+`desktop/` Windows app; data in `%APPDATA%\DocuTeach\data`. Not code-signed.
+
+- `launcher.py` starts loopback server, opens pywebview (WebView2) or browser fallback
+- `server.py` serves built frontend, mounts backend under `/api` · `store.py` file-backed KV + instance lock
+- `--selftest` (`DocuTeach.exe --selftest`): GET `/`, sample lesson, store round-trip, token rejection, GET `/api/status` → prints `selftest ok`
+- `build.py`: builds frontend → PyInstaller (`DocuTeach.spec`) → scans non-local URLs → selftest → zip + SHA256SUMS
 
 ## Tests
 

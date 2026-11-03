@@ -3,6 +3,8 @@ import FONTS_DATA from './fonts.json'
 
 export const FONTS: { name: string; kind: string; stack: string }[] = FONTS_DATA
 
+const PASTE_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36]
+
 export function canonicalFont(name: string): string {
   const lower = name.toLowerCase()
   const found = FONTS.find(f => f.name.toLowerCase() === lower)
@@ -45,6 +47,43 @@ export const FontStyle = Mark.create({
             font: font ?? null,
             size: size !== null ? Number(size) : null,
           }
+        },
+      },
+      {
+        tag: 'span[style]',
+        getAttrs: (node: HTMLElement | string) => {
+          if (typeof node === 'string') return false
+
+          const fontFamily = node.style.fontFamily
+          const fontSize = node.style.fontSize
+
+          let font: string | null = null
+          if (fontFamily) {
+            const raw = fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '')
+            const found = FONTS.find(
+              (f) => f.name.toLowerCase() === raw.toLowerCase(),
+            )
+            font = found ? found.name : null
+          }
+
+          let size: number | null = null
+          if (fontSize) {
+            let pt: number
+            if (fontSize.endsWith('pt')) {
+              pt = parseFloat(fontSize)
+            } else if (fontSize.endsWith('px')) {
+              pt = parseFloat(fontSize) * 0.75
+            } else {
+              pt = NaN
+            }
+            if (Number.isFinite(pt)) {
+              const rounded = Math.round(pt * 100) / 100
+              size = PASTE_SIZES.includes(rounded) ? rounded : null
+            }
+          }
+
+          if (font === null && size === null) return false
+          return { font, size }
         },
       },
     ]

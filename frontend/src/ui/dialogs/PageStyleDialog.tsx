@@ -19,6 +19,12 @@ const FONTS = [
   'Cambria',
   'Noto Sans',
   'Noto Serif',
+  'Roboto',
+  'Open Sans',
+  'Source Sans 3',
+  'Merriweather',
+  'Be Vietnam Pro',
+  'Noto Sans Mono',
 ] as const
 
 interface FormState {

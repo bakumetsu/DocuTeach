@@ -262,6 +262,23 @@ def test_pdf_font_times_new_roman() -> None:
     assert any("Times" in name or "Liberation" in name for name in fonts)
 
 
+@pytest.mark.parametrize("name", [e["name"] for e in FONTS])
+def test_pdf_every_font_vietnamese(name: str) -> None:
+    text = "Tiếng Việt: ặ ế ỡ ữ ở"
+    pdf = build_pdf(f'[{text}]{{font="{name}"}}')
+    assert squash(text) in squash(pdf_text(pdf))
+
+
+@pytest.mark.parametrize(
+    "name", ["Roboto", "Open Sans", "Source Sans 3", "Merriweather"]
+)
+def test_pdf_variable_fonts_bold_italic(name: str) -> None:
+    pdf = build_pdf(f'[**Bold** *Ital* Plain]{{font="{name}"}}')
+    assert squash("Bold Ital Plain") in squash(pdf_text(pdf))
+    family = name.replace(" ", "")
+    assert any(family in n for n in pdf_fonts(pdf))
+
+
 # ---------------------------------------------------------------------------
 # 9. empty document
 # ---------------------------------------------------------------------------

@@ -1,6 +1,11 @@
 import { Extension } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import { TextSelection } from '@tiptap/pm/state'
+import { stepSize } from './formatting'
+import { readPageStyle } from './pageStyle'
+import { useApp } from '../state/store'
+
+const pageSize = () => readPageStyle(useApp.getState().docMeta).size
 
 function findAncestorDepth(
   $pos: { depth: number; node: (d: number) => { type: { name: string } } },
@@ -158,6 +163,20 @@ export const EditorKeymaps = Extension.create({
         }
 
         return false
+      },
+
+      // ── Mod-Shift size stepping ──
+      'Mod-Shift->': ({ editor }) => {
+        return stepSize(editor, 1, pageSize())
+      },
+      'Mod-Shift-.': ({ editor }) => {
+        return stepSize(editor, 1, pageSize())
+      },
+      'Mod-Shift-<': ({ editor }) => {
+        return stepSize(editor, -1, pageSize())
+      },
+      'Mod-Shift-,': ({ editor }) => {
+        return stepSize(editor, -1, pageSize())
       },
 
       // ── Mod-Enter inside an mcqOption: toggle correct ──

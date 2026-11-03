@@ -216,6 +216,11 @@ body {
   font-size: var(--fs-sm);
 }
 
+.tb-font, .tb-size { gap: 2px; width: auto; padding: 0 6px; }
+.tb-size-val { min-width: 1.6em; text-align: right; font-variant-numeric: tabular-nums; }
+.tb-size-val.muted { color: var(--muted); }
+.tb-check { display: inline-block; width: 1em; }
+
 .tb-select:disabled {
   opacity: .6;
 }

@@ -14,7 +14,7 @@ export const DEFAULT_PAGE: PageStyle = {
   margins: [12, 15, 12, 15],
 }
 
-const SERIF_FONTS = new Set(['times new roman', 'cambria'])
+const SERIF_FONTS = new Set(['times new roman', 'cambria', 'merriweather'])
 
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v)

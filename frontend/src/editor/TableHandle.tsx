@@ -45,6 +45,8 @@ export function TableHandle({ editor }: { editor: Editor | null }) {
       const table = target.closest('table');
       if (table && dom.contains(table)) {
         computeHandle(table);
+      } else if (!findTableForSelection()) {
+        setState(null);
       }
     }
 

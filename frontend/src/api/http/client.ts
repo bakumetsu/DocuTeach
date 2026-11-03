@@ -8,7 +8,7 @@ export function hasToken(): boolean {
 
 export const enc = encodeURIComponent
 
-async function rawFetch(
+export async function rawFetch(
   method: string,
   path: string,
   opts?: { body?: unknown; signal?: AbortSignal },

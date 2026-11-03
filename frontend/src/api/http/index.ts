@@ -1,6 +1,6 @@
 import { request, enc } from './client'
-import { mockApi } from '../mock'
 import { httpExports } from './export'
+import { httpModels, httpChat, httpSkills, releaseChat } from './stream'
 import { ApiError } from '../types'
 import type {
   DocuTeachApi,
@@ -45,7 +45,7 @@ export const httpApi: DocuTeachApi = {
   chats: {
     load: (id) => request<ChatRecord[]>('GET', `/lessons/${enc(id)}/chats`),
     save: (id, chats) => request<void>('PUT', `/lessons/${enc(id)}/chats`, { body: chats }),
-    release: (chatId) => mockApi.chats.release(chatId),
+    release: releaseChat,
   },
   status: async () => {
     try {
@@ -55,8 +55,7 @@ export const httpApi: DocuTeachApi = {
     }
   },
   exports: httpExports,
-  // tickets 8 and 9 replace these with real backend routes
-  models: mockApi.models,
-  chat: mockApi.chat,
-  skills: mockApi.skills,
+  models: httpModels,
+  chat: httpChat,
+  skills: httpSkills,
 }

@@ -4,6 +4,9 @@ import { Selection } from '@tiptap/pm/state';
 import { closeHistory } from '@tiptap/pm/history';
 import { parseFragment } from '../markdown/parse';
 import { slotKey } from './stream';
+import { docToMarkdown } from './docio';
+import { api } from '../api';
+import { useApp } from '../state/store';
 
 export interface InsertResult { ok: boolean; fallback: boolean }
 
@@ -46,13 +49,24 @@ export function resolveTopLevelPos(editor: Editor, pos: number | null): number {
   return $p.after(1);
 }
 
+function saveAutoCheckpoint(name: string, markdown: string): void {
+  const { lessonId, showToast } = useApp.getState();
+  api.docs.checkpoints.create(lessonId, name, markdown, { auto: true }).catch(() =>
+    showToast('Checkpoint not saved'),
+  );
+}
+
 export function insertFragment(
   editor: Editor,
   markdown: string,
   pos: number | null,
-  opts?: { clearSlot?: boolean },
+  opts?: { clearSlot?: boolean; checkpoint?: string },
 ): InsertResult {
   try {
+    let before: string | undefined;
+    if (opts?.checkpoint) {
+      before = docToMarkdown(editor);
+    }
     const { nodes, warnings } = parseFragment(markdown, { stripStyle: true });
     let toInsert: PMNode[];
     let fallback = false;
@@ -92,6 +106,10 @@ export function insertFragment(
 
     // Close the history group for this step
     editor.view.dispatch(closeHistory(editor.state.tr));
+
+    if (before !== undefined && opts && opts.checkpoint) {
+      saveAutoCheckpoint(opts.checkpoint, before);
+    }
 
     return { ok: true, fallback };
   } catch {

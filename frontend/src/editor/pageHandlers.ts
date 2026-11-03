@@ -20,7 +20,7 @@ export function installPageHandlers(editor: Editor): () => void {
       return startPageStream(editor, { skill: r.skill, selection, prompt: r.prompt })
     },
     insertFragment(md) {
-      return useApp.getState().view === 'edit' && insertFragment(editor, md, null).ok
+      return useApp.getState().view === 'edit' && insertFragment(editor, md, null, { checkpoint: 'Before AI: chat insert' }).ok
     },
   })
 

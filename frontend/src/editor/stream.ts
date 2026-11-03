@@ -6,6 +6,7 @@ import { api } from '../api';
 import { useChats } from '../assistant/chatStore';
 import { useApp } from '../state/store';
 import { insertFragment } from './insert';
+import { noteStreamError, clearAiNotice } from '../assistant/aiNotice';
 
 export interface SlotState {
   id: string;
@@ -194,6 +195,7 @@ export function startPageStream(
 
         switch (event.type) {
           case 'token':
+            clearAiNotice();
             accumulated += event.text;
             editor.view.dispatch(
               editor.state.tr.setMeta(slotKey, { type: 'append', text: event.text }),
@@ -203,12 +205,14 @@ export function startPageStream(
             structuredMarkdown = event.markdown;
             break;
           case 'error':
+            noteStreamError(event.code);
             editor.view.dispatch(
               editor.state.tr.setMeta(slotKey, { type: 'clear' }),
             );
             useApp.getState().showToast(event.message || 'Stream error');
             return;
           case 'done':
+            clearAiNotice();
             break;
         }
       }
@@ -240,7 +244,10 @@ export function startPageStream(
         editor,
         structuredMarkdown ?? accumulated,
         commitPos,
-        { clearSlot: true },
+        {
+          clearSlot: true,
+          checkpoint: `Before AI: ${opts.skill ? '/' + opts.skill.replace(/^\//, '') : 'draft'}`,
+        },
       );
     } catch {
       useApp.getState().showToast('Could not add the draft');

@@ -3,7 +3,7 @@
   width: 210mm;
   max-width: 100%;
   box-sizing: border-box;
-  min-height: 297mm;
+  min-height: calc(var(--page-count, 1) * 297mm + (var(--page-count, 1) - 1) * var(--page-gap, 24px));
   margin: 16px auto;
   box-shadow: var(--shadow);
   padding: var(--page-mt, 12mm) var(--page-mr, 15mm) var(--page-mb, 12mm) var(--page-ml, 15mm);
@@ -435,4 +435,37 @@
   padding: 0 10px;
   font-size: var(--fs-md);
   white-space: nowrap;
+}
+
+/* ── Page gaps (view only; widgets from pageBreaksPlugin.ts) ───── */
+.page-break-spacer {
+  --pb-fill: calc(var(--pb-rem, 0px) + var(--page-mb, 12mm));
+  display: block;
+  height: calc(var(--pb-fill) + var(--page-gap, 24px) + var(--page-mt, 12mm));
+  margin: 0 calc(-1 * var(--page-mr, 15mm)) 0 calc(-1 * var(--page-ml, 15mm));
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--pb-fill),
+    var(--bg) var(--pb-fill),
+    var(--bg) calc(var(--pb-fill) + var(--page-gap, 24px)),
+    transparent calc(var(--pb-fill) + var(--page-gap, 24px))
+  );
+  user-select: none;
+  pointer-events: none;
+}
+
+.page-content table tr.page-break-spacer-row > td {
+  border: 0;
+  padding: 0;
+  position: relative;
+  height: calc(var(--pb-rem, 0px) + var(--page-mb, 12mm) + var(--page-gap, 24px) + var(--page-mt, 12mm));
+}
+
+.page-content table tr.page-break-spacer-row .page-break-spacer {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--page-ml, 15mm));
+  right: calc(-1 * var(--page-mr, 15mm));
+  margin: 0;
 }

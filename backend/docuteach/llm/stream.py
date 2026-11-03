@@ -90,10 +90,7 @@ class LlmService:
     async def prepare(self, req: ChatRequest) -> list[dict[str, str]]:
         if req.chatId in self._active:
             raise ApiError("chat_busy", "This chat is already generating", 409)
-        messages = self.build_messages(req, self.prompt_cap_chars(req.model))
-        self._active.add(req.chatId)
-        self._stopped.discard(req.chatId)
-        return messages
+        return self.build_messages(req, self.prompt_cap_chars(req.model))
 
     async def events(
         self, req: ChatRequest, messages: list[dict[str, str]]
@@ -101,6 +98,18 @@ class LlmService:
         chat_id = req.chatId
         model = req.model
         self._last_model = model
+
+        # Claimed here, not in prepare(): a request dropped before the stream starts
+        # never reaches this generator, so it must not leave the chat marked active.
+        if chat_id in self._active:
+            yield {
+                "type": "error",
+                "code": "chat_busy",
+                "message": "This chat is already generating",
+            }
+            return
+        self._active.add(chat_id)
+        self._stopped.discard(chat_id)
 
         try:
             # 1. Check running model

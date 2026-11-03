@@ -11,6 +11,7 @@ from fastapi import FastAPI
 
 from docuteach.app import create_app
 from docuteach.config import Settings
+from docuteach.security import TokenHostMiddleware
 
 
 def _json(resp: httpx.Response) -> dict[str, Any]:
@@ -173,3 +174,28 @@ async def test_log_records_lesson_id(client: httpx.AsyncClient, settings: Settin
         handler.flush()
     log_text = (settings.log_dir / "backend.log").read_text(encoding="utf-8")
     assert any(f"lesson={lid}" in line for line in log_text.splitlines())
+
+
+@pytest.mark.parametrize(
+    ("port", "host", "ok"),
+    [
+        (8765, "[::1]:8765", True),
+        (8765, "[::1]:9999", False),
+        (8765, "[::1]", False),
+        (8765, "127.0.0.1:8765", True),
+        (8765, "localhost:8765", True),
+        (8765, "evil.example:8765", False),
+        (0, "[::1]:5555", True),
+        (0, "[::1]", True),
+        (0, "localhost", True),
+        (0, "[::1", False),
+        (0, "[::1]x", False),
+        (0, "[::2]:1", False),
+    ],
+)
+def test_host_ok(port: int, host: str, ok: bool) -> None:
+    async def _noop(scope: object, receive: object, send: object) -> None:
+        return None
+
+    mw = TokenHostMiddleware(_noop, "t", port)  # type: ignore[arg-type]
+    assert mw._host_ok(host) is ok  # pyright: ignore[reportPrivateUsage]

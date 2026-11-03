@@ -74,8 +74,7 @@ export const PageBreaks = Extension.create({
               return { breaks: meta, deco: DecorationSet.create(tr.doc, meta.map(makeDeco)) }
             }
             if (tr.docChanged) {
-              const map = tr.mapping.map
-              const breaks = value.breaks.map((b) => ({ ...b, pos: map(b.pos) }))
+              const breaks = value.breaks.map((b) => ({ ...b, pos: tr.mapping.map(b.pos) }))
               return { breaks, deco: value.deco.map(tr.mapping, tr.doc) }
             }
             return value

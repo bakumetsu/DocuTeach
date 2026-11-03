@@ -14,6 +14,7 @@ from docuteach.api import (
     checkpoints,
     docs,
     export,
+    fonts,
     lessons,
     models,
     skills,
@@ -81,6 +82,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(skills.router, prefix="/api")
     app.include_router(chat_stream.router, prefix="/api")
     app.include_router(status.router, prefix="/api")
+    app.include_router(fonts.router, prefix="/api")
 
     # Middleware: last-added is outermost.
     # Security must be outermost, logging inner.

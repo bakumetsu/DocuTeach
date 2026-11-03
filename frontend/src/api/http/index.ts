@@ -55,6 +55,7 @@ export const httpApi: DocuTeachApi = {
     }
   },
   exports: httpExports,
+  fonts: { openFolder: async () => { await request<unknown>('POST', '/fonts/open') } },
   models: httpModels,
   chat: httpChat,
   skills: httpSkills,

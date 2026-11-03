@@ -15,4 +15,5 @@ export const mockApi: DocuTeachApi = {
   status: mockStatus,
   docs: mockDocs,
   exports: mockExports,
+  fonts: { openFolder: async () => {} },
 }

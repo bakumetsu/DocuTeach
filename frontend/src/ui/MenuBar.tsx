@@ -48,6 +48,7 @@ const MENUS: MenuDef[] = [
     label: 'Help',
     items: [
       { label: 'Keyboard shortcuts', id: 'help.shortcuts' },
+      { label: 'Install fonts', id: 'help.installFonts' },
       { label: 'About', id: 'help.about' },
     ],
   },

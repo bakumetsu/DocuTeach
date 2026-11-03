@@ -429,7 +429,7 @@ export function Toolbar() {
         <Download size={16} />
       </button>
 
-      <Popover anchor={fontAnchor} open={open === 'font'} onClose={() => setOpen(null)}>
+      <Popover anchor={fontAnchor} open={open === 'font'} onClose={() => setOpen(null)} menuNav>
         <div className="tb-menu" role="menu" aria-label="Font list">
           <button type="button" role="menuitem" className="tb-menu-item" onClick={() => doFont(null)}>
             <span className="tb-check" aria-hidden="true">{fmt.font === null ? '✓' : ''}</span>
@@ -458,7 +458,7 @@ export function Toolbar() {
         </div>
       </Popover>
 
-      <Popover anchor={sizeAnchor} open={open === 'size'} onClose={() => setOpen(null)}>
+      <Popover anchor={sizeAnchor} open={open === 'size'} onClose={() => setOpen(null)} menuNav>
         <div className="tb-menu" role="menu" aria-label="Size list">
           <button type="button" role="menuitem" className="tb-menu-item" onClick={() => doSize(null)}>
             <span className="tb-check" aria-hidden="true">{fmt.size === null ? '✓' : ''}</span>
@@ -486,7 +486,7 @@ export function Toolbar() {
         </div>
       </Popover>
 
-      <Popover anchor={alignAnchor} open={open === 'align'} onClose={() => setOpen(null)}>
+      <Popover anchor={alignAnchor} open={open === 'align'} onClose={() => setOpen(null)} menuNav>
         <div className="tb-menu" role="menu" aria-label="Alignment">
           {ALIGNS.map((a) => {
             const I = ALIGN_ICON[a]
@@ -559,7 +559,7 @@ export function Toolbar() {
         </div>
       </Popover>
 
-      <Popover anchor={exportAnchor} open={open === 'export'} onClose={() => setOpen(null)}>
+      <Popover anchor={exportAnchor} open={open === 'export'} onClose={() => setOpen(null)} menuNav>
         <div className="tb-menu" role="menu" aria-label="Export">
           {plan === null ? (
             <div className="tb-menu-item disabled" aria-disabled="true">Preparing…</div>

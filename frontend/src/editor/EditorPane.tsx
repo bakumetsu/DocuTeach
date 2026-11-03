@@ -43,6 +43,7 @@ export function EditorPane({ hidden = false }: { hidden?: boolean }) {
 
 function EditorInner({ initialJson }: { initialJson: InitialState }) {
   const meta = useApp((s) => s.docMeta);
+  const spellcheck = useApp((s) => s.spellcheck);
   const prevMeta = useRef(meta);
   const stopAutosave = useRef<(() => void) | null>(null);
 
@@ -53,7 +54,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     }),
     content: initialJson.json,
     editorProps: {
-      attributes: { class: 'page-content', spellcheck: 'true' },
+      attributes: { class: 'page-content', spellcheck: String(spellcheck) },
     },
     onTransaction: ({ editor: current }) => {
       const m = current?.state.doc.attrs.meta;
@@ -81,6 +82,11 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
     const cleanup = installPageHandlers(editor);
     return cleanup;
   }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.view.dom.setAttribute('spellcheck', String(spellcheck));
+  }, [editor, spellcheck]);
 
   return (
     <ViewContext.Provider value="edit">

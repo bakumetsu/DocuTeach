@@ -22,6 +22,7 @@ interface ChatState {
   skills: SkillInfo[];
   paneTab: 'assistant' | 'skills';
   inputs: Record<string, string>;
+  focusNonce: number;
   closed: { chat: Chat; index: number; replacedByFresh: boolean } | null;
   ready: boolean;
 
@@ -33,6 +34,7 @@ interface ChatState {
   selectModel: (chatId: string, modelId: string) => Promise<void>;
   retryModel: (chatId: string) => void;
   setInput: (chatId: string, text: string) => void;
+  quoteIntoInput: (text: string) => void;
   setPaneTab: (tab: 'assistant' | 'skills') => void;
   attachText: (chatId: string, name: string, text: string) => void;
   removeRef: (chatId: string, name: string) => void;
@@ -123,6 +125,7 @@ export const useChats = create<ChatState>()((set, get) => {
     skills: [],
     paneTab: 'assistant',
     inputs: {},
+    focusNonce: 0,
     closed: null,
     ready: false,
 
@@ -309,6 +312,22 @@ export const useChats = create<ChatState>()((set, get) => {
 
     setInput(chatId, text) {
       set((s) => ({ inputs: { ...s.inputs, [chatId]: text } }));
+    },
+
+    quoteIntoInput(text) {
+      const quoted = text
+        .trim()
+        .split(/\r?\n/)
+        .map((l) => (l.trim() ? `> ${l}` : '>'))
+        .join('\n');
+      if (!quoted.replace(/[>\s]/g, '')) return;
+      const { activeId, inputs } = get();
+      const base = (inputs[activeId] ?? '').trimEnd();
+      set((s) => ({
+        inputs: { ...s.inputs, [activeId]: (base ? base + '\n\n' : '') + quoted + '\n\n' },
+        paneTab: 'assistant',
+        focusNonce: s.focusNonce + 1,
+      }));
     },
 
     setPaneTab(tab) {

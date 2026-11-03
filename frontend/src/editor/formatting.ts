@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core';
+import { CellSelection, TableMap } from '@tiptap/pm/tables';
 import { step } from './commands';
 import { canonicalFont } from './fontStyle';
 
@@ -68,11 +69,29 @@ export function toggleList(
   return ok;
 }
 
+function alignScan(editor: Editor): { targets: number[]; blocked: boolean } {
+  const targets: number[] = [];
+  let blocked = false;
+  for (const range of editor.state.selection.ranges) {
+    editor.state.doc.nodesBetween(range.$from.pos, range.$to.pos, (node, pos) => {
+      if (!node.isTextblock) return true;
+      if (
+        (node.type.name === 'paragraph' || node.type.name === 'heading') &&
+        editor.state.doc.resolve(pos).depth === 0
+      ) {
+        if (!targets.includes(pos)) targets.push(pos);
+      } else {
+        blocked = true;
+      }
+      return false;
+    });
+  }
+  return { targets, blocked };
+}
+
 export function canAlign(editor: Editor): boolean {
-  const { $from } = editor.state.selection;
-  if ($from.depth !== 1) return false;
-  const node = $from.node();
-  return node.type.name === 'paragraph' || node.type.name === 'heading';
+  const { targets, blocked } = alignScan(editor);
+  return targets.length > 0 && !blocked;
 }
 
 export function setAlign(
@@ -82,14 +101,13 @@ export function setAlign(
   if (!canAlign(editor)) return false;
   let ok = false;
   step(editor, () => {
-    const { $from } = editor.state.selection;
-    const node = $from.node();
-    const chain = editor.chain();
-    if (node.type.name === 'paragraph') {
-      ok = chain.updateAttributes('paragraph', { align: value }).run();
-    } else {
-      ok = chain.updateAttributes('heading', { align: value }).run();
+    const tr = editor.state.tr;
+    for (const pos of alignScan(editor).targets) {
+      const node = tr.doc.nodeAt(pos);
+      if (node) tr.setNodeMarkup(pos, undefined, { ...node.attrs, align: value });
     }
+    editor.view.dispatch(tr);
+    ok = true;
   });
   return ok;
 }
@@ -147,6 +165,26 @@ export function tableOp(
 
 export function inTable(editor: Editor): boolean {
   return editor.isActive('table');
+}
+
+export function selectTableCells(editor: Editor, pos?: number): boolean {
+  const $pos = editor.state.doc.resolve(pos ?? editor.state.selection.from);
+  for (let d = $pos.depth; d >= 0; d--) {
+    const node = $pos.node(d);
+    if (node.type.name === 'table') {
+      const tableStart = $pos.start(d);
+      const map = TableMap.get(node);
+      const first = tableStart + map.map[0];
+      const last = tableStart + map.map[map.map.length - 1];
+      editor.view.dispatch(
+        editor.state.tr.setSelection(
+          CellSelection.create(editor.state.doc, first, last),
+        ),
+      );
+      return true;
+    }
+  }
+  return false;
 }
 
 export const SIZE_PRESETS = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36];

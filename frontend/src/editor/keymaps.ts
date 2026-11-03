@@ -1,6 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import { TextSelection } from '@tiptap/pm/state'
+import { CellSelection, TableMap } from '@tiptap/pm/tables'
 import { stepSize } from './formatting'
 import { readPageStyle } from './pageStyle'
 import { useApp } from '../state/store'
@@ -27,6 +28,8 @@ function findAncestorPos(
 
 export const EditorKeymaps = Extension.create({
   name: 'docuteachKeymaps',
+  // above core Keymap (100) so Mod-a can select table cells first
+  priority: 1000,
 
   addKeyboardShortcuts() {
     return {
@@ -177,6 +180,43 @@ export const EditorKeymaps = Extension.create({
       },
       'Mod-Shift-,': ({ editor }) => {
         return stepSize(editor, -1, pageSize())
+      },
+
+      // ── Mod-a: select all cells in the enclosing table ──
+      'Mod-a': ({ editor }) => {
+        const { $from } = editor.state.selection
+        let tableDepth = -1
+        for (let d = $from.depth; d >= 1; d--) {
+          if ($from.node(d).type.name === 'table') {
+            tableDepth = d
+            break
+          }
+        }
+        if (tableDepth === -1) return false
+
+        const tableStart = $from.start(tableDepth)
+        const tableNode = $from.node(tableDepth)
+        if (!tableNode) return false
+
+        const map = TableMap.get(tableNode)
+        if (!map) return false
+
+        const first = tableStart + map.map[0]
+        const last = tableStart + map.map[map.map.length - 1]
+
+        const sel = editor.state.selection
+        if (sel instanceof CellSelection) {
+          const a = sel.$anchorCell.pos
+          const h = sel.$headCell.pos
+          if ((a === first && h === last) || (a === last && h === first)) {
+            return false
+          }
+        }
+
+        editor.view.dispatch(
+          editor.state.tr.setSelection(CellSelection.create(editor.state.doc, first, last)),
+        )
+        return true
       },
 
       // ── Mod-Enter inside an mcqOption: toggle correct ──

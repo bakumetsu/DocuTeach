@@ -4,6 +4,7 @@ import { useApp } from '../state/store';
 import { buildEditorExtensions } from './extensions-ui';
 import { installPageHandlers } from './pageHandlers';
 import { SelectionPopover } from './SelectionPopover';
+import { TableHandle } from './TableHandle';
 import { ViewContext } from './ViewContext';
 import { parseMarkdown } from '../markdown/parse';
 import { readPageStyle, pageCssVars } from './pageStyle';
@@ -93,6 +94,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
       <div className="page view-edit" style={pageCssVars(readPageStyle(meta))}>
         <EditorContent editor={editor} />
         <SelectionPopover editor={editor} />
+        <TableHandle editor={editor} />
       </div>
     </ViewContext.Provider>
   );

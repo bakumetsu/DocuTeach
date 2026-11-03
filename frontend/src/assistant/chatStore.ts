@@ -3,6 +3,7 @@ import { api } from '../api';
 import type { ModelInfo, ModelState, SkillInfo, ChatMessage, ChatRequest, ChatRecord } from '../api/types';
 import { runPageSkill } from './pageBridge';
 import { useApp } from '../state/store';
+import { noteStreamError, clearAiNotice } from './aiNotice';
 
 export interface Chat {
   id: string;
@@ -409,6 +410,7 @@ export const useChats = create<ChatState>()((set, get) => {
               }));
               break;
             case 'token':
+              clearAiNotice();
               set((s) => ({
                 chats: s.chats.map((c) => {
                   if (c.id !== chatId) return c;
@@ -420,6 +422,7 @@ export const useChats = create<ChatState>()((set, get) => {
               }));
               break;
             case 'error':
+              noteStreamError(ev.code);
               set((s) => ({
                 chats: s.chats.map((c) => {
                   if (c.id !== chatId) return c;
@@ -438,6 +441,7 @@ export const useChats = create<ChatState>()((set, get) => {
               // ignored for chat
               break;
             case 'done':
+              clearAiNotice();
               break;
           }
           if (errored) break;

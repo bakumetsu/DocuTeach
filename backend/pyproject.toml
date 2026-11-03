@@ -26,6 +26,8 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["llm: needs the real model behind llama-swap (holds the GPU slot)"]
+addopts = "-m 'not llm'"
 
 [tool.pyright]
 pythonVersion = "3.12"

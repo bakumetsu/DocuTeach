@@ -8,10 +8,22 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from docuteach.api import chats_store, checkpoints, docs, export, lessons, status
+from docuteach.api import (
+    chat_stream,
+    chats_store,
+    checkpoints,
+    docs,
+    export,
+    lessons,
+    models,
+    skills,
+    status,
+)
 from docuteach.api.export import ExportGate
 from docuteach.config import Settings, check_local_llm
 from docuteach.errors import install_error_handlers
+from docuteach.llm.client import LlmClient
+from docuteach.llm.stream import LlmService
 from docuteach.logs import RequestLogMiddleware, close_logging, setup_logging
 from docuteach.security import TokenHostMiddleware
 from docuteach.store.library import Library
@@ -23,16 +35,23 @@ def create_app(settings: Settings) -> FastAPI:
     check_local_llm(settings)
 
     library = Library(settings)
+    client = LlmClient(settings)
+    llm_service = LlmService(settings, client)
 
     @asynccontextmanager  # pyright: ignore[reportDeprecated]
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         setup_logging(settings.log_dir)
         library.startup()
-        yield
+        try:
+            yield
+        finally:
+            await client.aclose()
 
     app = FastAPI(lifespan=lifespan)
     app.state.library = library
     app.state.settings = settings
+    app.state.llm_client = client
+    app.state.llm = llm_service
     app.state.export_gate = ExportGate()
     hooks: list[Callable[[], None]] = []
     hooks.append(lambda: close_logging(settings.log_dir))
@@ -58,6 +77,9 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(checkpoints.router, prefix="/api")
     app.include_router(chats_store.router, prefix="/api")
     app.include_router(export.router, prefix="/api")
+    app.include_router(models.router, prefix="/api")
+    app.include_router(skills.router, prefix="/api")
+    app.include_router(chat_stream.router, prefix="/api")
     app.include_router(status.router, prefix="/api")
 
     # Middleware: last-added is outermost.

@@ -41,6 +41,9 @@ class Settings(BaseModel):
     token: str = ""
     port: int = 0
     version: str = "0.1.0"
+    model_allowlist: list[str] = ["byteshape"]
+    model_sizes_gb: dict[str, float] = {}
+    allow_all_models: bool = False
 
     @property
     def lessons_dir(self) -> Path:
@@ -66,6 +69,8 @@ class _SettingsOverride(BaseModel):
     max_prompt_chars: int | None = None
     max_answer_tokens: int | None = None
     export_timeout_s: int | None = None
+    model_allowlist: list[str] | None = None
+    model_sizes_gb: dict[str, float] | None = None
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
@@ -90,6 +95,13 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     export_timeout_s: int = int(env.get("DOCUTEACH_EXPORT_TIMEOUT_S", "120"))
     token: str = env.get("DOCUTEACH_TOKEN", "")
     port: int = int(env.get("DOCUTEACH_PORT", "0"))
+    model_allowlist: list[str] = (
+        [s.strip() for s in env["DOCUTEACH_MODEL_ALLOWLIST"].split(",") if s.strip()]
+        if "DOCUTEACH_MODEL_ALLOWLIST" in env
+        else ["byteshape"]
+    )
+    model_sizes_gb: dict[str, float] = {}
+    allow_all_models: bool = env.get("DOCUTEACH_ALLOW_ALL_MODELS", "") == "1"
 
     settings_file = data_dir / "settings.json"
     if settings_file.is_file():
@@ -124,6 +136,10 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
                 max_answer_tokens = o.max_answer_tokens
             if o.export_timeout_s is not None:
                 export_timeout_s = o.export_timeout_s
+            if o.model_allowlist is not None:
+                model_allowlist = o.model_allowlist
+            if o.model_sizes_gb is not None:
+                model_sizes_gb = o.model_sizes_gb
         except (json.JSONDecodeError, OSError, ValueError):
             pass
 
@@ -144,6 +160,9 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         export_timeout_s=export_timeout_s,
         token=token,
         port=port,
+        model_allowlist=model_allowlist,
+        model_sizes_gb=model_sizes_gb,
+        allow_all_models=allow_all_models,
     )
 
 

@@ -161,6 +161,8 @@ def _run_webview(url: str, profile_dir: Path, log: logging.Logger) -> int:
         "DocuTeach", url, width=1400, height=900, min_size=(1000, 650)
     )
     window.events.closing += _on_closing
+    # exports are saved through an <a download>; pywebview blocks downloads by default
+    webview.settings["ALLOW_DOWNLOADS"] = True
     webview.start(private_mode=False, storage_path=str(profile_dir))
     return 0
 
@@ -272,6 +274,30 @@ def _selftest() -> int:
             if r.status != 200:
                 print(f"selftest fail: GET /api/lessons status={r.status}")
                 return 1
+
+            # 7 – POST /api/export for student_pdf and teacher_docx
+            for target, magic in (("student_pdf", b"%PDF"), ("teacher_docx", b"PK")):
+                body = json.dumps({
+                    "markdown": "# Test\n\nChoose: {{go}} home.\n",
+                    "title": "Selftest",
+                    "target": target,
+                    "part": 1,
+                }).encode()
+                c = http.client.HTTPConnection("127.0.0.1", port)
+                c.request(
+                    "POST", "/api/export", body=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "X-DocuTeach-Token": token,
+                        "Host": host,
+                    },
+                )
+                r = c.getresponse()
+                data = r.read()
+                c.close()
+                if r.status != 200 or not data.startswith(magic):
+                    print(f"selftest fail: POST /api/export {target} status={r.status}")
+                    return 1
         finally:
             server.stop()
 

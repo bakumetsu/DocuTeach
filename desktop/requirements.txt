@@ -6,3 +6,7 @@ pydantic>=2
 pyyaml
 markdown-it-py
 anyio
+httpx
+typst
+pypdf
+python-docx

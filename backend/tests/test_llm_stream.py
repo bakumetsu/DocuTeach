@@ -69,6 +69,8 @@ async def test_stream_happy_path(stream_env: tuple[MockLlm, httpx.AsyncClient]) 
 
     assert evs[-1]["type"] == "done"
     assert mock.slots_seen == [0]
+    assert mock.last_request is not None
+    assert "stop" not in mock.last_request
 
 
 async def test_reasoning_not_forwarded(stream_env: tuple[MockLlm, httpx.AsyncClient]) -> None:

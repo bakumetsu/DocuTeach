@@ -3,13 +3,16 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncIterator
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import anyio
 import httpx
 from pydantic import BaseModel
 
 from docuteach.config import Settings
+from docuteach.edits import EditPayload
+from docuteach.edits.prompt import build_edit_messages
+from docuteach.edits.run import EditRun
 from docuteach.errors import ApiError
 from docuteach.llm.client import LlmClient
 from docuteach.llm.slots import SlotTable
@@ -32,9 +35,11 @@ class ChatRequest(BaseModel):
     chatId: str
     model: str
     skill: str | None = None
-    messages: list[ChatMessage]
+    messages: list[ChatMessage] = []
     selection: str | None = None
     refs: list[Ref] | None = None
+    mode: Literal["edit"] | None = None
+    edit: EditPayload | None = None
 
 
 class LlmService:
@@ -70,6 +75,17 @@ class LlmService:
         }
 
     def build_messages(self, req: ChatRequest, cap: int) -> list[dict[str, str]]:
+        if req.mode == "edit":
+            if req.edit is None:
+                raise ApiError("edit_missing", "Edit request without lesson blocks", 400)
+            msgs = build_edit_messages(req.edit)
+            if sum(len(m["content"]) for m in msgs) > cap:
+                raise ApiError(
+                    "prompt_too_long",
+                    f"Too long: keep it under about {cap} characters",
+                    413,
+                )
+            return msgs
         skill = get_skill(req.skill) if req.skill else None
         if req.skill is not None and skill is None:
             raise ApiError("skill_unknown", "Unknown skill", 400)
@@ -125,6 +141,9 @@ class LlmService:
             return
         self._active.add(chat_id)
         self._stopped.discard(chat_id)
+        run: EditRun | None = (
+            EditRun(req.edit) if req.mode == "edit" and req.edit is not None else None
+        )
 
         try:
             # 1. Check running model
@@ -168,9 +187,17 @@ class LlmService:
             thinking_sent = False
             generating_sent = False
             first_line = True
+            finish_reason: str | None = None
+            done_seen = False
 
             try:
-                async with self._client.stream_chat(model, messages, slot) as resp:
+                async with self._client.stream_chat(
+                    model,
+                    messages,
+                    slot,
+                    temperature=0.2 if run is not None else None,
+                    stop=["@@ end @@"] if run is not None else None,
+                ) as resp:
                     if resp.status_code == 503:
                         yield {"type": "error", "code": "llm_busy", "message": "AI is busy"}
                         return
@@ -191,6 +218,9 @@ class LlmService:
                             with anyio.fail_after(timeout):
                                 line = await anext(lines)
                         except TimeoutError:
+                            if run is not None:
+                                for ev in run.finish(False):
+                                    yield ev
                             yield {
                                 "type": "error",
                                 "code": "llm_timeout",
@@ -206,6 +236,7 @@ class LlmService:
                             continue
                         payload = line[5:].strip()
                         if payload == "[DONE]":
+                            done_seen = True
                             break
                         try:
                             data: Any = json.loads(payload)
@@ -221,6 +252,9 @@ class LlmService:
                         first: Any = choices[0]
                         if not isinstance(first, dict):
                             continue
+                        fr = cast("dict[str, Any]", first).get("finish_reason")
+                        if isinstance(fr, str) and fr:
+                            finish_reason = fr
                         delta_raw = cast("dict[str, Any]", first).get("delta")
                         if not isinstance(delta_raw, dict):
                             continue
@@ -239,28 +273,48 @@ class LlmService:
                             if not generating_sent:
                                 yield {"type": "status", "status": "generating"}
                                 generating_sent = True
-                            parts.append(content)
-                            yield {"type": "token", "text": content}
+                            if run is not None:
+                                for ev in run.feed(content):
+                                    yield ev
+                            else:
+                                parts.append(content)
+                                yield {"type": "token", "text": content}
             except (httpx.ConnectError, httpx.ConnectTimeout):
                 yield {"type": "error", "code": "llm_offline", "message": "AI is offline"}
                 return
             except httpx.TransportError:
+                if run is not None:
+                    for ev in run.finish(False):
+                        yield ev
                 yield {"type": "error", "message": "The model stopped unexpectedly"}
                 return
 
             # 7. Finalise
-            text = "".join(parts).strip()
-            skill = get_skill(req.skill) if req.skill else None
-            if skill is not None and skill.insert_as:
-                reason = validate_output(skill.insert_as, text)
-                if reason is None:
-                    yield {"type": "structured", "kind": skill.insert_as, "markdown": text}
-                    yield {"type": "done"}
-                else:
-                    self._logger.info("skill output invalid: %s", reason)
-                    yield {"type": "done", "fallback": "text"}
+            if run is not None:
+                complete = (
+                    run.ended or finish_reason == "stop" or (finish_reason is None and done_seen)
+                )
+                for ev in run.finish(complete):
+                    yield ev
+                self._logger.info("edit done: %s", run.log_summary())
+                yield run.done_event()
             else:
-                yield {"type": "done"}
+                text = "".join(parts).strip()
+                skill = get_skill(req.skill) if req.skill else None
+                if skill is not None and skill.insert_as:
+                    reason = validate_output(skill.insert_as, text)
+                    if reason is None:
+                        yield {
+                            "type": "structured",
+                            "kind": skill.insert_as,
+                            "markdown": text,
+                        }
+                        yield {"type": "done"}
+                    else:
+                        self._logger.info("skill output invalid: %s", reason)
+                        yield {"type": "done", "fallback": "text"}
+                else:
+                    yield {"type": "done"}
         finally:
             self._active.discard(chat_id)
             self.slots.end(chat_id)

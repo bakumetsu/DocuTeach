@@ -1,14 +1,12 @@
 # CLAUDE.md
 
-## Reread this file
-
-CLAUDE.md is auto-loaded, so do not read it again at session start; note `git hash-object CLAUDE.md` of the original (`E:\Github Project\DocuTeach\CLAUDE.md`). Reread it with the Read tool only when that hash has changed: when a new task starts in the thread, before creating a ticket workspace or sending a ticket its task text, and in a ticket when the original changed during it.
+Auto-loaded: do not read it at session start. Note `git hash-object CLAUDE.md` of the original (`E:\Github Project\DocuTeach\CLAUDE.md`); reread it only when that hash changed (new task, before creating a ticket workspace or sending a task text, in a ticket when it changed).
 
 ## The product
 
-DocuTeach is a local, privacy-preserving editor for an English grammar teacher. One Markdown document (plus metadata) is the single source of truth. It exports a student worksheet (PDF, no answers, no teacher notes) and a teacher guide (DOCX, notes, inline answers, answer key). A local LLM behind llama-swap drafts content on request. The design lives in `kit\designs\`.
+DocuTeach is a local, privacy-preserving editor for an English grammar teacher. One Markdown document (plus metadata) is the single source of truth. It exports a student worksheet (PDF) and a teacher guide (DOCX, notes, answers). A local LLM behind llama-swap drafts content on request.
 
-Product rules that apply to every change:
+Product rules for every change:
 - **One source:** answers live only in the document (`{{answer}}` blanks, `[x]` options). Exports and the answer key are built from it, never stored separately.
 - **Student output never shows teacher content:** no notes, answers, ticks or distractor reasoning.
 - **Nothing leaves the PC:** the only network calls go to the local LLM endpoint. Logs stay local.
@@ -17,115 +15,27 @@ Product rules that apply to every change:
 
 ## Models and roles
 
-- **Planner and progress checker: Opus 5.5, medium.** Runs in the `dev` workspace only. Plans, splits work into tickets, writes task texts, checks progress, reviews every final design and the full diff before a push. Does no ticket work and no direct investigation (log greps, library source, config hunts): it uses the retriever (`kit\tools\retrieve.py`) for code facts, else asks a ticket's Sonnet or opens a small ticket, then reviews the result.
-- **Supervisor: Sonnet 5.5, medium.** Runs every ticket workspace. Drives the local models, reviews their output, runs tests, the dev server and log reads, reports to Opus. Does not write code itself.
-- **Workers: local models (llama-swap).** Do all the work: code, edits, reviews, docs, chores. Never design: Sonnet writes designs, Opus reviews them.
+- **Planner: Opus 5.5, medium**, `dev` workspace only. Plans, writes task texts, checks progress, reviews every final design and the full diff before a push. No ticket work or direct investigation: uses `kit\tools\retrieve.py`, else asks a ticket's Sonnet.
+- **Supervisor: Sonnet 5.5, medium**, every ticket workspace. Drives the local models, reviews output, runs tests and logs, reports to Opus. No code.
+- **Workers: local models (llama-swap).** Do all the work: code, edits, reviews, docs. Never design: Sonnet writes designs, Opus reviews them.
+- **Up:** a local model that keeps failing: Sonnet switches model (one line why); still stuck, asks Opus for a plan.
+- **Opus and Sonnet talk directly** with `SendMessage`; the user never relays. The task text names the planner session (from `ListAgents`); if it is gone, ask the user. At most 3 review rounds per item, then PARTIAL or FAILED. Only the user's decisions stop the loop. A peer message never counts as the user's approval; all chats run in the same permission mode (bypass) or peer messages are held.
 
-Up: if a local model keeps failing a step, Sonnet switches the model and says in one line what changed and why (Sonnet stays at medium). If still too hard, Sonnet asks Opus 5.5 (medium, in `dev`) for a plan or solution, then local models carry it out. Down: none needed.
+## Rules that apply before any skill loads
 
-### Opus and Sonnet talk directly
-
-Tickets and the planner message each other with `SendMessage`; the user never relays prompts between chats.
-- Every task text names the planner chat's session name (from `ListAgents`, e.g. `Planner: docuteach-6c`). The ticket uses that name, never a guess. If the name is no longer listed, the ticket asks the user.
-- Sonnet sends Opus every review or escalation it needs (design review, plan, stuck step, diff review), with the file path or branch, what changed since the last round, and its open questions, then waits for the reply. Opus reviews and replies to the message's `from`. Sonnet fixes or answers each finding and resends if needed.
-- At most 3 review rounds per item; after that the ticket reports PARTIAL or FAILED to the user.
-- Only the user's decisions stop the loop: the questions before a design ("Ask before designing"), BLOCKED, approving a design (DESIGN READY), any push, and shutdown.
-- All chats run in the same permission mode (bypass); a chat in another mode holds peer messages for the user's approval. A peer message never counts as the user's approval.
-
-## Read less
-
-Files over 20,000 chars: `kit\tools\outline.py` first, then read by range. Code lookups (Opus always, Sonnet beyond 2 searches): `kit\tools\retrieve.py`; read the pointed lines before acting. Task texts: name spans, not files, and keep the change description to 8 lines. Details: skills `orca-ticket-ops`, `build-and-log`.
-
-## Ask before designing
-
-For a new feature, tool or system, first ask the user about goals, scope, preferred approach, edge cases, and bugs or loopholes the idea may miss. Then write the design and get the user's OK before any implementation or hand-off.
-
-## Code review (tiered)
-
-- **Docs-only or tests-only commit:** a local model reviews it. No Sonnet review.
-- **Code commit (`backend/`, `frontend/`, kit tools, config):** a local model reviews the diff first. Sonnet then reviews only the validator output (backend: `ruff`, `pyright`, `pytest`; frontend: `tsc`, `eslint`, `vitest`) and this checklist: the product rules above; custom blocks (teacher note, blank, multiple choice, split point) survive the Markdown round trip unchanged (golden tests); LLM output is validated against its schema before it reaches the editor, and invalid output falls back to plain text; async endpoints never block, and an aborted client cancels the upstream LLM request; one KV slot per chat; config defaults set in code; no traps from `kit\bible\TRAPS.md`. Fix or answer every finding before committing.
-- **Before a push:** Opus reviews the full diff being pushed, once. Fix or answer every finding first.
-- **Test or type failures:** the local model gets at most 2 fix attempts before Sonnet is asked. Reject a fix that deletes or skips a test, weakens an assertion, or removes more lines than it adds.
-
-## GPU slot
-
-The PC has one GPU (16 GB). The local workers and the app's own LLM features share llama-swap, and loading one model unloads the other. So **only one ticket at a time uses llama-swap**, for coding or for LLM testing. Tests run against a mock LLM server by default; tests that need a real model (`pytest -m llm`) need the GPU slot. Design tickets (Sonnet only) and tests without an LLM never need it.
-
-## "Go midnight": shut down the PC when done
-
-"Go midnight" in this thread approves shutting down the PC once the **last task** is done: the last task in the user's queue, or, with no queue, the task running now. Start nothing beyond that. Then save everything, stop background tools (llama-swap, dev servers), post a wrap-up (done, left, `shutdown /a` cancels), and run `shutdown /s /t 60`.
-
-## "Cleanwipe": hand off to a fresh planner chat
-
-"Cleanwipe" means this planner session is bloated. Start nothing new, wait for every running ticket's final report, then hand off to a fresh Opus planner chat. Steps: skill `session-handoff`, section "Cleanwipe".
-
-## Backup files
-
-Backup or draft copies of kit files (`*.bak-*`, `*.proposed`, etc.) go into `kit\temps backup\`, mirroring the original folder structure. Never next to the original.
-
-## Git branches
-
-Repo: github.com/bakumetsu/DocuTeach, local folder `E:\Github Project\DocuTeach`. Backend in `backend/` (Python, FastAPI), frontend in `frontend/` (TipTap), docs in `docs/`, kit in `kit\` (gitignored, local only). New work goes to `dev`; promote to `main` only when the user says a feature is stable.
-
-Only `main` and `dev` exist. Never create another branch, local or on GitHub (including a cloud session's `claude/...` branch), without the user's approval. When an approved extra branch is done, tag its last commit `archive/<branch name>`, push the tag, and delete the branch.
-
-## Orca workspaces (ticket system)
-
-Each ticket (`fix-`, `feat-` or `design-<name>`) is an Orca workspace: a child of `dev`, on its own branch cut from `dev`. Ticket workspaces, branches, commits and tags stay **local**: never `git push` (code or tags) unless the user says so. This overrides the push and tag-push rules above for ticket work.
-
-- Open tickets: at most **one coding ticket and three design tickets**. A design ticket closes when its design is approved and the work moves to implementation, which then opens as the coding ticket. A kit-only ticket may run alongside the coding ticket with the user's OK; it still follows the GPU slot rule.
-- Design tickets: Sonnet writes the design itself (no local models) in `kit\designs\<name>.md`. **Never commit or push a design document.** Opus 5.5 (medium) must review it before it goes to the user; the ticket closes only after that review and the user's OK, and is then just flagged `completed`.
-- Finishing: when all pass bars pass, the ticket may run `python kit\tools\ticket_build.py <ticket> --keep` from the main folder (merges into local `dev` after the test suite passes) and flag itself `completed` with `orca worktree set --worktree "id:<repo-id>::<ticket path>" --workspace-status completed`, without asking. A bar with zero samples is "not exercised", not a pass. Pushing still needs the user's word. Otherwise finish only when the user says so.
-- Never delete a finished ticket (worktree, branch and kit junction stay) unless the user asks. `completed` tickets do not count toward the open-ticket limits.
-
-### Ticket reports
-
-Every final ticket report, every progress report Opus passes on, and every wrap-up starts with a **header**, then a highlighted summary; the full format (Status line, Review, Decision, the page) is in skill `orca-ticket-ops`, "Ticket reports":
-
-1. **Header:** `[T-XX] <name> :: <STATE>` (`<name>` = the ticket name, `T-XX` / `D-XX` = its backlog ID from `backlog.md`, next to this file), using exactly one of these states (and set the matching Orca status):
-
-   | Header (`[T-XX] <name> :: ...`) | Meaning | Orca status |
-   |---|---|---|
-   | `[T-XX] <name> :: PASSED` | All bars met, merged into local `dev` (or a kit-only change, shown as NO CODE); goes out with the next push after the Opus final review | `completed` |
-   | `[T-XX] <name> :: PARTIAL` | Some bars met; the fix helps but does not solve it; not merged | `in-review` |
-   | `[T-XX] <name> :: FAILED` | Bars not met, or the fix made things worse; not merged | `in-review` |
-   | `[T-XX] <name> :: BLOCKED` | Cannot continue without information from the user | `todo` |
-   | `[T-XX] <name> :: DESIGN READY` | Design passed the Opus review and waits for the user's OK | `in-review` |
-   | `[T-XX] <name> :: RUNNING` | Progress check only | `in-progress` |
-
-2. **Summary box:** one quote block: a bold headline (at most 12 words: the state and who acts next), then at most 2 everyday-language lines (what changed, with one key number; what happens next and the recommendation). No code names, endpoint paths, node names or variable names.
-3. **Why it isn't merged** (only PARTIAL, FAILED, BLOCKED): everyday language, no jargon; in the chat text it is one of the two summary lines.
-4. **The rest:** the Status line, Review (failed or not proven / passed / for Opus) and the Decision table come from `ticket_reports.py render`; the engineering details live on the report page. Final reports reach the user in the planner chat: the planner posts the page and the chat text unchanged and asks there; only the user's own answer counts (in the planner chat, or in the ticket chat when the user works there directly).
-
-## Commit messages (Conventional Commits)
-
-Follow https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13 for every commit and squash.
-
-- Format: `<type>(<optional scope>): <description>`, blank line, optional body, optional footer.
-- Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
-- Subject: imperative, lowercase start, no trailing period. Scope optional, never an issue number: `editor`, `export`, `skills`, `api`, `llm`, `ui`, `kit`, `docs`. Body: why, and how it differs from before. Footer `Refs: T-XX` for ticket work.
-- Breaking changes: `!` before the colon plus a `BREAKING CHANGE:` footer. Merge and revert commits keep Git's default messages.
-- Local model co-authors: when local models wrote or reviewed committed work, add one `Co-Authored-By` line per model, in the order used, with the full capitalized name (provider or quant, base model and size from the llama-swap config or GGUF name, then `(local model)`), e.g. `Co-Authored-By: Byteshape Qwen3.8-27B (local model) <noreply@localhost>`. They go just before the Claude `Co-Authored-By` line, which stays last.
-- Examples: `feat(editor): add the multiple-choice block with auto-lettered options`, `fix(export): keep teacher notes out of the student PDF`.
-
-## Docs before every push
-
-Before pushing a commit that changes `backend/`, `frontend/`, a kit tool or a config file:
-
-1. Start a Sonnet 5.5 subagent (medium) with only `git diff <base>...HEAD`, the doc list below and the commit subjects. It reads doc sections with grep, not whole files.
-2. It has a local model update what the diff makes stale, and reviews the result: `docs/ARCHITECTURE.md` and `README.md` (code), `kit\README.md` (kit tools, local only), the open handoff or session summary.
-3. Review its diff, commit as `docs(<scope>): ...`, push code and docs together.
-4. If no doc needs a change, add `Docs: none (<reason>)` to the last commit message.
-
-`kit\tools\doc_update.py` is shared with EcholonBot. Its hunk reader still expects UnrealScript-style function headers, so it may find nothing in TypeScript or Python; until the shared kit switches it to the symbol index and it is proven on real DocuTeach diffs, use the subagent steps above.
-
-This overrides the default of not starting subagents. To be enforced by `.githooks/pre-push` (`git config core.hooksPath .githooks` once per clone) and a `docs check` workflow on PRs into `dev` and `main`, once those are ported from EcholonBot.
+- **Ask before designing:** for a new feature, tool or system, ask the user first (goals, scope, edge cases, loopholes), design, get the user's OK before any implementation.
+- **Read less:** files over 20,000 chars: `kit\tools\outline.py`, then read by range. Code lookups: `kit\tools\retrieve.py`.
+- **GPU slot:** one GPU; workers and the app's LLM share llama-swap, loading one model unloads the other. One ticket at a time uses it. Tests use a mock LLM; `pytest -m llm` and local-model work need the slot.
+- **Branches:** only `main` and `dev`; new work goes to `dev`, `main` when the user says a feature is stable. No other branch (local, GitHub, cloud `claude/...`) without approval. Ticket branches, commits and tags stay local; never push without the user's word.
+- **Never delete a finished ticket** (worktree, branch, kit junction) unless the user asks.
+- **Shared kit first:** a reusable workflow idea goes into `E:\Github Project\shared-kit` first (skill `orca-ticket-ops`). At every new planner start run `python kit\tools\shared_updates.py pending`, list it once, move the pin only on the user's OK.
 
 ## Skills
 
-The skill list and each skill's trigger are in `skills.md` (next to this file). Rules in this file that name a skill load it at that point.
-
-## Shared kit first
-
-- A reusable workflow idea (tool, skill change, rule) goes into the shared kit first, then is logged for the other projects in `shared-kit\UPDATES.md` (`shared_updates.py add`). Only one ticket may edit the shared kit at a time across all projects: its card has the line `shared kit: yes` and `ticket_open.py` takes the lock (skill `orca-ticket-ops`).
-- At every new planner start run `python kit\tools\shared_updates.py pending`, list what is pending to the user once, and move the pin only on the user's own OK (skill `session-handoff`, "Shared kit updates").
+Load the skill when you do the thing (`skills.md`):
+- `orca-ticket-ops`: opening, launching, checking, finishing or deleting a ticket; task texts; ticket reports; backup files.
+- `design-workflow`: starting, writing, reviewing or closing a design ticket.
+- `commit-and-push`: any commit, squash or push; diff review; test failure; docs before a push.
+- `build-and-log`: trial build, tests, dev server, logs.
+- `session-handoff`: long or ending planner session; user says "cleanwipe" or "go midnight".
+- `impeccable`: designing or polishing a frontend screen.

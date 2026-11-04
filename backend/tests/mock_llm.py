@@ -31,6 +31,8 @@ class MockLlm:
         self.load_status: int = 200
         self.chat_status: int = 200
         self.first_byte_delay: float = 0.0
+        self.finish_reason: str | None = None
+        self.send_done: bool = True
 
         self.slots_seen: list[int | None] = []
         self.erased: list[int] = []
@@ -114,7 +116,13 @@ class MockLlm:
                         await asyncio.sleep(self.delay)
                         if should_fail and self.emitted >= 2:
                             raise RuntimeError("fail_on triggered")
-                    yield "data: [DONE]\n\n"
+                    if self.finish_reason is not None:
+                        fr_chunk: dict[str, Any] = {
+                            "choices": [{"delta": {}, "finish_reason": self.finish_reason}]
+                        }
+                        yield f"data: {json.dumps(fr_chunk)}\n\n"
+                    if self.send_done:
+                        yield "data: [DONE]\n\n"
                 finally:
                     self.closed_at = time.monotonic()
 

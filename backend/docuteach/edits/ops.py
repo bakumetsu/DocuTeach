@@ -72,6 +72,11 @@ class EditParser:
         self._open_too_many: bool = False
         self._open_has_body: bool = False
 
+    @property
+    def ended(self) -> bool:
+        """True once the `@@ end @@` marker has been seen."""
+        return self._stopped
+
     # -- public API ----------------------------------------------------------
 
     def feed(self, chunk: str) -> list[Item]:

@@ -183,8 +183,7 @@ describe('Assistant pane', () => {
     const textarea = await screen.findByLabelText('Message')
     fireEvent.change(textarea, { target: { value: 'hello' } })
 
-    const ring = await screen.findByRole('img', { name: /estimate/ })
-    expect(ring).not.toBeNull()
+    await screen.findByRole('img', { name: /estimate/ })
   })
 
   it('shows "Context almost full" warning when ratio >= 0.9, and hides it for tiny drafts', async () => {

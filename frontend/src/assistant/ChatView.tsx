@@ -6,6 +6,7 @@ import { useApp } from '../state/store';
 import { insertFromChat } from './pageBridge';
 import { SlashList } from './SlashList';
 import { api } from '../api';
+import type { ContextInfo } from '../api/types';
 import { contextUsage, contextTooltip } from './contextUsage';
 import { ContextRing } from './ContextRing';
 
@@ -30,7 +31,7 @@ export function ChatView() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [slashDismissed, setSlashDismissed] = useState(false);
   const [replyAt, setReplyAt] = useState<{ text: string; top: number; left: number } | null>(null);
-  const [ctxInfo, setCtxInfo] = useState<{ nCtx: number | null; promptCapChars: number; estimated: boolean } | null>(null);
+  const [ctxInfo, setCtxInfo] = useState<ContextInfo | null>(null);
 
   const msgRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);

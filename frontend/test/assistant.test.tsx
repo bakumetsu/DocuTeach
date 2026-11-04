@@ -5,6 +5,7 @@ import App from '../src/App'
 import { useApp } from '../src/state/store'
 import { resetChatsForTest } from '../src/assistant/chatStore'
 import { mockConfig } from '../src/api/mock/config'
+import { api } from '../src/api'
 
 const readLesson = (): string => readFileSync('public/sample/lesson.md', 'utf-8')
 
@@ -174,5 +175,36 @@ describe('Assistant pane', () => {
 
     const insertBtn = await screen.findByLabelText('Insert below cursor')
     expect(insertBtn.getAttribute('aria-disabled')).toBe('true')
+  })
+
+  it('shows a context ring under Send with an estimate tooltip once context info resolves', async () => {
+    await renderApp()
+
+    const textarea = await screen.findByLabelText('Message')
+    fireEvent.change(textarea, { target: { value: 'hello' } })
+
+    const ring = await screen.findByRole('img', { name: /estimate/ })
+    expect(ring).not.toBeNull()
+  })
+
+  it('shows "Context almost full" warning when ratio >= 0.9, and hides it for tiny drafts', async () => {
+    const spy = vi.spyOn(api.models, 'context').mockResolvedValue({ nCtx: 128, promptCapChars: 100, estimated: false })
+    try {
+      await renderApp()
+
+      const textarea = await screen.findByLabelText('Message')
+
+      // long draft pushes ratio past 0.9 → warning appears
+      fireEvent.change(textarea, { target: { value: 'a'.repeat(200) } })
+      await screen.findByText('Context almost full. Remove an attachment or start a new chat.')
+
+      // tiny draft drops ratio below 0.9 → warning disappears
+      fireEvent.change(textarea, { target: { value: 'hi' } })
+      await waitFor(() => {
+        expect(screen.queryByText('Context almost full. Remove an attachment or start a new chat.')).toBeNull()
+      })
+    } finally {
+      spy.mockRestore()
+    }
   })
 })

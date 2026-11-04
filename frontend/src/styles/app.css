@@ -835,11 +835,61 @@ body {
 /* ── Chat input ─────────────────────────────────────────────── */
 .chat-input {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   gap: 4px;
   padding: 6px 10px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.chat-attach {
+  height: auto;
+  min-height: var(--target);
+}
+
+.chat-send {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ctx-ring {
+  --arc: var(--muted);
+}
+
+.ctx-ring.ctx-high {
+  --arc: var(--warn);
+}
+
+.ctx-ring.ctx-full {
+  --arc: var(--danger);
+}
+
+.ctx-ring circle {
+  fill: none;
+  stroke-width: 2;
+}
+
+.ctx-ring .ctx-track {
+  stroke: var(--border);
+}
+
+.ctx-ring .ctx-arc {
+  stroke: var(--arc);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.ctx-warning {
+  margin: 0 10px 4px;
+  padding: 4px 8px;
+  font-size: var(--fs-xs);
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-radius: var(--radius-ctl);
 }
 
 .chat-input textarea {

@@ -1,4 +1,4 @@
-import type { DocuTeachApi, ModelInfo, ModelState } from '../types'
+import type { DocuTeachApi, ModelInfo, ModelState, ContextInfo } from '../types'
 import { mockConfig, sleep } from './config'
 
 let currentModel: string | null = null
@@ -33,5 +33,8 @@ export const mockModels: DocuTeachApi['models'] = {
     await sleep(mockConfig.loadMs, signal)
     currentModel = id
     return { id, status: 'ready' }
+  },
+  context(): Promise<ContextInfo> {
+    return Promise.resolve({ nCtx: 8192, promptCapChars: 18432, estimated: true })
   },
 }

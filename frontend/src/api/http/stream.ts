@@ -1,11 +1,12 @@
 import { ApiError } from '../types'
-import type { StreamEvent, DocuTeachApi } from '../types'
+import type { StreamEvent, DocuTeachApi, ContextInfo } from '../types'
 import { request, rawFetch, enc } from './client'
 
 export const httpModels: DocuTeachApi['models'] = {
   list: () => request('GET', '/models'),
   current: () => request<string | null>('GET', '/models/current'),
   select: (id, signal) => request('POST', '/models/select', { body: { id }, signal }),
+  context: (id) => request<ContextInfo>('GET', `/models/${enc(id)}/context`),
 }
 
 export const httpSkills: DocuTeachApi['skills'] = {

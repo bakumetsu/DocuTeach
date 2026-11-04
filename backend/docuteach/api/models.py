@@ -31,6 +31,12 @@ async def get_current_model(request: Request) -> JSONResponse:
     return JSONResponse(content=await current_model(settings, client))
 
 
+@router.get("/models/{model_id}/context")
+async def get_model_context(request: Request, model_id: str) -> JSONResponse:
+    llm = request.app.state.llm  # type: ignore[no-any-return]
+    return JSONResponse(content=await llm.context_info(model_id))
+
+
 @router.post("/models/select")
 async def select(request: Request, body: SelectBody) -> JSONResponse:
     settings: Settings = request.app.state.settings  # type: ignore[no-any-return]

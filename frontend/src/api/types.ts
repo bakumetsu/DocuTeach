@@ -1,4 +1,5 @@
 export interface ModelInfo { id: string; label: string; sizeGb: number }
+export interface ContextInfo { nCtx: number | null; promptCapChars: number; estimated: boolean }
 export interface ModelState { id: string; status: 'loading' | 'ready' | 'failed'; error?: string }
 export interface SkillInfo {
   command: string
@@ -42,7 +43,8 @@ export class ApiError extends Error {
 }
 export interface DocuTeachApi {
   models:  { list(): Promise<ModelInfo[]>; current(): Promise<string | null>
-             select(id: string, signal?: AbortSignal): Promise<ModelState> }
+             select(id: string, signal?: AbortSignal): Promise<ModelState>
+             context(id: string): Promise<ContextInfo> }
   chat:    { stream(req: ChatRequest, signal: AbortSignal): AsyncIterable<StreamEvent> }
   chats:   { load(docId: string): Promise<ChatRecord[]>; save(docId: string, chats: ChatRecord[]): Promise<void>
              release(chatId: string): Promise<void> }

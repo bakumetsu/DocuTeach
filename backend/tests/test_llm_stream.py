@@ -460,4 +460,72 @@ async def test_prompt_too_long(settings: Settings) -> None:
                 assert "prompt_too_long" in resp.text
 
 
+async def test_model_context_props(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+    settings: Settings,
+) -> None:
+    mock, client = stream_env
+
+    # Fill the props cache via a real stream (as production does)
+    body = {
+        "chatId": "c1",
+        "model": "byteshape",
+        "messages": [{"role": "user", "content": "hi"}],
+    }
+    resp = await client.post("/api/chat/stream", json=body)
+    assert resp.status_code == 200
+
+    # Now the context route reads from the populated cache
+    resp = await client.get("/api/models/byteshape/context")
+    assert resp.status_code == 200
+    data = resp.json()
+    expected_nctx = mock.n_ctx // mock.total_slots
+    expected_cap = max(0, (expected_nctx - settings.max_answer_tokens) * 3)
+    assert data["nCtx"] == expected_nctx
+    assert data["promptCapChars"] == expected_cap
+    assert data["estimated"] is True
+
+
+async def test_model_context_never_calls_upstream(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+    settings: Settings,
+) -> None:
+    mock, client = stream_env
+
+    # Cold cache: no stream has been done yet
+    assert mock.props_calls == 0
+
+    resp = await client.get("/api/models/byteshape/context")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["nCtx"] is None
+    assert data["promptCapChars"] == settings.max_prompt_chars
+    assert data["estimated"] is True
+
+    # The mock LLM must NOT have received a props request
+    assert mock.props_calls == 0
+
+
+async def test_model_context_fallback(settings: Settings) -> None:
+    dead_port = free_port()
+    backend_port = free_port()
+    s = settings.model_copy(
+        update={"llm_base_url": f"http://127.0.0.1:{dead_port}", "port": backend_port}
+    )
+    from docuteach.app import create_app
+
+    app = create_app(s)
+    async with serve(app, port=backend_port) as backend_url:
+        async with httpx.AsyncClient(
+            base_url=backend_url,
+            headers={"X-DocuTeach-Token": settings.token},
+        ) as c:
+            resp = await c.get("/api/models/byteshape/context")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["nCtx"] is None
+            assert data["promptCapChars"] == settings.max_prompt_chars
+            assert data["estimated"] is True
+
+
 # --- more tests ---

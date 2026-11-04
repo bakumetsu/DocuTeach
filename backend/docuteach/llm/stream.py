@@ -54,6 +54,21 @@ class LlmService:
             return max(0, (n_ctx // max(1, total) - self._settings.max_answer_tokens) * 3)
         return self._settings.max_prompt_chars
 
+    async def context_info(self, model: str) -> dict[str, object]:
+        props = self._props.get(model)
+        if props:
+            total, n_ctx = props
+            return {
+                "nCtx": n_ctx // max(1, total),
+                "promptCapChars": self.prompt_cap_chars(model),
+                "estimated": True,
+            }
+        return {
+            "nCtx": None,
+            "promptCapChars": self._settings.max_prompt_chars,
+            "estimated": True,
+        }
+
     def build_messages(self, req: ChatRequest, cap: int) -> list[dict[str, str]]:
         skill = get_skill(req.skill) if req.skill else None
         if req.skill is not None and skill is None:

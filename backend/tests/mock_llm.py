@@ -38,6 +38,7 @@ class MockLlm:
         self.closed_at: float | None = None
         self.last_request: dict[str, Any] | None = None
         self.requests: list[dict[str, Any]] = []
+        self.props_calls: int = 0
 
         self.app: FastAPI = FastAPI()
         self._register_routes()
@@ -55,6 +56,7 @@ class MockLlm:
 
         @self.app.get("/upstream/{model}/props")
         async def get_props(model: str) -> dict[str, Any]:
+            self.props_calls += 1
             return {
                 "total_slots": self.total_slots,
                 "default_generation_settings": {"n_ctx": self.n_ctx},

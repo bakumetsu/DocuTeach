@@ -5,6 +5,10 @@ import { useChats } from './chatStore';
 import { useApp } from '../state/store';
 import { insertFromChat } from './pageBridge';
 import { SlashList } from './SlashList';
+import { api } from '../api';
+import type { ContextInfo } from '../api/types';
+import { contextUsage, contextTooltip } from './contextUsage';
+import { ContextRing } from './ContextRing';
 
 export function ChatView() {
   const chats = useChats((s) => s.chats);
@@ -27,6 +31,7 @@ export function ChatView() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [slashDismissed, setSlashDismissed] = useState(false);
   const [replyAt, setReplyAt] = useState<{ text: string; top: number; left: number } | null>(null);
+  const [ctxInfo, setCtxInfo] = useState<ContextInfo | null>(null);
 
   const msgRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -57,6 +62,18 @@ export function ChatView() {
   useEffect(() => {
     if (focusNonce > 0) inputRef.current?.focus();
   }, [focusNonce]);
+
+  useEffect(() => {
+    const model = chat?.model;
+    if (!model) return;
+    let cancelled = false;
+    api.models.context(model).then((info) => {
+      if (!cancelled) setCtxInfo(info);
+    }).catch(() => {
+      if (!cancelled) setCtxInfo(null);
+    });
+    return () => { cancelled = true; };
+  }, [chat?.model]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const nextValue = e.target.value;
@@ -167,6 +184,11 @@ export function ChatView() {
   const isStreaming = chat.phase !== 'idle';
   const canSend = modelReady && input.trim().length > 0 && !isStreaming;
 
+  const usage = ctxInfo
+    ? contextUsage({ messages: chat.messages, refs: chat.refs, draft: input, capChars: ctxInfo.promptCapChars })
+    : null;
+  const ctxTooltip = usage && ctxInfo ? contextTooltip(usage, ctxInfo.estimated, ctxInfo.nCtx) : '';
+
   return (
     <div className="chat-view">
       <div className="chat-messages" ref={msgRef} onMouseUp={handleMsgMouseUp} onMouseDown={() => setReplyAt(null)}>
@@ -261,9 +283,12 @@ export function ChatView() {
         />
       )}
 
+      {usage?.warn && (
+        <div className="ctx-warning" role="status">Context almost full. Remove an attachment or start a new chat.</div>
+      )}
       <div className="chat-input">
         <button
-          className="icon-btn"
+          className="icon-btn chat-attach"
           aria-label="Attach file"
           onClick={() => fileRef.current?.click()}
         >
@@ -284,20 +309,23 @@ export function ChatView() {
           onKeyDown={handleKeyDown}
           rows={2}
         />
-        {isStreaming ? (
-          <button className="icon-btn" aria-label="Stop" onClick={() => stop(activeId)}>
-            <Square size={16} />
-          </button>
-        ) : (
-          <button
-            className="icon-btn"
-            aria-label="Send"
-            disabled={!canSend}
-            onClick={doSend}
-          >
-            <Send size={16} />
-          </button>
-        )}
+        <div className="chat-send">
+          {isStreaming ? (
+            <button className="icon-btn" aria-label="Stop" onClick={() => stop(activeId)}>
+              <Square size={16} />
+            </button>
+          ) : (
+            <button
+              className="icon-btn"
+              aria-label="Send"
+              disabled={!canSend}
+              onClick={doSend}
+            >
+              <Send size={16} />
+            </button>
+          )}
+          {usage && <ContextRing usage={usage} tooltip={ctxTooltip} />}
+        </div>
       </div>
     </div>
   );

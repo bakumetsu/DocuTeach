@@ -221,6 +221,13 @@ def test_split_place_first_block() -> None:
     assert code(c.check(insert("b1", SPLIT, side="before"))) == "split_place"
 
 
+def test_split_place_first_block_non_lesson() -> None:
+    p = payload([("b1", "Hello"), ("b2", "World")], scope="selection")
+    c = OpChecker(p)
+    r = c.check(insert("b1", SPLIT, side="before"))
+    assert isinstance(r, Checked)
+
+
 def test_split_place_inside_note() -> None:
     p = payload([("b1", NOTE)])
     c = OpChecker(p)

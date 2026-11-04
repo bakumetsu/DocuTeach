@@ -196,6 +196,7 @@ class LlmService:
                     messages,
                     slot,
                     temperature=0.2 if run is not None else None,
+                    stop=["@@ end @@"] if run is not None else None,
                 ) as resp:
                     if resp.status_code == 503:
                         yield {"type": "error", "code": "llm_busy", "message": "AI is busy"}

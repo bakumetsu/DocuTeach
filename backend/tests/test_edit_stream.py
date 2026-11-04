@@ -249,6 +249,7 @@ async def test_edit_temperature_and_stateless(
 
     assert mock.last_request is not None
     assert mock.last_request["temperature"] == 0.2
+    assert mock.last_request["stop"] == ["@@ end @@"]
 
     messages: list[dict[str, Any]] = mock.last_request["messages"]
     assert len(messages) == 2

@@ -495,7 +495,8 @@ class OpChecker:
 
         if split_points:
             if isinstance(sequence[0][0], SplitPoint):
-                if self._payload.blocks and self._payload.blocks[0].id == "b1":
+                first = self._payload.blocks[0].id if self._payload.blocks else None
+                if self._payload.scope == "lesson" and first == "b1":
                     return "split_place"
             if isinstance(sequence[-1][0], SplitPoint):
                 if self._payload.scope == "lesson":

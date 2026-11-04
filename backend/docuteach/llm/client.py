@@ -109,6 +109,7 @@ class LlmClient:
         messages: list[dict[str, str]],
         id_slot: int | None,
         temperature: float | None = None,
+        stop: list[str] | None = None,
     ) -> AbstractAsyncContextManager[httpx.Response]:
         payload: dict[str, object] = {
             "model": model,
@@ -121,6 +122,8 @@ class LlmClient:
             payload["id_slot"] = id_slot
         if temperature is not None:
             payload["temperature"] = temperature
+        if stop is not None:
+            payload["stop"] = stop
         return self.http.stream(
             "POST",
             "/v1/chat/completions",

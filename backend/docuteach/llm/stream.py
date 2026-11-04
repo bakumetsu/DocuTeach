@@ -55,9 +55,8 @@ class LlmService:
         return self._settings.max_prompt_chars
 
     async def context_info(self, model: str) -> dict[str, object]:
-        props = self._props.get(model) or await self._client.props(model)
+        props = self._props.get(model)
         if props:
-            self._props[model] = props
             total, n_ctx = props
             return {
                 "nCtx": n_ctx // max(1, total),

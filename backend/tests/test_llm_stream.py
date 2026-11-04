@@ -465,6 +465,17 @@ async def test_model_context_props(
     settings: Settings,
 ) -> None:
     mock, client = stream_env
+
+    # Fill the props cache via a real stream (as production does)
+    body = {
+        "chatId": "c1",
+        "model": "byteshape",
+        "messages": [{"role": "user", "content": "hi"}],
+    }
+    resp = await client.post("/api/chat/stream", json=body)
+    assert resp.status_code == 200
+
+    # Now the context route reads from the populated cache
     resp = await client.get("/api/models/byteshape/context")
     assert resp.status_code == 200
     data = resp.json()
@@ -473,6 +484,26 @@ async def test_model_context_props(
     assert data["nCtx"] == expected_nctx
     assert data["promptCapChars"] == expected_cap
     assert data["estimated"] is True
+
+
+async def test_model_context_never_calls_upstream(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+    settings: Settings,
+) -> None:
+    mock, client = stream_env
+
+    # Cold cache: no stream has been done yet
+    assert mock.props_calls == 0
+
+    resp = await client.get("/api/models/byteshape/context")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["nCtx"] is None
+    assert data["promptCapChars"] == settings.max_prompt_chars
+    assert data["estimated"] is True
+
+    # The mock LLM must NOT have received a props request
+    assert mock.props_calls == 0
 
 
 async def test_model_context_fallback(settings: Settings) -> None:

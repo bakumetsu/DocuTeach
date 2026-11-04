@@ -10,6 +10,7 @@ export interface ContextUsage {
   warn: boolean;
 }
 
+// Approximation: the length of the backend's generic system prompt (backend/docuteach/llm/stream.py build_messages); skill prompts are longer.
 export const SYSTEM_BASE_CHARS: number = 'You are a helpful assistant for an English grammar teacher. Answer in Markdown.'.length;
 
 export function contextUsage(input: {

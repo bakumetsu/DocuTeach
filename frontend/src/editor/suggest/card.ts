@@ -142,6 +142,26 @@ function appendRich(
   }
 }
 
+function lucideIcon(paths: string[]): SVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of paths) {
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    svg.appendChild(path);
+  }
+  return svg;
+}
+
 export function buildCard(
   editor: Editor,
   item: Item,
@@ -183,13 +203,13 @@ export function buildCard(
 
   const acceptBtn = document.createElement('button');
   acceptBtn.className = 'suggest-accept';
-  acceptBtn.textContent = '✓';
+  acceptBtn.appendChild(lucideIcon(['M20 6 9 17l-5-5']));
   acceptBtn.title = 'Accept (Ctrl+Enter)';
   acceptBtn.setAttribute('aria-label', 'Accept (Ctrl+Enter)');
 
   const rejectBtn = document.createElement('button');
   rejectBtn.className = 'suggest-reject';
-  rejectBtn.textContent = '✕';
+  rejectBtn.appendChild(lucideIcon(['M18 6 6 18', 'm6 6 12 12']));
   rejectBtn.title = 'Reject';
   rejectBtn.setAttribute('aria-label', 'Reject');
 

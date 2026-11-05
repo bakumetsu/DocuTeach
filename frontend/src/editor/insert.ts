@@ -18,9 +18,16 @@ const ALLOWED_TYPES = new Set([
   'mcq',
 ]);
 
+const EDIT_ALLOWED_TYPES = new Set([...ALLOWED_TYPES, 'heading', 'table', 'splitPoint']);
+
 export function validateFragment(nodes: PMNode[], warnings: string[]): boolean {
   if (warnings.length > 0) return false;
   return nodes.every((n) => ALLOWED_TYPES.has(n.type.name));
+}
+
+export function validateEditFragment(nodes: PMNode[], warnings: string[]): boolean {
+  if (warnings.length > 0) return false;
+  return nodes.every((n) => EDIT_ALLOWED_TYPES.has(n.type.name));
 }
 
 export function plainParagraphs(editor: Editor, text: string): PMNode[] {

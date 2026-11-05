@@ -1,9 +1,9 @@
 import type { Editor } from '@tiptap/core';
 import type { Node as PMNode } from '@tiptap/pm/model';
-import { Transaction } from '@tiptap/pm/state';
+import { Transform } from '@tiptap/pm/transform';
 import { closeHistory } from '@tiptap/pm/history';
 import { parseFragment } from '../../markdown/parse';
-import { validateFragment, saveAutoCheckpoint, resolveTopLevelPos } from '../insert';
+import { validateEditFragment, saveAutoCheckpoint } from '../insert';
 import { docToMarkdown } from '../docio';
 import { suggestKey, getSuggestState, rejectItems, undoReject, type Item } from './plugin';
 import { hashText, nodeMarkdown } from './snapshot';
@@ -35,25 +35,80 @@ function rangeHashInDoc(editor: Editor, doc: PMNode, from: number, to: number): 
   return hashText(parts.join(''));
 }
 
-function checkConstraints(doc: PMNode): string | null {
-  let splits = 0;
-  let mcqErr: string | null = null;
+function checkConstraints(doc: PMNode): { reason: 'split' | 'mcq'; message: string } | null {
+  // --- Split checks ---
+  const splitPoints: PMNode[] = [];
   doc.descendants((n) => {
-    if (n.type.name === 'splitPoint') splits++;
-    if (n.type.name === 'mcq' && n.childCount < 2) {
-      mcqErr = 'MCQ must have at least 2 options';
-      return false;
-    }
+    if (n.type.name === 'splitPoint') splitPoints.push(n);
     return true;
   });
-  if (splits > 1) return 'Lesson may contain at most one split point';
-  return mcqErr;
+
+  if (splitPoints.length > 1) {
+    return { reason: 'split', message: 'Lesson may contain at most one split point' };
+  }
+
+  for (const sp of splitPoints) {
+    const label = ((sp.attrs.label as string) ?? '').trim();
+    if (label.length === 0 || label.length > 80) {
+      return { reason: 'split', message: 'Split point label must be 1–80 characters' };
+    }
+
+    const childCount = doc.content.childCount;
+    let idx = -1;
+    for (let i = 0; i < childCount; i++) {
+      if (doc.content.child(i) === sp) { idx = i; break; }
+    }
+    if (idx === -1) {
+      return { reason: 'split', message: 'Split point must be a top-level block' };
+    }
+    if (idx === 0 || idx === childCount - 1) {
+      return { reason: 'split', message: 'Split point must not be the first or last block' };
+    }
+  }
+
+  // --- MCQ checks ---
+  const mcqs: PMNode[] = [];
+  doc.descendants((n) => {
+    if (n.type.name === 'mcq') mcqs.push(n);
+    return true;
+  });
+
+  for (const mcq of mcqs) {
+    const children: PMNode[] = [];
+    mcq.forEach((c) => children.push(c));
+    const question = children[0];
+    const options = children.filter((c) => c.type.name === 'mcqOption');
+
+    if (!question || question.type.name !== 'mcqQuestion' || options.length < 2) {
+      return { reason: 'mcq', message: 'MCQ must have a question and at least 2 options' };
+    }
+
+    const correctOptions = options.filter((o) => o.attrs.correct === true);
+    if (correctOptions.length < 1) {
+      return { reason: 'mcq', message: 'MCQ must have at least one correct option' };
+    }
+
+    const seen = new Set<string>();
+    for (const o of options) {
+      const text = o.textContent.trim();
+      if (seen.has(text)) {
+        return { reason: 'mcq', message: 'MCQ has duplicate options' };
+      }
+      seen.add(text);
+    }
+
+    if (mcq.attrs.multi !== (correctOptions.length > 1)) {
+      return { reason: 'mcq', message: 'MCQ multi attribute is inconsistent with options' };
+    }
+  }
+
+  return null;
 }
 
 function buildNodes(editor: Editor, markdown: string, src?: PMNode): PMNode[] {
   const { nodes, warnings } = parseFragment(markdown, { stripStyle: true });
   let out: PMNode[];
-  if (warnings.length > 0 || !validateFragment(nodes, warnings)) {
+  if (warnings.length > 0 || !validateEditFragment(nodes, warnings)) {
     const pt = editor.schema.nodes.paragraph;
     const lines = markdown.split('\n').filter((l) => l.trim());
     out = lines.length
@@ -83,13 +138,26 @@ function nodeAtPos(doc: PMNode, pos: number): PMNode | null {
   return null;
 }
 
-function applyStep(tr: Transaction, editor: Editor, item: Item, nodes: PMNode[]): void {
+function topLevelPosIn(doc: PMNode, pos: number | null): number {
+  if (pos === null) return doc.content.size;
+  const clamped = Math.max(0, Math.min(pos, doc.content.size));
+  const $p = doc.resolve(clamped);
+  return $p.depth === 0 ? clamped : $p.after(1);
+}
+
+function nodesFor(editor: Editor, item: Item, doc: PMNode): PMNode[] {
+  if (item.kind === 'delete') return [];
+  const src = item.kind === 'replace' || item.kind === 'move' ? nodeAtPos(doc, item.from) ?? undefined : undefined;
+  return buildNodes(editor, item.markdown!, src);
+}
+
+function applyStep(tr: Transform, item: Item, nodes: PMNode[]): void {
   switch (item.kind) {
     case 'replace':
       tr.replaceWith(item.from, item.to, nodes);
       break;
     case 'insert': {
-      const p = resolveTopLevelPos(editor, item.anchorPos ?? null);
+      const p = topLevelPosIn(tr.doc, item.anchorPos ?? null);
       tr.insert(p, nodes);
       break;
     }
@@ -98,7 +166,7 @@ function applyStep(tr: Transaction, editor: Editor, item: Item, nodes: PMNode[])
       break;
     case 'move': {
       tr.delete(item.from, item.to);
-      const p = resolveTopLevelPos(editor, item.anchorPos ?? null);
+      const p = topLevelPosIn(tr.doc, item.anchorPos ?? null);
       tr.insert(p, nodes);
       break;
     }
@@ -122,36 +190,38 @@ export function liveCheck(editor: Editor, item: Item): LiveCheckResult {
   return liveCheckDoc(editor, editor.state.doc, item);
 }
 
-function liveCheckDoc(editor: Editor, doc: PMNode, item: Item): LiveCheckResult {
+function liveCheckDoc(editor: Editor, doc: PMNode, item: Item, anchorGone = false): LiveCheckResult {
   // (1) stale
-  let h: string;
-  if (item.kind === 'insert' && item.baseHash && item.anchorPos !== undefined) {
-    const r = blockRangeAt(doc, item.anchorPos);
-    if (!r) return { ok: false, reason: 'stale', message: 'Anchor block not found.' };
-    h = rangeHashInDoc(editor, doc, r.from, r.to);
-  } else {
-    h = rangeHashInDoc(editor, doc, item.from, item.to);
-  }
-  if (item.baseHash && h !== item.baseHash) {
-    return { ok: false, reason: 'stale', message: 'Content in range has changed.' };
+  if (!(anchorGone && item.kind === 'insert')) {
+    let h: string;
+    if (item.kind === 'insert' && item.baseHash && item.anchorPos !== undefined) {
+      const r = blockRangeAt(doc, item.anchorPos);
+      if (!r) return { ok: false, reason: 'stale', message: 'Anchor block not found.' };
+      h = rangeHashInDoc(editor, doc, r.from, r.to);
+    } else {
+      h = rangeHashInDoc(editor, doc, item.from, item.to);
+    }
+    if (item.baseHash && h !== item.baseHash) {
+      return { ok: false, reason: 'stale', message: 'Content in range has changed.' };
+    }
   }
 
-  // (2) parse + validate
-  if (!item.markdown) return { ok: false, reason: 'invalid', message: 'No content to apply.' };
-  const { nodes, warnings } = parseFragment(item.markdown, { stripStyle: true });
-  if (warnings.length > 0 || !validateFragment(nodes, warnings)) {
-    return { ok: false, reason: 'invalid', message: 'Content failed validation.' };
+  // (2) parse + validate (skip for delete — no markdown to parse)
+  if (item.kind !== 'delete') {
+    if (!item.markdown) return { ok: false, reason: 'invalid', message: 'No content to apply.' };
+    const { nodes, warnings } = parseFragment(item.markdown, { stripStyle: true });
+    if (warnings.length > 0 || !validateEditFragment(nodes, warnings)) {
+      return { ok: false, reason: 'invalid', message: 'Content failed validation.' };
+    }
   }
 
   // (3) dry-run constraint check
-  const checkTr = new Transaction(doc);
-  const src = item.kind === 'replace' || item.kind === 'move' ? nodeAtPos(doc, item.from) ?? undefined : undefined;
-  const toInsert = buildNodes(editor, item.markdown, src);
-  applyStep(checkTr, editor, item, toInsert);
+  const checkTr = new Transform(doc);
+  const toInsert = nodesFor(editor, item, doc);
+  applyStep(checkTr, item, toInsert);
   const err = checkConstraints(checkTr.doc);
   if (err) {
-    const reason: 'split' | 'mcq' = err.includes('split') ? 'split' : 'mcq';
-    return { ok: false, reason, message: err };
+    return { ok: false, reason: err.reason, message: err.message };
   }
 
   return { ok: true };
@@ -176,10 +246,9 @@ export function acceptItem(
   // single undo-step: close → step+meta → close
   editor.view.dispatch(closeHistory(editor.state.tr));
 
-  const src = item.kind === 'replace' || item.kind === 'move' ? nodeAtPos(editor.state.doc, item.from) ?? undefined : undefined;
-  const nodes = buildNodes(editor, item.markdown!, src);
+  const nodes = nodesFor(editor, item, editor.state.doc);
   const tr = editor.state.tr;
-  applyStep(tr, editor, item, nodes);
+  applyStep(tr, item, nodes);
   tr.setMeta(suggestKey, { type: 'remove', opIds: [opId] });
   editor.view.dispatch(tr);
 
@@ -209,17 +278,17 @@ export function acceptAll(editor: Editor): { applied: number; left: number } {
     const from = tr.mapping.map(orig.from, 1);
     const to = tr.mapping.map(orig.to, -1);
     const anchorPos = orig.anchorPos !== undefined ? tr.mapping.map(orig.anchorPos, 1) : undefined;
+    const anchorGone = orig.anchorPos !== undefined && tr.mapping.mapResult(orig.anchorPos, 1).deleted;
     const mapped: Item = { ...orig, from, to, anchorPos };
 
-    const check = liveCheckDoc(editor, tr.doc, mapped);
+    const check = liveCheckDoc(editor, tr.doc, mapped, anchorGone);
     if (!check.ok) {
       left++;
       continue;
     }
 
-    const src = mapped.kind === 'replace' || mapped.kind === 'move' ? nodeAtPos(tr.doc, from) ?? undefined : undefined;
-    const nodes = buildNodes(editor, mapped.markdown!, src);
-    applyStep(tr, editor, mapped, nodes);
+    const nodes = nodesFor(editor, mapped, tr.doc);
+    applyStep(tr, mapped, nodes);
     removed.push(orig.opId);
   }
 

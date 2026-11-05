@@ -40,6 +40,17 @@ const INITIAL: SuggestState = {
   part: null,
 };
 
+type SuggestMeta =
+  | { type: 'start'; requestId: string | null; text: string | null }
+  | { type: 'add'; item: Item }
+  | { type: 'remove'; opIds: string[] }
+  | { type: 'reject'; opIds: string[] }
+  | { type: 'restoreReject'; opIds?: string[] }
+  | { type: 'setRunning'; running: boolean }
+  | { type: 'setPart'; part: string | null }
+  | { type: 'clear' }
+  | { type: 'focus'; focus: number | null };
+
 // ---------- plugin key ----------
 
 export const suggestKey = new PluginKey<SuggestState>('suggest');
@@ -51,7 +62,7 @@ const plugin = new Plugin({
   state: {
     init: () => INITIAL,
     apply: (tr, value, _oldState, _newState) => {
-      const meta = tr.getMeta(suggestKey) as Record<string, unknown> | undefined;
+      const meta = tr.getMeta(suggestKey) as SuggestMeta | undefined;
       let state = value;
 
       if (meta) {
@@ -76,7 +87,7 @@ const plugin = new Plugin({
             break;
           }
           case 'restoreReject': {
-            const toRestore = new Set(meta.opIds as string[] | undefined || state.rejected.map((i) => i.opId));
+            const toRestore = new Set(meta.opIds ?? state.rejected.map((i) => i.opId));
             const back = state.rejected.filter((i) => toRestore.has(i.opId));
             state = {
               ...state,

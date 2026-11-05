@@ -9,6 +9,11 @@ import { api } from '../src/api'
 
 const readLesson = (): string => readFileSync('public/sample/lesson.md', 'utf-8')
 
+// The mock streams ~36 tokens, each awaiting a timer. Even at 1 ms per token the
+// reply takes ~320 ms idle and 700+ ms under CPU load (Windows timer granularity),
+// so the 1000 ms findBy default flakes in the full suite. Waits for the finished reply use this.
+const REPLY_TIMEOUT = { timeout: 5000 }
+
 const textOf = (el: HTMLElement): string => el.textContent ?? ''
 
 const renderApp = async () => {
@@ -93,7 +98,7 @@ describe('Assistant pane', () => {
     fireEvent.keyDown(textarea, { key: 'Enter' })
 
     await screen.findByText('hello')
-    await screen.findByText(/scripted reply/)
+    await screen.findByText(/scripted reply/, undefined, REPLY_TIMEOUT)
   })
 
   it('Skills tab lists all 6 commands with 3 "planned" badges', async () => {
@@ -171,7 +176,7 @@ describe('Assistant pane', () => {
     fireEvent.change(textarea, { target: { value: 'hello' } })
     fireEvent.keyDown(textarea, { key: 'Enter' })
 
-    await screen.findByText(/scripted reply/)
+    await screen.findByText(/scripted reply/, undefined, REPLY_TIMEOUT)
 
     const insertBtn = await screen.findByLabelText('Insert below cursor')
     expect(insertBtn.getAttribute('aria-disabled')).toBe('true')

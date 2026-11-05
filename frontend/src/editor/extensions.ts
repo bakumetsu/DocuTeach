@@ -12,6 +12,7 @@ import { SplitPoint } from './nodes/SplitPoint'
 import { RawBlock } from './nodes/RawBlock'
 import { Align } from './nodes/Align'
 import { FontStyle } from './fontStyle'
+import { SuggestExtension } from './suggest/plugin'
 
 export const extensions = [
   DocMeta,
@@ -54,6 +55,7 @@ export const extensions = [
   SplitPoint,
   RawBlock,
   Align,
+  SuggestExtension,
 ]
 
 export const schema = getSchema(extensions)

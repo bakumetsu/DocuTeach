@@ -49,7 +49,7 @@ export function resolveTopLevelPos(editor: Editor, pos: number | null): number {
   return $p.after(1);
 }
 
-function saveAutoCheckpoint(name: string, markdown: string): void {
+export function saveAutoCheckpoint(name: string, markdown: string): void {
   const { lessonId, showToast } = useApp.getState();
   api.docs.checkpoints.create(lessonId, name, markdown, { auto: true }).catch(() =>
     showToast('Checkpoint not saved'),

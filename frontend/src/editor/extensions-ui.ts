@@ -4,6 +4,7 @@ import { extensions } from './extensions'
 import { EditorKeymaps } from './keymaps'
 import { SplitGuard } from './guards'
 import { StreamSlot } from './stream'
+import { SuggestCardExtension } from './suggest/card'
 import { PageBreaks } from './pageBreaksPlugin'
 import { TeacherNoteView } from './nodeviews/TeacherNoteView'
 import { BlankView } from './nodeviews/BlankView'
@@ -66,6 +67,7 @@ export function buildEditorExtensions(opts?: { onSplitBlocked?: () => void; with
 
   if (opts?.withStream) {
     result.push(StreamSlot)
+    result.push(SuggestCardExtension)
   }
 
   return result

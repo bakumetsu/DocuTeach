@@ -33,7 +33,8 @@ Product rules for every change:
 ## Skills
 
 Load the skill when you do the thing (`skills.md`):
-- `orca-ticket-ops`: opening, launching, checking, finishing or deleting a ticket; task texts; ticket reports; backup files.
+- `orca-ticket-ops`: opening, launching, checking, finishing or deleting a ticket; task texts; reviewing ticket reports and designs.
+- `ticket-reports`: writing or relaying a ticket report; messages to the planner; handoff at the context threshold; backup files.
 - `design-workflow`: starting, writing, reviewing or closing a design ticket.
 - `commit-and-push`: any commit, squash or push; diff review; test failure; docs before a push.
 - `build-and-log`: trial build, tests, dev server, logs.

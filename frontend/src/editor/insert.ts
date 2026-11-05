@@ -18,9 +18,16 @@ const ALLOWED_TYPES = new Set([
   'mcq',
 ]);
 
+const EDIT_ALLOWED_TYPES = new Set([...ALLOWED_TYPES, 'heading', 'table', 'splitPoint']);
+
 export function validateFragment(nodes: PMNode[], warnings: string[]): boolean {
   if (warnings.length > 0) return false;
   return nodes.every((n) => ALLOWED_TYPES.has(n.type.name));
+}
+
+export function validateEditFragment(nodes: PMNode[], warnings: string[]): boolean {
+  if (warnings.length > 0) return false;
+  return nodes.every((n) => EDIT_ALLOWED_TYPES.has(n.type.name));
 }
 
 export function plainParagraphs(editor: Editor, text: string): PMNode[] {
@@ -49,7 +56,7 @@ export function resolveTopLevelPos(editor: Editor, pos: number | null): number {
   return $p.after(1);
 }
 
-function saveAutoCheckpoint(name: string, markdown: string): void {
+export function saveAutoCheckpoint(name: string, markdown: string): void {
   const { lessonId, showToast } = useApp.getState();
   api.docs.checkpoints.create(lessonId, name, markdown, { auto: true }).catch(() =>
     showToast('Checkpoint not saved'),

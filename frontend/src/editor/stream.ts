@@ -6,6 +6,7 @@ import { api } from '../api';
 import { useChats } from '../assistant/chatStore';
 import { useApp } from '../state/store';
 import { insertFragment } from './insert';
+import { isEditRunning } from './suggest/plugin';
 import { noteStreamError, clearAiNotice } from '../assistant/aiNotice';
 
 export interface SlotState {
@@ -141,7 +142,7 @@ export function startPageStream(
   editor: Editor,
   opts: { skill: string; selection?: string; prompt?: string },
 ): boolean {
-  if (running) {
+  if (running || isEditRunning(editor)) {
     useApp.getState().showToast('Wait for the current draft or press Esc');
     return false;
   }

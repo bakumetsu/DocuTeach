@@ -5,6 +5,7 @@ import { buildEditorExtensions } from './extensions-ui';
 import { installPageHandlers } from './pageHandlers';
 import { SelectionPopover } from './SelectionPopover';
 import { TableHandle } from './TableHandle';
+import { ReviewBar } from './ReviewBar';
 import { ViewContext } from './ViewContext';
 import { parseMarkdown } from '../markdown/parse';
 import { readPageStyle, pageCssVars } from './pageStyle';
@@ -92,6 +93,7 @@ function EditorInner({ initialJson }: { initialJson: InitialState }) {
   return (
     <ViewContext.Provider value="edit">
       <div className="page view-edit" style={pageCssVars(readPageStyle(meta))}>
+        {editor && <ReviewBar editor={editor} />}
         <EditorContent editor={editor} />
         <SelectionPopover editor={editor} />
         <TableHandle editor={editor} />

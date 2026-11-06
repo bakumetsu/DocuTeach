@@ -1,5 +1,0 @@
-# T-44 PROGRESS-3 (c3, ctx ~70k)
-Done+committed (last 8767c8b): step 4. SkillsDialog.tsx (list/edit/import, Undo for delete), ModelEditForm.tsx + ModelsDialog.tsx (list, set default, unload, add/edit via customGet, remove+Undo, overlayError Undo, entry_unreadable fallback). tsc, eslint, full vitest (783 pass) green. Not yet visually checked.
-Helper: kit/work/t44/ext.py now matches ```ts and ```tsx. Briefs in kit/work/t44/b4,b5a,b5b.md. Coder replies cut off over ~15k chars: one file per call, split big components. If ext.py fails, it truncates nothing now but a failed run earlier emptied ModelsDialog (git checkout it).
-Run commands from repo root; pnpm commands in frontend/ via (cd frontend && ...).
-Next: step 5 (exit-model icon in AssistantPane.tsx next to .model-select; chatStore 'Model unloaded' state, next send reloads via selectModel; confirm when generating; Undo = reload), step 6 (vitest for SkillsDialog, ModelsDialog, mocks; screenshots via pnpm dev + orca browser into kit/reports/T-44-feat-front-skill-model/shots/; run impeccable detect on dialogs; real-API check needs GPU: ask docuteach-bf), then final report to docuteach-bf.

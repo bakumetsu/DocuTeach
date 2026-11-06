@@ -12,6 +12,9 @@ import {
   Lock,
   LockOpen,
   Send,
+  SpellCheck,
+  Feather,
+  Scissors,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useApp } from '../state/store'
@@ -63,7 +66,8 @@ export function SelectionPopover({ editor }: { editor: Editor }) {
         if (!(selection instanceof TextSelection)) return false
         return selection.$from.parent.isTextblock
       }}
-      options={{ placement: 'top' }}
+      appendTo={() => document.body}
+      options={{ placement: 'top', shift: { padding: 8 } }}
     >
       <div className="selection-popover">
         <button
@@ -122,27 +126,30 @@ export function SelectionPopover({ editor }: { editor: Editor }) {
             />
             <button
               type="button"
-              className="popover-preset"
+              aria-label="Fix mistakes"
+              title="Fix mistakes"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => runEdit('Fix grammar and spelling mistakes')}
             >
-              Fix mistakes
+              <SpellCheck size={14} />
             </button>
             <button
               type="button"
-              className="popover-preset"
+              aria-label="Simplify"
+              title="Simplify"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => runEdit('Simplify the language')}
             >
-              Simplify
+              <Feather size={14} />
             </button>
             <button
               type="button"
-              className="popover-preset"
+              aria-label="Shorten"
+              title="Shorten"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => runEdit('Make it shorter')}
             >
-              Shorten
+              <Scissors size={14} />
             </button>
             <button
               type="button"

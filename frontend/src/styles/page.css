@@ -380,9 +380,19 @@
 
 /* ── Selection popover ─────────────────────────────────────────── */
 .selection-popover {
+  /* Over the page: always the paper look, whatever the app theme. */
+  --panel: var(--page-bg);
+  --text: var(--page-text);
+  --muted: var(--page-muted);
+  --border: var(--page-border);
+  --acc-soft: var(--page-acc-soft);
+  --shadow: var(--page-shadow);
+  color: var(--page-text);
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 2px;
+  max-width: calc(100vw - 16px);
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-ctl);

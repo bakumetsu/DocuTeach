@@ -79,6 +79,9 @@ function isStreamEvent(x: unknown): x is StreamEvent {
         && (o.markdown == null || typeof o.markdown === 'string')
     case 'edit_skipped':
       return typeof o.code === 'string' && typeof o.header === 'string'
+    case 'stats':
+      return typeof o.in === 'number' && typeof o.out === 'number'
+        && (o.tps === null || typeof o.tps === 'number')
     case 'done':
       if (o.fallback != null) return o.fallback === 'text'
       if (o.edits != null && typeof o.edits !== 'number') return false

@@ -83,7 +83,15 @@ body {
   text-align: left;
 }
 
-.menu-item.rule-above {
+.menu-group {
+  padding: 6px 12px 2px;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+.menu-group:not(:first-child) {
   border-top: 1px solid var(--border);
   margin-top: 4px;
   padding-top: 8px;
@@ -768,6 +776,13 @@ body {
   color: var(--muted);
   font-style: italic;
   margin-bottom: 2px;
+}
+
+.msg-stats {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .phase-line {

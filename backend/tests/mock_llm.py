@@ -132,6 +132,18 @@ class MockLlm:
                             "choices": [{"delta": {}, "finish_reason": self.finish_reason}]
                         }
                         yield f"data: {json.dumps(fr_chunk)}\n\n"
+                    opts: Any = body.get("stream_options")
+                    if isinstance(opts, dict) and cast("dict[str, Any]", opts).get("include_usage"):
+                        usage_chunk: dict[str, Any] = {
+                            "choices": [],
+                            "usage": {
+                                "prompt_tokens": 1240,
+                                "completion_tokens": 380,
+                                "total_tokens": 1620,
+                            },
+                            "timings": {"predicted_per_second": 42.05},
+                        }
+                        yield f"data: {json.dumps(usage_chunk)}\n\n"
                     if self.send_done:
                         yield "data: [DONE]\n\n"
                 finally:

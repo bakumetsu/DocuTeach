@@ -95,6 +95,7 @@ export const mockChat: DocuTeachApi['chat'] = {
         yield { type: 'structured', kind: script.kind, markdown: script.markdown }
       }
 
+      yield { type: 'stats', in: 1240, out: 380, tps: 42 }
       yield { type: 'done' }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') {

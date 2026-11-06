@@ -16,7 +16,7 @@ export interface SkillImportPreview { skill: { command: string; name: string; de
 export interface ManagedModel { id: string; label: string; sizeGb: number; state: 'loaded' | 'unloaded' | 'loading' | 'missing' | 'unknown'; isDefault: boolean; source: 'default' | 'added' }
 export interface ModelManageList { models: ManagedModel[]; overlayError: string | null; overlayDir: string }
 export interface ModelForm { id: string; model_path: string; parallel: number; ctx_per_chat: number; reasoning: boolean; temperature: number; top_p: number; top_k: number; min_p: number; ttl: number }
-export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean }
+export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean; stats?: { in: number; out: number; tps: number | null } }
 export type EditScope = 'selection' | 'section' | 'lesson'
 export interface EditBlock { id: string; kind: string; md: string; role: 'edit' | 'context' }
 export interface EditPayload { instruction: string; scope: EditScope; allowProtected: boolean; part?: { k: number; n: number; outline: string[] }; blocks: EditBlock[] }
@@ -32,6 +32,7 @@ export type StreamEvent =
   | { type: 'structured'; kind: NonNullable<SkillInfo['insertAs']>; markdown: string }
   | { type: 'edit'; opId: string; kind: 'replace' | 'insert' | 'delete' | 'move'; targets: string[]; anchor?: string; side?: 'before' | 'after'; markdown?: string; flags: string[] }
   | { type: 'edit_skipped'; code: string; header: string }
+  | { type: 'stats'; in: number; out: number; tps: number | null }
   | { type: 'done'; fallback?: 'text'; edits?: number; skipped?: number; noChange?: number }
   | { type: 'error'; message: string; code?: 'llm_offline' | 'llm_busy' | 'llm_timeout' | 'chat_busy' }
 export interface DocRecord { id: string; markdown: string; updatedAt: string }

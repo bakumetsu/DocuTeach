@@ -25,6 +25,7 @@ interface AppState {
   nightPalette: NightPalette
   background: Background
   spellcheck: boolean
+  tokenStats: boolean
   view: View
   assistantWidth: number
   assistantCollapsed: boolean
@@ -42,6 +43,7 @@ interface AppState {
   setPalette: (id: PaletteId) => void
   setBackground: (b: Background) => void
   setSpellcheck: (on: boolean) => void
+  setTokenStats: (on: boolean) => void
   setView: (v: View) => void
   setAssistantWidth: (w: number) => void
   setAssistantCollapsed: (c: boolean) => void
@@ -79,6 +81,7 @@ export const useApp = create<AppState>((set, get) => ({
   nightPalette: loadPalette('nightPalette', NIGHT_PALETTES),
   background: loadJson<Background>('background', 'gradient'),
   spellcheck: loadJson<boolean>('spellcheck', true),
+  tokenStats: loadJson<boolean>('tokenStats', false),
   view: 'edit',
   assistantWidth: loadJson<number>('assistantWidth', 380),
   assistantCollapsed: loadJson<boolean>('assistantCollapsed', false),
@@ -116,6 +119,10 @@ export const useApp = create<AppState>((set, get) => ({
   setSpellcheck: (on) => {
     saveJson('spellcheck', on)
     set({ spellcheck: on })
+  },
+  setTokenStats: (on) => {
+    saveJson('tokenStats', on)
+    set({ tokenStats: on })
   },
   setView: (v) => set({ view: v }),
   setAssistantWidth: (w) => {

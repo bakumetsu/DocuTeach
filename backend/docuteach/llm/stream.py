@@ -189,6 +189,7 @@ class LlmService:
             first_line = True
             finish_reason: str | None = None
             done_seen = False
+            stats: dict[str, Any] | None = None
 
             try:
                 async with self._client.stream_chat(
@@ -251,6 +252,33 @@ class LlmService:
                         if not isinstance(data, dict):
                             continue
                         data = cast("dict[str, Any]", data)
+                        usage_raw: Any = data.get("usage")
+                        timings_raw: Any = data.get("timings")
+                        u: dict[str, Any] = (
+                            cast("dict[str, Any]", usage_raw)
+                            if isinstance(usage_raw, dict)
+                            else {}
+                        )
+                        t: dict[str, Any] = (
+                            cast("dict[str, Any]", timings_raw)
+                            if isinstance(timings_raw, dict)
+                            else {}
+                        )
+                        if (
+                            isinstance(u.get("prompt_tokens"), int)
+                            and isinstance(u.get("completion_tokens"), int)
+                        ):
+                            tps: Any = t.get("predicted_per_second")
+                            stats = {
+                                "type": "stats",
+                                "in": u["prompt_tokens"],
+                                "out": u["completion_tokens"],
+                                "tps": (
+                                    round(float(tps), 1)
+                                    if isinstance(tps, (int, float))
+                                    else None
+                                ),
+                            }
                         choices = data.get("choices")
                         if not choices or not isinstance(choices, list):
                             continue
@@ -296,6 +324,8 @@ class LlmService:
                 return
 
             # 7. Finalise
+            if stats is not None:
+                yield stats
             if run is not None:
                 complete = (
                     run.ended or finish_reason == "stop" or (finish_reason is None and done_seen)

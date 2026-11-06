@@ -139,6 +139,7 @@ class LlmClient:
             "model": model,
             "messages": messages,
             "stream": True,
+            "stream_options": {"include_usage": True},
             "max_tokens": self._settings.max_answer_tokens,
             "cache_prompt": True,
         }

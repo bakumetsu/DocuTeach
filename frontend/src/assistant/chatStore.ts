@@ -521,6 +521,18 @@ export const useChats = create<ChatState>()((set, get) => {
               }));
               errored = true;
               break;
+            case 'stats':
+              set((s) => ({
+                chats: s.chats.map((c) => {
+                  if (c.id !== chatId) return c;
+                  if (c.messages.length === 0) return c;
+                  const msgs = [...c.messages];
+                  const last = msgs.length - 1;
+                  msgs[last] = { ...msgs[last], stats: { in: ev.in, out: ev.out, tps: ev.tps } };
+                  return { ...c, messages: msgs };
+                }),
+              }));
+              break;
             case 'structured':
               // ignored for chat
               break;

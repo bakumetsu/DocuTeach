@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { useApp } from '../state/store';
 import { Popover } from './Popover';
@@ -8,9 +8,9 @@ interface MenuItem {
   id?: string;
   // checkbox-style (theme toggle)
   checkbox?: boolean;
-  kind?: 'theme' | 'bg' | 'spell';
-  // thin rule above this item
-  ruleAbove?: boolean;
+  kind?: 'theme' | 'bg' | 'spell' | 'stats';
+  // non-interactive group label shown above this item
+  group?: string;
 }
 
 interface MenuDef {
@@ -42,12 +42,13 @@ const MENUS: MenuDef[] = [
   {
     label: 'Options',
     items: [
-      { label: 'Dark theme', checkbox: true, kind: 'theme' },
+      { label: 'Spell check', checkbox: true, kind: 'spell', group: 'Editor' },
+      { label: 'Dark theme', checkbox: true, kind: 'theme', group: 'Theme' },
       { label: 'Color theme…', id: 'options.colorTheme' },
       { label: 'Gradient background', checkbox: true, kind: 'bg' },
-      { label: 'Spell check', checkbox: true, kind: 'spell' },
-      { label: 'Skills…', id: 'options.skills', ruleAbove: true },
-      { label: 'Models…', id: 'options.models' },
+      { label: 'Skills…', id: 'options.skills', group: 'Skills' },
+      { label: 'Models…', id: 'options.models', group: 'Models' },
+      { label: 'Show token stats', checkbox: true, kind: 'stats' },
     ],
   },
   {
@@ -81,6 +82,8 @@ export function MenuBar({ onAction }: MenuBarProps) {
   const setBackground = useApp((s) => s.setBackground);
   const spellcheck = useApp((s) => s.spellcheck);
   const setSpellcheck = useApp((s) => s.setSpellcheck);
+  const tokenStats = useApp((s) => s.tokenStats);
+  const setTokenStats = useApp((s) => s.setTokenStats);
   const saveState = useApp((s) => s.saveState);
   const fileName = useApp((s) => s.fileName);
   const dirty = useApp((s) => s.dirty);
@@ -98,6 +101,9 @@ export function MenuBar({ onAction }: MenuBarProps) {
     setAnchor(titleRefs.current[idx] ?? null);
   }, []);
 
+  const isChecked = (kind?: MenuItem['kind']) =>
+    kind === 'bg' ? background === 'gradient' : kind === 'spell' ? spellcheck : kind === 'stats' ? tokenStats : theme === 'dark';
+
   const activateItem = useCallback(
     (menuIdx: number, itemIdx: number) => {
       const item = MENUS[menuIdx].items[itemIdx];
@@ -106,6 +112,8 @@ export function MenuBar({ onAction }: MenuBarProps) {
           setBackground(background === 'gradient' ? 'flat' : 'gradient');
         } else if (item.kind === 'spell') {
           setSpellcheck(!spellcheck);
+        } else if (item.kind === 'stats') {
+          setTokenStats(!tokenStats);
         } else {
           setTheme(theme === 'dark' ? 'light' : 'dark');
         }
@@ -114,7 +122,7 @@ export function MenuBar({ onAction }: MenuBarProps) {
       }
       closeMenu();
     },
-    [theme, background, spellcheck, setTheme, setBackground, setSpellcheck, onAction, closeMenu],
+    [theme, background, spellcheck, tokenStats, setTheme, setBackground, setSpellcheck, setTokenStats, onAction, closeMenu],
   );
 
   // Focus management
@@ -218,24 +226,28 @@ export function MenuBar({ onAction }: MenuBarProps) {
           >
             <div className="menu-list" role="menu" aria-label={menu.label}>
               {menu.items.map((item, ii) => (
-                <button
-                  key={item.label}
-                  ref={(el) => {
-                    itemRefs.current[ii] = el;
-                  }}
-                  type="button"
-                  role={item.checkbox ? 'menuitemcheckbox' : 'menuitem'}
-                  aria-checked={item.checkbox ? (item.kind === 'bg' ? background === 'gradient' : item.kind === 'spell' ? spellcheck : theme === 'dark') : undefined}
-                  tabIndex={-1}
-                  className={`menu-item${activeItem === ii ? ' active' : ''}${item.ruleAbove ? ' rule-above' : ''}`}
-                  onClick={() => activateItem(mi, ii)}
-                  onMouseEnter={() => setActiveItem(ii)}
-                >
-                  {item.checkbox && (
-                    <span className="check">{item.kind === 'bg' ? (background === 'gradient' ? '✓' : '') : item.kind === 'spell' ? (spellcheck ? '✓' : '') : (theme === 'dark' ? '✓' : '')}</span>
+                <Fragment key={item.label}>
+                  {item.group && (
+                    <div className="menu-group" role="presentation">{item.group}</div>
                   )}
-                  <span>{item.label}</span>
-                </button>
+                  <button
+                    ref={(el) => {
+                      itemRefs.current[ii] = el;
+                    }}
+                    type="button"
+                    role={item.checkbox ? 'menuitemcheckbox' : 'menuitem'}
+                    aria-checked={item.checkbox ? isChecked(item.kind) : undefined}
+                    tabIndex={-1}
+                    className={`menu-item${activeItem === ii ? ' active' : ''}`}
+                    onClick={() => activateItem(mi, ii)}
+                    onMouseEnter={() => setActiveItem(ii)}
+                  >
+                    {item.checkbox && (
+                      <span className="check">{isChecked(item.kind) ? '✓' : ''}</span>
+                    )}
+                    <span>{item.label}</span>
+                  </button>
+                </Fragment>
               ))}
             </div>
           </Popover>

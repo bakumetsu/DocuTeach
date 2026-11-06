@@ -26,6 +26,7 @@ export function ChatView() {
 
   const view = useApp((s) => s.view);
   const showToast = useApp((s) => s.showToast);
+  const tokenStats = useApp((s) => s.tokenStats);
 
   const chat = chats.find((c) => c.id === activeId);
 
@@ -207,6 +208,12 @@ export function ChatView() {
             <div className="msg-bubble">
               {msg.stopped && <span className="stopped-label">stopped</span>}
               <span className="msg-content">{msg.content}</span>
+              {tokenStats && msg.role === 'assistant' && msg.stats && (
+                <span className="msg-stats">
+                  {`${msg.stats.in.toLocaleString('en-US')} in · ${msg.stats.out.toLocaleString('en-US')} out`}
+                  {msg.stats.tps !== null && ` · ${Math.round(msg.stats.tps)} tok/s`}
+                </span>
+              )}
             </div>
             <button
               className="icon-btn msg-actions"

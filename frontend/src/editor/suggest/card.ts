@@ -55,7 +55,7 @@ export function badgesFor(item: Item): Badge[] {
 }
 
 export function hasBlockingFlag(item: Item): boolean {
-  return item.flags.some((flag) => BLOCKING_FLAGS.includes(flag));
+  return item.largeRewrite === true || item.flags.some((flag) => BLOCKING_FLAGS.includes(flag));
 }
 
 export function oldMarkdown(editor: Editor, item: Item): string {

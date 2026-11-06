@@ -1,7 +1,7 @@
 import type { DocuTeachApi, ChatRecord, ChatRequest, StreamEvent } from '../types'
 import { mockConfig, sleep } from './config'
 import { setCurrentModel, getCurrentModel } from './models'
-import { scriptFor, tokenize } from './script'
+import { scriptFor, tokenize, editScriptFor } from './script'
 import { kvGet, kvSet } from '../kv'
 
 const CHATS_PREFIX = 'docuteach:v1:chats:'
@@ -62,6 +62,24 @@ export const mockChat: DocuTeachApi['chat'] = {
 
       if (lastUserText.includes('[fail]')) {
         yield { type: 'error', message: 'The assistant failed (test)' }
+        return
+      }
+
+      if (req.mode === 'edit' && req.edit) {
+        const editBlocks = req.edit.blocks.filter((b) => b.role === 'edit')
+        const { reply, ops, skipped } = editScriptFor(req.edit.instruction, editBlocks)
+        const replyTokens = tokenize(reply)
+        for (const token of replyTokens) {
+          await sleep(randomBetween(mockConfig.tokenMinMs, mockConfig.tokenMaxMs), signal)
+          yield { type: 'token', text: token }
+        }
+        for (const op of ops) {
+          yield { type: 'edit', ...op } as StreamEvent
+        }
+        for (const sk of skipped) {
+          yield { type: 'edit_skipped', code: sk.code, header: sk.header }
+        }
+        yield { type: 'done', edits: ops.length, skipped: skipped.length, noChange: 0 }
         return
       }
 

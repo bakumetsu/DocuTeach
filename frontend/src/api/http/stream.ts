@@ -39,8 +39,21 @@ function isStreamEvent(x: unknown): x is StreamEvent {
           || o.code === 'llm_timeout' || o.code === 'chat_busy'
       }
       return true
+    case 'edit':
+      return typeof o.opId === 'string'
+        && (o.kind === 'replace' || o.kind === 'insert' || o.kind === 'delete' || o.kind === 'move')
+        && Array.isArray(o.targets) && o.targets.every((t) => typeof t === 'string')
+        && Array.isArray(o.flags) && o.flags.every((f) => typeof f === 'string')
+        && (o.anchor == null || typeof o.anchor === 'string')
+        && (o.side == null || o.side === 'before' || o.side === 'after')
+        && (o.markdown == null || typeof o.markdown === 'string')
+    case 'edit_skipped':
+      return typeof o.code === 'string' && typeof o.header === 'string'
     case 'done':
       if (o.fallback != null) return o.fallback === 'text'
+      if (o.edits != null && typeof o.edits !== 'number') return false
+      if (o.skipped != null && typeof o.skipped !== 'number') return false
+      if (o.noChange != null && typeof o.noChange !== 'number') return false
       return true
     default:
       return false

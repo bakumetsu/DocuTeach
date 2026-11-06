@@ -1,10 +1,20 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from 'react';
 import type { Editor } from '@tiptap/core';
 import { Loader2, ChevronUp, ChevronDown, CheckCheck, X, Undo2 } from 'lucide-react';
-import { getSuggestState, type SuggestState, type Item } from './suggest/plugin';
+import { getSuggestState, type Item } from './suggest/plugin';
 import { hasBlockingFlag, stepFocus } from './suggest/card';
 import { acceptAll, rejectAll, undoReject } from './suggest/apply';
 import { useApp } from '../state/store';
+
+const SKIPPED_REASONS: Record<string, string> = {
+  protected_note: "Would change a teacher note: switch on 'Allow changes to notes and answers' to allow it",
+  answer_changed: "Would change an answer: switch on 'Allow changes to notes and answers' to allow it",
+  out_of_scope: 'Outside the chosen scope',
+};
+
+function skippedReason(code: string): string {
+  return SKIPPED_REASONS[code] ?? 'Not applied';
+}
 
 export function acceptAllDisabled(items: Item[], running: boolean): boolean {
   if (running) return true;
@@ -16,6 +26,7 @@ export function ReviewBar({ editor }: { editor: Editor }): ReactElement | null {
   const [, bump] = useReducer((c: number) => c + 1, 0);
   const [dismissed, setDismissed] = useState(false);
   const [lastRejected, setLastRejected] = useState<string[] | null>(null);
+  const [showSkipped, setShowSkipped] = useState(false);
 
   const wasActiveRef = useRef(false);
   const prevRejectedLenRef = useRef(0);
@@ -55,7 +66,8 @@ export function ReviewBar({ editor }: { editor: Editor }): ReactElement | null {
 
   const n = s.items.length;
   const staleCount = s.items.filter((i) => i.status === 'stale').length;
-  const reply = (s as SuggestState & { reply?: string | null }).reply ?? '';
+  const m = s.editSkipped.length;
+  const reply = s.reply ?? '';
   const truncatedReply = reply.length > 120 ? reply.slice(0, 120) + '…' : reply;
   const acceptDisabled = acceptAllDisabled(s.items, s.running);
   const blockingDisabled =
@@ -82,6 +94,25 @@ export function ReviewBar({ editor }: { editor: Editor }): ReactElement | null {
       </span>
       {staleCount > 0 && (
         <span className="review-chip"> · {staleCount} stale</span>
+      )}
+      {m > 0 && (
+        <button
+          type="button"
+          className="review-chip review-skipped"
+          aria-label="Skipped suggestions"
+          onClick={() => setShowSkipped(!showSkipped)}
+        >
+          {' '}· {m} skipped
+        </button>
+      )}
+      {showSkipped && m > 0 && (
+        <ul className="review-skipped-list">
+          {s.editSkipped.map((sk, i) => (
+            <li key={i}>
+              {sk.header} — {skippedReason(sk.code)}
+            </li>
+          ))}
+        </ul>
       )}
 
       <button

@@ -18,6 +18,7 @@ export interface Item {
   flags: string[];
   status: ItemStatus;
   requestId: string;
+  largeRewrite?: boolean;
 }
 
 export interface SuggestState {
@@ -28,6 +29,8 @@ export interface SuggestState {
   rejected: Item[];
   running: boolean;
   part: string | null;
+  reply: string | null;
+  editSkipped: { code: string; header: string }[];
 }
 
 const INITIAL: SuggestState = {
@@ -38,6 +41,8 @@ const INITIAL: SuggestState = {
   rejected: [],
   running: false,
   part: null,
+  reply: null,
+  editSkipped: [],
 };
 
 type SuggestMeta =
@@ -48,8 +53,11 @@ type SuggestMeta =
   | { type: 'restoreReject'; opIds?: string[] }
   | { type: 'setRunning'; running: boolean }
   | { type: 'setPart'; part: string | null }
+  | { type: 'setReply'; reply: string | null }
+  | { type: 'addSkipped'; skipped: { code: string; header: string } }
   | { type: 'clear' }
-  | { type: 'focus'; focus: number | null };
+  | { type: 'focus'; focus: number | null }
+  | { type: 'markLarge'; requestId: string };
 
 // ---------- plugin key ----------
 
@@ -67,8 +75,19 @@ const plugin = new Plugin({
 
       if (meta) {
         switch (meta.type) {
-          case 'start':
-            state = { ...state, requestId: meta.requestId, requestText: meta.text };
+          case 'start': {
+            if (state.items.length === 0) {
+              state = { ...state, requestId: meta.requestId, requestText: meta.text, reply: null, editSkipped: [] };
+            } else {
+              state = { ...state, requestId: meta.requestId, requestText: meta.text };
+            }
+            break;
+          }
+          case 'setReply':
+            state = { ...state, reply: meta.reply };
+            break;
+          case 'addSkipped':
+            state = { ...state, editSkipped: [...state.editSkipped, meta.skipped] };
             break;
           case 'add':
             state = { ...state, items: [...state.items, meta.item] };
@@ -108,6 +127,12 @@ const plugin = new Plugin({
           case 'focus':
             state = { ...state, focus: meta.focus };
             break;
+          case 'markLarge': {
+            const items = state.items.map((i) => i.requestId === meta.requestId ? { ...i, largeRewrite: true } : i);
+            const rejected = state.rejected.map((i) => i.requestId === meta.requestId ? { ...i, largeRewrite: true } : i);
+            state = { ...state, items, rejected };
+            break;
+          }
         }
       }
 
@@ -203,4 +228,16 @@ export function setFocus(editor: Editor, focus: number | null): void {
 
 export function isEditRunning(editor: Editor): boolean {
   return getSuggestState(editor).running;
+}
+
+export function setReply(editor: Editor, reply: string | null): void {
+  dispatchMeta(editor, { type: 'setReply', reply });
+}
+
+export function addSkipped(editor: Editor, code: string, header: string): void {
+  dispatchMeta(editor, { type: 'addSkipped', skipped: { code, header } });
+}
+
+export function markLargeRewrite(editor: Editor, requestId: string): void {
+  dispatchMeta(editor, { type: 'markLarge', requestId });
 }

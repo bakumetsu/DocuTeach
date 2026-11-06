@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardPaste, Send, Square, Plus, CornerUpLeft } from 'lucide-react';
+import { ClipboardPaste, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert } from 'lucide-react';
 import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
+import { useEditEntry } from './editEntry';
 import { useApp } from '../state/store';
 import { insertFromChat } from './pageBridge';
 import { SlashList } from './SlashList';
@@ -39,6 +40,11 @@ export function ChatView() {
 
   const input = inputs[activeId] ?? '';
   const isEdit = view === 'edit';
+
+  const entry = useEditEntry((s) => s.byChat[activeId]);
+  const hasSel = useEditEntry((s) => s.hasSelection);
+  const allowProtected = useEditEntry((s) => s.allowProtected);
+  const scope = entry?.scope ?? (hasSel ? 'selection' : 'lesson');
 
   // Slash list logic: derived from the current input value during render.
   const slashQuery = input.startsWith('/') ? input.split(/\s/)[0] : null;
@@ -105,16 +111,20 @@ export function ChatView() {
       const spaceIdx = text.indexOf(' ');
       const cmd = spaceIdx === -1 ? text : text.slice(0, spaceIdx);
       const isSkill = skills.some((s) => s.command === cmd && s.status === 'active');
-      if (isSkill && !isEdit) {
+      if ((isSkill || text.startsWith('/edit')) && !isEdit) {
         showToast('Page drafts work in Edit view');
         return;
       }
+    }
+    if (entry?.on && !isEdit) {
+      showToast('Page drafts work in Edit view');
+      return;
     }
 
     setInput(activeId, '');
     setSlashDismissed(true);
     void send(activeId, text);
-  }, [input, activeId, isEdit, skills, showToast, setInput, send]);
+  }, [input, activeId, isEdit, skills, showToast, setInput, send, entry]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (slashOpen && activeSkills.length > 0) {
@@ -286,6 +296,58 @@ export function ChatView() {
       {usage?.warn && (
         <div className="ctx-warning" role="status">Context almost full. Remove an attachment or start a new chat.</div>
       )}
+      <div className="edit-bar">
+        <button
+          className={`icon-btn edit-toggle${entry?.on ? ' active' : ''}`}
+          aria-label="Edit mode"
+          aria-pressed={entry?.on ?? false}
+          aria-disabled={!isEdit || undefined}
+          title={!isEdit ? 'Switch to Edit view to edit' : undefined}
+          onClick={() => {
+            if (!isEdit) return;
+            useEditEntry.getState().setOn(activeId, !(entry?.on));
+          }}
+        >
+          <Pencil size={14} />
+        </button>
+        {entry?.on && isEdit && (
+          <>
+            <button
+              className="chip-btn"
+              aria-label="Edit scope"
+              title={scope === 'selection' && !hasSel ? 'Select text in the lesson first' : undefined}
+              onClick={() => {
+                const next = scope === 'selection' ? 'section' : scope === 'section' ? 'lesson' : 'selection';
+                useEditEntry.getState().setScope(activeId, next);
+              }}
+            >
+              {scope === 'selection' ? 'Selection' : scope === 'section' ? 'This section' : 'Whole lesson'}
+            </button>
+            <button
+              className="icon-btn"
+              aria-label="Lock scope"
+              aria-pressed={entry.lock}
+              title="Keep this scope after each request"
+              onClick={() => {
+                useEditEntry.getState().setLock(activeId, !entry.lock);
+              }}
+            >
+              {entry.lock ? <Lock size={14} /> : <LockOpen size={14} />}
+            </button>
+            <button
+              className={`icon-btn${allowProtected ? ' active' : ''}`}
+              aria-label="Allow changes to notes and answers"
+              aria-pressed={allowProtected}
+              title="Allow changes to notes and answers"
+              onClick={() => {
+                useEditEntry.getState().setAllowProtected(!allowProtected);
+              }}
+            >
+              <ShieldAlert size={14} />
+            </button>
+          </>
+        )}
+      </div>
       <div className="chat-input">
         <button
           className="icon-btn chat-attach"
@@ -305,6 +367,7 @@ export function ChatView() {
           ref={inputRef}
           aria-label="Message"
           value={input}
+          placeholder={entry?.on && isEdit ? 'Describe the change to make' : undefined}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           rows={2}

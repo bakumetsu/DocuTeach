@@ -842,6 +842,12 @@ body {
   flex-shrink: 0;
 }
 
+.edit-bar { display:flex; align-items:center; gap:6px; padding:2px 8px; }
+.edit-bar .icon-btn.active, .edit-toggle.active { color: var(--acc); background: var(--acc-soft); }
+
+.popover-edit { display:flex; align-items:center; gap:4px; }
+.popover-edit input { width: 160px; }
+.popover-preset { font-size: 12px; }
 .chat-attach {
   height: auto;
   min-height: var(--target);

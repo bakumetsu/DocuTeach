@@ -1,3 +1,5 @@
+import type { EditScope } from '../api/types';
+
 export interface PageSkillRequest {
   skill: string;
   selection?: string;
@@ -5,9 +7,16 @@ export interface PageSkillRequest {
   chatId: string;
 }
 
+export interface PageEditRequest {
+  instruction: string;
+  scope: EditScope;
+  allowProtected: boolean;
+}
+
 interface PageHandlers {
   runSkill?: (r: PageSkillRequest) => boolean;
   insertFragment?: (md: string) => boolean;
+  runEdit?: (r: PageEditRequest) => boolean;
 }
 
 let handlers: PageHandlers = {};
@@ -24,4 +33,9 @@ export function runPageSkill(r: PageSkillRequest): boolean {
 export function insertFromChat(md: string): boolean {
   if (!handlers.insertFragment) return false;
   return handlers.insertFragment(md);
+}
+
+export function runPageEdit(r: PageEditRequest): boolean {
+  if (!handlers.runEdit) return false;
+  return handlers.runEdit(r);
 }

@@ -9,15 +9,22 @@ export interface SkillInfo {
   insertAs?: 'teacherNote' | 'blanks' | 'text'
 }
 export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean }
+export type EditScope = 'selection' | 'section' | 'lesson'
+export interface EditBlock { id: string; kind: string; md: string; role: 'edit' | 'context' }
+export interface EditPayload { instruction: string; scope: EditScope; allowProtected: boolean; part?: { k: number; n: number; outline: string[] }; blocks: EditBlock[] }
+export interface EditOp { opId: string; kind: 'replace' | 'insert' | 'delete' | 'move'; targets: string[]; anchor?: string; side?: 'before' | 'after'; markdown?: string; flags: string[] }
 export interface ChatRequest {
   chatId: string; model: string; skill?: string
   messages: ChatMessage[]; selection?: string; refs?: { name: string; text: string }[]
+  mode?: 'edit'; edit?: EditPayload
 }
 export type StreamEvent =
   | { type: 'status'; status: 'swapping' | 'generating' | 'thinking' }
   | { type: 'token'; text: string }
   | { type: 'structured'; kind: NonNullable<SkillInfo['insertAs']>; markdown: string }
-  | { type: 'done'; fallback?: 'text' }
+  | { type: 'edit'; opId: string; kind: 'replace' | 'insert' | 'delete' | 'move'; targets: string[]; anchor?: string; side?: 'before' | 'after'; markdown?: string; flags: string[] }
+  | { type: 'edit_skipped'; code: string; header: string }
+  | { type: 'done'; fallback?: 'text'; edits?: number; skipped?: number; noChange?: number }
   | { type: 'error'; message: string; code?: 'llm_offline' | 'llm_busy' | 'llm_timeout' | 'chat_busy' }
 export interface DocRecord { id: string; markdown: string; updatedAt: string }
 export interface Checkpoint { id: string; name: string; createdAt: string; markdown: string; auto?: boolean }

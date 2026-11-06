@@ -45,6 +45,54 @@ export function scriptFor(
   return { kind: 'text', markdown: md }
 }
 
+export interface ScriptOp {
+  opId: string
+  kind: 'replace' | 'insert' | 'delete' | 'move'
+  targets: string[]
+  anchor?: string
+  side?: 'before' | 'after'
+  markdown?: string
+  flags: string[]
+}
+
+export function editScriptFor(
+  instruction: string,
+  blocks: { id: string; md: string }[],
+): { reply: string; ops: ScriptOp[]; skipped: { code: string; header: string }[] } {
+  if (blocks.length === 0) {
+    return { reply: 'Nothing to edit.', ops: [], skipped: [] }
+  }
+
+  const lower = instruction.toLowerCase()
+  const ops: ScriptOp[] = []
+  const skipped: { code: string; header: string }[] = []
+
+  if (lower.includes('skip')) {
+    skipped.push({ code: 'protected_note', header: '@@ replace b1 @@' })
+  } else if (lower.includes('blank')) {
+    const first = blocks[0]
+    const md = first.md.replace(/\b[a-z]{3,}\b/, (w) => `{{${w}}}`)
+    ops.push({ opId: 'o1', kind: 'replace', targets: [first.id], markdown: md, flags: ['ai_answer'] })
+  } else if (lower.includes('delete') || lower.includes('remove')) {
+    const last = blocks[blocks.length - 1]
+    ops.push({ opId: 'o1', kind: 'delete', targets: [last.id], flags: [] })
+  } else if (lower.includes('move') || lower.includes('reorder')) {
+    const first = blocks[0]
+    const last = blocks[blocks.length - 1]
+    ops.push({ opId: 'o1', kind: 'move', targets: [first.id], anchor: last.id, side: 'after', flags: [] })
+  } else if (lower.includes('large')) {
+    const first = blocks[0]
+    ops.push({ opId: 'o1', kind: 'replace', targets: [first.id], flags: ['large_rewrite'] })
+  } else {
+    const first = blocks[0]
+    ops.push({ opId: 'o1', kind: 'replace', targets: [first.id], markdown: first.md + ' (edited)', flags: [] })
+  }
+
+  const n = ops.length
+  const reply = n === 0 ? 'Done.' : `Done: ${n} suggestion${n === 1 ? '' : 's'}.`
+  return { reply, ops, skipped }
+}
+
 export function tokenize(markdown: string): string[] {
   const tokens: string[] = []
   const re = /\S+|\s+/g

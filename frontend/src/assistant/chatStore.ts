@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { api } from '../api';
 import type { ModelInfo, ModelState, SkillInfo, ChatMessage, ChatRequest, ChatRecord } from '../api/types';
-import { runPageSkill } from './pageBridge';
+import { runPageSkill, runPageEdit } from './pageBridge';
+import { getChatEdit, effectiveScope, useEditEntry } from './editEntry';
 import { useApp } from '../state/store';
 import { noteStreamError, clearAiNotice } from './aiNotice';
 
@@ -363,6 +364,35 @@ export const useChats = create<ChatState>()((set, get) => {
 
       // Refuse if already streaming
       if (chat.phase === 'swapping' || chat.phase === 'generating') return;
+
+      // ── Edit command path ──
+      const editState = getChatEdit(chatId);
+      const isEditCmd = text.startsWith('/edit ');
+      if (text.trim() === '/edit') return;
+      if (editState.on || isEditCmd) {
+        const instruction = isEditCmd ? text.slice(6).trim() : text;
+        if (!instruction) return;
+        const handled = runPageEdit({
+          instruction,
+          scope: effectiveScope(chatId),
+          allowProtected: useEditEntry.getState().allowProtected,
+        });
+        const userMsg: ChatMessage = { role: 'user', content: text };
+        const note: ChatMessage = {
+          role: 'assistant',
+          content: handled ? 'Suggestions sent to the lesson' : 'The page is not available for edits',
+        };
+        set((s) => ({
+          chats: s.chats.map((c) =>
+            c.id === chatId ? { ...c, messages: [...c.messages, userMsg, note] } : c,
+          ),
+        }));
+        schedulePersist();
+        if (handled) {
+          useEditEntry.getState().afterRun(chatId);
+        }
+        return;
+      }
 
       // ── Skill command path ──
       const skillMatch = matchSkill(text, skills);

@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { CellSelection, TableMap } from '@tiptap/pm/tables';
 import { step } from './commands';
 import { canonicalFont } from './fontStyle';
+import { toggleListLines } from './listLines';
 
 export function toggleFormat(
   editor: Editor,
@@ -56,15 +57,7 @@ export function toggleList(
 ): boolean {
   let ok = false;
   step(editor, () => {
-    const chain = editor.chain();
-    switch (kind) {
-      case 'bullet':
-        ok = chain.toggleBulletList().run();
-        break;
-      case 'ordered':
-        ok = chain.toggleOrderedList().run();
-        break;
-    }
+    ok = toggleListLines(editor, kind);
   });
   return ok;
 }

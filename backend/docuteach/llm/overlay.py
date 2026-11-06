@@ -105,6 +105,58 @@ def build_cmd(llama_server: str, form: ModelForm) -> str:
     return subprocess.list2cmdline(args)
 
 
+def _split_cmd(cmd: str) -> list[str]:
+    """Split a command built by build_cmd (quotes only wrap whitespace-bearing args)."""
+    args: list[str] = []
+    cur: list[str] = []
+    in_q = False
+    has = False
+    for ch in cmd:
+        if ch == '"':
+            in_q = not in_q
+            has = True
+        elif ch.isspace() and not in_q:
+            if has:
+                args.append("".join(cur))
+                cur, has = [], False
+        else:
+            cur.append(ch)
+            has = True
+    if in_q:
+        raise ValueError("unbalanced quote")
+    if has:
+        args.append("".join(cur))
+    return args
+
+
+def parse_entry(model_id: str, entry: dict[str, object]) -> ModelForm:
+    """Read a ModelForm back from an overlay entry; ValueError if build_cmd did not write it."""
+    try:
+        cmd = entry["cmd"]
+        ttl = entry["ttl"]
+        if not isinstance(cmd, str) or not isinstance(ttl, int) or isinstance(ttl, bool):
+            raise ValueError("entry has no cmd or ttl")
+        args = _split_cmd(cmd)
+        opts = {args[i]: args[i + 1] for i in range(1, 17, 2)}
+        form = ModelForm(
+            id=model_id,
+            model_path=opts["-m"],
+            parallel=int(opts["-np"]),
+            ctx_per_chat=int(opts["-c"]) // int(opts["-np"]),
+            reasoning=opts["--reasoning"] == "on",
+            temperature=float(opts["--temp"]),
+            top_p=float(opts["--top-p"]),
+            top_k=int(opts["--top-k"]),
+            min_p=float(opts["--min-p"]),
+            ttl=ttl,
+        )
+        if build_cmd(args[0], form) != cmd:
+            raise ValueError("cmd does not match the template")
+    except (KeyError, IndexError, ZeroDivisionError, ApiError) as exc:
+        raise ValueError("entry cannot be read back into the form") from exc
+    return form
+
+
 def entry_yaml(llama_server: str, form: ModelForm) -> str:
     cmd = build_cmd(llama_server, form)
     data: dict[str, Any] = {"models": {form.id: {"cmd": cmd, "ttl": form.ttl}}}

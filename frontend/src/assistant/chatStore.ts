@@ -34,6 +34,7 @@ interface ChatState {
   switchChat: (id: string) => void;
   selectModel: (chatId: string, modelId: string) => Promise<void>;
   retryModel: (chatId: string) => void;
+  unloadModel: (chatId: string) => Promise<void>;
   setInput: (chatId: string, text: string) => void;
   quoteIntoInput: (text: string) => void;
   setPaneTab: (tab: 'assistant' | 'skills') => void;
@@ -311,6 +312,15 @@ export const useChats = create<ChatState>()((set, get) => {
       void get().selectModel(chatId, chat.model);
     },
 
+    async unloadModel(chatId) {
+      const chat = get().chats.find((c) => c.id === chatId);
+      if (!chat) return;
+      if (chat.phase !== 'idle') get().stop(chatId);
+      const id = chat.model;
+      await api.models.unload(id);
+      set((s) => ({ modelStatus: { ...s.modelStatus, [id]: { id, status: 'unloaded' } } }));
+    },
+
     setInput(chatId, text) {
       set((s) => ({ inputs: { ...s.inputs, [chatId]: text } }));
     },
@@ -360,10 +370,16 @@ export const useChats = create<ChatState>()((set, get) => {
 
       // Refuse if model not ready
       const ms = modelStatus[chat.model];
-      if (!ms || ms.status !== 'ready') return;
+      if (!ms || (ms.status !== 'ready' && ms.status !== 'unloaded')) return;
 
       // Refuse if already streaming
       if (chat.phase === 'swapping' || chat.phase === 'generating') return;
+
+      // Reload a model the user unloaded
+      if (ms.status === 'unloaded') {
+        await get().selectModel(chatId, chat.model);
+        if (get().modelStatus[chat.model]?.status !== 'ready') return;
+      }
 
       // ── Edit command path ──
       const editState = getChatEdit(chatId);

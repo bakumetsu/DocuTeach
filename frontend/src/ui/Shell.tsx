@@ -12,6 +12,8 @@ import { SplitDialog } from './dialogs/SplitDialog';
 import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
 import { CheckpointsDialog } from './dialogs/CheckpointsDialog';
 import { LessonsDialog } from './dialogs/LessonsDialog';
+import { SkillsDialog } from './dialogs/SkillsDialog';
+import { ModelsDialog } from './dialogs/ModelsDialog';
 import { ConfirmHost } from './ConfirmHost';
 import { installGlobalKeys } from '../editor/globalKeys';
 import { revert, redo } from '../editor/history';
@@ -92,6 +94,12 @@ export function Shell() {
           break;
         case 'edit.redo':
           redo();
+          break;
+        case 'options.skills':
+          setDialog('skills');
+          break;
+        case 'options.models':
+          setDialog('models');
           break;
         case 'options.colorTheme':
           setDialog('colorTheme');
@@ -220,6 +228,8 @@ export function Shell() {
       <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
       <CheckpointsDialog open={dialog === 'checkpoints'} onClose={() => setDialog(null)} />
       <LessonsDialog open={dialog === 'lessons'} onClose={() => setDialog(null)} />
+      <SkillsDialog open={dialog === 'skills'} onClose={() => setDialog(null)} />
+      <ModelsDialog open={dialog === 'models'} onClose={() => setDialog(null)} />
       <ConfirmHost />
     </div>
   );

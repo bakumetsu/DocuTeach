@@ -154,7 +154,7 @@ export function startPageStream(
     return false;
   }
   const model = activeChat.model;
-  if (modelStatus[model]?.status !== 'ready') {
+  if (modelStatus[model]?.status !== 'ready' && modelStatus[model]?.status !== 'unloaded') {
     useApp.getState().showToast('Pick a ready model first');
     return false;
   }

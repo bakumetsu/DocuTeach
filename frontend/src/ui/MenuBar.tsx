@@ -9,6 +9,8 @@ interface MenuItem {
   // checkbox-style (theme toggle)
   checkbox?: boolean;
   kind?: 'theme' | 'bg' | 'spell';
+  // thin rule above this item
+  ruleAbove?: boolean;
 }
 
 interface MenuDef {
@@ -44,6 +46,8 @@ const MENUS: MenuDef[] = [
       { label: 'Color theme…', id: 'options.colorTheme' },
       { label: 'Gradient background', checkbox: true, kind: 'bg' },
       { label: 'Spell check', checkbox: true, kind: 'spell' },
+      { label: 'Skills…', id: 'options.skills', ruleAbove: true },
+      { label: 'Models…', id: 'options.models' },
     ],
   },
   {
@@ -223,7 +227,7 @@ export function MenuBar({ onAction }: MenuBarProps) {
                   role={item.checkbox ? 'menuitemcheckbox' : 'menuitem'}
                   aria-checked={item.checkbox ? (item.kind === 'bg' ? background === 'gradient' : item.kind === 'spell' ? spellcheck : theme === 'dark') : undefined}
                   tabIndex={-1}
-                  className={`menu-item${activeItem === ii ? ' active' : ''}`}
+                  className={`menu-item${activeItem === ii ? ' active' : ''}${item.ruleAbove ? ' rule-above' : ''}`}
                   onClick={() => activateItem(mi, ii)}
                   onMouseEnter={() => setActiveItem(ii)}
                 >

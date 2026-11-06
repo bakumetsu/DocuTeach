@@ -12,7 +12,7 @@ export type NightPalette = (typeof NIGHT_PALETTES)[number]
 export type PaletteId = DayPalette | NightPalette
 type Background = 'gradient' | 'flat'
 type View = 'edit' | 'student' | 'teacher'
-type Dialog = null | 'colorTheme' | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints' | 'lessons'
+type Dialog = null | 'colorTheme' | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints' | 'lessons' | 'skills' | 'models'
 type SaveState =
   | { kind: 'saved'; at: string }
   | { kind: 'saving' }

@@ -83,6 +83,11 @@ body {
   text-align: left;
 }
 
+.menu-item.rule-above {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 8px;
+}
 .menu-item:hover,
 .menu-item.active {
   background: var(--acc-soft);

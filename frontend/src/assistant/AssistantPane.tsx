@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Loader2, Eraser, ChevronsRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Loader2, Eraser, ChevronsRight, Power } from 'lucide-react';
 import { useChats } from './chatStore';
 import { ChatTabs } from './ChatTabs';
 import { ChatView } from './ChatView';
@@ -14,6 +14,8 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
   const selectModel = useChats((s) => s.selectModel);
   const retryModel = useChats((s) => s.retryModel);
   const flushCache = useChats((s) => s.flushCache);
+  const unloadModel = useChats((s) => s.unloadModel);
+  const [undo, setUndo] = useState(false);
   const paneTab = useChats((s) => s.paneTab);
   const setPaneTab = useChats((s) => s.setPaneTab);
 
@@ -63,6 +65,45 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
               </option>
             ))}
           </select>
+
+          {ms?.status === 'unloaded' ? (
+            <button
+              className="icon-btn"
+              aria-label="Model unloaded. Reload"
+              title="Model unloaded. Click to reload"
+              onClick={() => void selectModel(activeId, chat.model)}
+            >
+              <Power size={14} />
+            </button>
+          ) : (
+            <button
+              className="icon-btn"
+              aria-label="Unload model"
+              title="Unload model"
+              disabled={ms?.status !== 'ready'}
+              onClick={() => {
+                if (chat.phase !== 'idle' && !window.confirm('Stop the reply and unload the model?')) return;
+                void unloadModel(activeId).then(() => setUndo(true));
+              }}
+            >
+              <Power size={14} />
+            </button>
+          )}
+
+          {undo && ms?.status === 'unloaded' && (
+            <span role="status" className="model-error">
+              <span>Model unloaded</span>
+              <button
+                className="retry-btn"
+                onClick={() => {
+                  setUndo(false);
+                  void selectModel(activeId, chat.model);
+                }}
+              >
+                Undo
+              </button>
+            </span>
+          )}
 
           {ms?.status === 'loading' && (
             <span className="spin" aria-label="Loading model">

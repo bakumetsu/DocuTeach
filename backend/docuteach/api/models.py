@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, cast
 
@@ -23,7 +24,7 @@ from docuteach.llm.models import (
     set_default,
     unload_model,
 )
-from docuteach.llm.overlay import ModelForm, entry_yaml, validate_form
+from docuteach.llm.overlay import ModelForm, entry_yaml, parse_entry, validate_form
 
 router = APIRouter()
 
@@ -136,6 +137,21 @@ async def post_models_custom(request: Request, body: ModelFormBody) -> JSONRespo
     entry: dict[str, object] = cast("dict[str, Any]", data)["models"][form.id]  # type: ignore[index]
     stamp = state.overlay.put(form.id, entry)
     return JSONResponse(content={"id": form.id, "stamp": stamp})
+
+
+@router.get("/models/custom/{model_id}")
+async def get_models_custom(request: Request, model_id: str) -> JSONResponse:
+    settings: Settings = request.app.state.settings  # type: ignore[no-any-return]
+    state = _state(request)
+    if model_id not in state.overlay.ids() or model_id in settings.model_allowlist:
+        raise ApiError("not_found", "Model not found", 404)
+    try:
+        form = parse_entry(model_id, state.overlay.read_entries()[model_id])
+    except ValueError as exc:
+        raise ApiError(
+            "entry_unreadable", f"This model entry was not made here: {exc}", 409
+        ) from exc
+    return JSONResponse(content=asdict(form))
 
 
 @router.put("/models/custom/{model_id}")

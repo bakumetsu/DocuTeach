@@ -190,7 +190,7 @@ export function ChatView() {
   if (!chat) return null;
 
   const ms = modelStatus[chat.model];
-  const modelReady = ms?.status === 'ready';
+  const modelReady = ms?.status === 'ready' || ms?.status === 'unloaded';
   const isStreaming = chat.phase !== 'idle';
   const canSend = modelReady && input.trim().length > 0 && !isStreaming;
 

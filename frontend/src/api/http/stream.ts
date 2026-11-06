@@ -1,16 +1,45 @@
 import { ApiError } from '../types'
 import type { StreamEvent, DocuTeachApi, ContextInfo } from '../types'
-import { request, rawFetch, enc } from './client'
+import { request, rawFetch, requestBlob, enc } from './client'
+import { parseContentDisposition } from './export'
 
 export const httpModels: DocuTeachApi['models'] = {
   list: () => request('GET', '/models'),
   current: () => request<string | null>('GET', '/models/current'),
   select: (id, signal) => request('POST', '/models/select', { body: { id }, signal }),
   context: (id) => request<ContextInfo>('GET', `/models/${enc(id)}/context`),
+  manage: () => request('GET', '/models/manage'),
+  setDefault: (id) => request('POST', '/models/default', { body: { id } }),
+  unload: (id) => request('POST', '/models/unload', { body: id ? { id } : {} }),
+  customGet: (id) => request('GET', `/models/custom/${enc(id)}`),
+  customPreview: (form) => request('POST', '/models/custom/preview', { body: form }),
+  customAdd: (form) => request('POST', '/models/custom', { body: form }),
+  customEdit: (id, form) => request('PUT', `/models/custom/${enc(id)}`, { body: form }),
+  customRemove: (id) => request('DELETE', `/models/custom/${enc(id)}`),
+  customUndo: () => request('POST', '/models/custom/undo'),
+  setServerPath: (path) => request('POST', '/models/server-path', { body: { path } }),
 }
+
+const slugOf = (command: string): string => enc(command.replace(/^\//, ''))
 
 export const httpSkills: DocuTeachApi['skills'] = {
   list: () => request('GET', '/skills'),
+  manage: () => request('GET', '/skills/manage'),
+  save: (draft) => request('POST', '/skills', { body: draft }),
+  importPreview: (text) => request('POST', '/skills/import/preview', { body: { text } }),
+  importCommit: (text, onClash, command) =>
+    request('POST', '/skills/import/commit', { body: { text, onClash, command } }),
+  remove: (command) => request('DELETE', `/skills/${slugOf(command)}`),
+  restore: (trashId) => request('POST', `/skills/trash/${enc(trashId)}/restore`),
+  reset: (command) => request('POST', `/skills/${slugOf(command)}/reset`),
+  restoreDefaults: () => request('POST', '/skills/restore-defaults'),
+  exportFile: async (command) => {
+    const { blob, headers } = await requestBlob('GET', `/skills/${slugOf(command)}/file`)
+    return {
+      blob,
+      filename: parseContentDisposition(headers.get('Content-Disposition')) ?? `${slugOf(command)}.md`,
+    }
+  },
 }
 
 export async function releaseChat(chatId: string): Promise<void> {

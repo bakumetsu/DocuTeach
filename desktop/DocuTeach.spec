@@ -72,6 +72,7 @@ a = Analysis(
         (str(frontend_dist), "web"),
         (str(repo_root / "backend" / "docuteach" / "export" / "fonts"), "docuteach/export/fonts"),
         (str(repo_root / "backend" / "docuteach" / "md" / "fonts.json"), "docuteach/md"),
+        (str(repo_root / "backend" / "docuteach" / "skills" / "builtin"), "docuteach/skills/builtin"),
         *collect_data_files("docx"),
     ],
     hiddenimports=webview_hidden + backend_hidden,

@@ -372,13 +372,12 @@ async def test_skills_list(stream_env: tuple[MockLlm, httpx.AsyncClient]) -> Non
     resp = await client.get("/api/skills")
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 6
-
+    assert len(data) == 3
     for s in data:
-        if s["status"] == "planned":
-            assert s.get("insertAs") is None
+        assert s["status"] == "active"
+        assert s.get("insertAs")
 
-    # Planned skill in stream -> 400 skill_planned
+    # Unknown skill in stream -> 400 skill_unknown
     body = {
         "chatId": "c1",
         "model": "byteshape",
@@ -387,7 +386,7 @@ async def test_skills_list(stream_env: tuple[MockLlm, httpx.AsyncClient]) -> Non
     }
     resp = await client.post("/api/chat/stream", json=body)
     assert resp.status_code == 400
-    assert "skill_planned" in resp.text
+    assert "skill_unknown" in resp.text
 
 
 async def test_release(stream_env: tuple[MockLlm, httpx.AsyncClient]) -> None:

@@ -13,7 +13,7 @@ from docuteach.errors import ApiError
 from docuteach.llm.client import LlmClient
 from docuteach.llm.slots import SlotTable
 from docuteach.llm.stream import ChatMessage, ChatRequest, LlmService, Ref
-from docuteach.skills.registry import SKILLS, get_skill
+from docuteach.skills.registry import SkillRegistry
 from docuteach.skills.validate import validate_output
 
 # ---------------------------------------------------------------------------
@@ -146,19 +146,14 @@ def test_validate_note_too_long() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_registry_three_active_skills() -> None:
-    active = [s for s in SKILLS if s.status == "active"]
-    assert len(active) == 3
-    assert [s.insert_as for s in active] == ["teacherNote", "blanks", "teacherNote"]
+def test_registry_three_builtin_skills(tmp_path: Path) -> None:
+    skills = SkillRegistry(tmp_path / "skills").runnable()
+    assert len(skills) == 3
+    assert [s.insert_as for s in skills] == ["teacherNote", "blanks", "teacherNote"]
 
 
-def test_registry_three_planned_skills() -> None:
-    planned = [s for s in SKILLS if s.status == "planned"]
-    assert len(planned) == 3
-
-
-def test_registry_unknown_skill_none() -> None:
-    assert get_skill("/nope") is None
+def test_registry_unknown_skill_none(tmp_path: Path) -> None:
+    assert SkillRegistry(tmp_path / "skills").get("/nope") is None
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +261,7 @@ def test_build_messages_planned_skill() -> None:
     )
     with pytest.raises(ApiError) as exc_info:
         svc.build_messages(req, 100_000)
-    assert exc_info.value.code == "skill_planned"
+    assert exc_info.value.code == "skill_unknown"
 
 
 # ---------------------------------------------------------------------------

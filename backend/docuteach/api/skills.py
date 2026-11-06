@@ -2,25 +2,23 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-
-from docuteach.skills.registry import SKILLS
 
 router = APIRouter()
 
 
 @router.get("/skills")
-async def get_skills() -> JSONResponse:
+def get_skills(request: Request) -> JSONResponse:
+    registry = request.app.state.llm.skills
     items: list[dict[str, str]] = []
-    for skill in SKILLS:
+    for skill in registry.runnable():
         item: dict[str, str] = {
             "command": skill.command,
             "name": skill.name,
             "description": skill.description,
-            "status": skill.status,
+            "status": "active",
+            "insertAs": skill.insert_as,
         }
-        if skill.insert_as is not None:
-            item["insertAs"] = skill.insert_as
         items.append(item)
     return JSONResponse(content=items)

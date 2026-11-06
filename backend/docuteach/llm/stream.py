@@ -16,7 +16,7 @@ from docuteach.edits.run import EditRun
 from docuteach.errors import ApiError
 from docuteach.llm.client import LlmClient
 from docuteach.llm.slots import SlotTable
-from docuteach.skills.registry import get_skill
+from docuteach.skills.registry import SkillRegistry, assemble_prompt
 from docuteach.skills.validate import validate_output
 
 
@@ -46,6 +46,7 @@ class LlmService:
     def __init__(self, settings: Settings, client: LlmClient) -> None:
         self._settings = settings
         self._client = client
+        self.skills = SkillRegistry(settings.data_dir / "skills")
         self.slots = SlotTable(1)
         self._props: dict[str, tuple[int, int]] = {}
         self._active: set[str] = set()
@@ -86,13 +87,11 @@ class LlmService:
                     413,
                 )
             return msgs
-        skill = get_skill(req.skill) if req.skill else None
+        skill = self.skills.get(req.skill) if req.skill else None
         if req.skill is not None and skill is None:
             raise ApiError("skill_unknown", "Unknown skill", 400)
-        if skill is not None and skill.status != "active":
-            raise ApiError("skill_planned", "This skill is not available yet", 400)
         system = (
-            skill.system_prompt
+            assemble_prompt(skill)
             if skill
             else "You are a helpful assistant for an English grammar teacher. Answer in Markdown."
         )
@@ -300,7 +299,7 @@ class LlmService:
                 yield run.done_event()
             else:
                 text = "".join(parts).strip()
-                skill = get_skill(req.skill) if req.skill else None
+                skill = self.skills.get(req.skill) if req.skill else None
                 if skill is not None and skill.insert_as:
                     reason = validate_output(skill.insert_as, text)
                     if reason is None:

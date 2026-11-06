@@ -14,7 +14,7 @@ export interface SkillDraft { command: string; name: string; description: string
 export interface SkillDetail { command: string; name: string; description: string; insertAs: SkillInsertAs | ''; tag: string; body: string; source: 'builtin' | 'custom' | 'customized' | 'broken'; hidden: boolean; reason: string; code: string }
 export interface SkillImportPreview { skill: { command: string; name: string; description: string; insertAs: SkillInsertAs; tag: string; body: string }; warnings: string[]; clash: null | 'builtin' | 'custom' }
 export interface ManagedModel { id: string; label: string; sizeGb: number; state: 'loaded' | 'unloaded' | 'loading' | 'missing' | 'unknown'; isDefault: boolean; source: 'default' | 'added' }
-export interface ModelManageList { models: ManagedModel[]; overlayError: string | null }
+export interface ModelManageList { models: ManagedModel[]; overlayError: string | null; overlayDir: string }
 export interface ModelForm { id: string; model_path: string; parallel: number; ctx_per_chat: number; reasoning: boolean; temperature: number; top_p: number; top_k: number; min_p: number; ttl: number }
 export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean }
 export type EditScope = 'selection' | 'section' | 'lesson'
@@ -69,7 +69,8 @@ export interface DocuTeachApi {
              customEdit(id: string, form: ModelForm): Promise<void>
              customRemove(id: string): Promise<void>
              customUndo(): Promise<void>
-             setServerPath(path: string): Promise<void> }
+             setServerPath(path: string): Promise<void>
+             setOverlayDir(path: string): Promise<void> }
   chat:    { stream(req: ChatRequest, signal: AbortSignal): AsyncIterable<StreamEvent> }
   chats:   { load(docId: string): Promise<ChatRecord[]>; save(docId: string, chats: ChatRecord[]): Promise<void>
              release(chatId: string): Promise<void> }

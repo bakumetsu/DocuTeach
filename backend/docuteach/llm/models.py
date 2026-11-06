@@ -63,6 +63,7 @@ class ModelState:
         self._settings = settings
         self._overlay = overlay
         self._lock = threading.Lock()
+        self._overlay.set_target_dir(self.overlay_dir_path)
 
     @property
     def overlay(self) -> Overlay:
@@ -80,7 +81,7 @@ class ModelState:
             return {}
         raw = cast("dict[str, Any]", data)
         result: dict[str, str] = {}
-        for key in ("default", "llama_server_path"):
+        for key in ("default", "llama_server_path", "overlay_dir"):
             val = raw.get(key)
             if isinstance(val, str):
                 result[key] = val
@@ -126,6 +127,22 @@ class ModelState:
         if managed:
             return managed[0]
         return None
+
+    def overlay_dir(self) -> str:
+        return self.read().get("overlay_dir", "")
+
+    def overlay_dir_path(self) -> Path | None:
+        val = self.overlay_dir()
+        if val:
+            return Path(val)
+        return None
+
+    def set_overlay_dir(self, path: str | None) -> None:
+        if path is None or path == "":
+            self.write(overlay_dir=None)
+        else:
+            self.write(overlay_dir=path)
+            self._overlay.adopt_default_entries()
 
 
 def _model_size_from_cmd(cmd: str) -> float:
@@ -206,7 +223,7 @@ async def manage_list(
                 "source": "added" if mid in overlay_ids and mid not in allowlist else "default",
             }
         )
-    return {"models": result, "overlayError": overlay_error}
+    return {"models": result, "overlayError": overlay_error, "overlayDir": state.overlay_dir()}
 
 
 async def set_default(

@@ -54,6 +54,10 @@ class ServerPathBody(BaseModel):
     path: str
 
 
+class OverlayDirBody(BaseModel):
+    path: str
+
+
 def _state(request: Request) -> ModelState:
     return request.app.state.model_state  # type: ignore[no-any-return]
 
@@ -205,4 +209,23 @@ async def post_models_server_path(request: Request, body: ServerPathBody) -> JSO
         raise ApiError("bad_server_path", "path must be an existing llama-server.exe file", 400)
     path = os.path.normpath(os.path.abspath(path))
     state.write(llama_server_path=path)
+    return JSONResponse(content={"path": path})
+
+
+@router.post("/models/overlay-dir")
+async def post_models_overlay_dir(request: Request, body: OverlayDirBody) -> JSONResponse:
+    state = _state(request)
+    path = body.path.strip()
+    if path == "":
+        state.set_overlay_dir(None)
+        return JSONResponse(content={"path": ""})
+    if (
+        not Path(path).is_dir()
+        or '"' in path
+        or "\n" in path
+        or "\r" in path
+    ):
+        raise ApiError("bad_overlay_dir", "path must be an existing folder", 400)
+    path = os.path.normpath(os.path.abspath(path))
+    state.set_overlay_dir(path)
     return JSONResponse(content={"path": path})

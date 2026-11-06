@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Dialog } from './Dialog';
 import { api } from '../../api';
 import { useApp } from '../../state/store';
-import { Plus, Star, Power, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Star, Power, Pencil, Trash2, Save } from 'lucide-react';
 import type { ManagedModel, ModelForm } from '../../api/types';
 import { ApiError } from '../../api/types';
 import { ModelEditForm } from './ModelEditForm';
@@ -38,12 +38,16 @@ export function ModelsDialog({ open, onClose }: Props) {
   const [editInitial, setEditInitial] = useState<ModelForm>(BLANK_FORM);
   const [editEditing, setEditEditing] = useState(false);
   const [status, setStatus] = useState<TransientStatus | null>(null);
+  const [overlayDir, setOverlayDir] = useState('');
+  const [dirInput, setDirInput] = useState('');
+  const [dirState, setDirState] = useState<'idle' | 'checking' | 'ready' | 'hint'>('idle');
 
   const loadModels = useCallback(async () => {
     try {
       const result = await api.models.manage();
       setModels(result.models);
       setOverlayError(result.overlayError);
+      setOverlayDir(result.overlayDir);
     } catch (e: unknown) {
       useApp.getState().showToast('Model action failed: ' + (e instanceof Error ? e.message : String(e)));
     }
@@ -62,6 +66,8 @@ export function ModelsDialog({ open, onClose }: Props) {
         if (!cancelled) {
           setModels(result.models);
           setOverlayError(result.overlayError);
+          setOverlayDir(result.overlayDir);
+          setDirInput(result.overlayDir);
         }
       } catch (e: unknown) {
         useApp.getState().showToast('Model action failed: ' + (e instanceof Error ? e.message : String(e)));
@@ -163,6 +169,29 @@ export function ModelsDialog({ open, onClose }: Props) {
     setView('list');
   }, []);
 
+  const handleSaveDir = useCallback(async () => {
+    try {
+      await api.models.setOverlayDir(dirInput.trim());
+    } catch (e: unknown) {
+      useApp.getState().showToast('Model action failed: ' + (e instanceof Error ? e.message : String(e)));
+      return;
+    }
+    await loadModels();
+    // visible? poll the server list for up to 10 s (design 6.4)
+    setDirState('checking');
+    const ids = (await api.models.manage()).models.map((m) => m.id);
+    const deadline = Date.now() + 10000;
+    for (;;) {
+      try {
+        const listed = new Set((await api.models.list()).map((m) => m.id));
+        if (ids.every((id) => listed.has(id))) { setDirState('ready'); return; }
+      } catch { /* server busy; retry */ }
+      if (Date.now() >= deadline) break;
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+    setDirState('hint');
+  }, [dirInput, loadModels]);
+
   // --- Render ---
 
   return (
@@ -174,6 +203,26 @@ export function ModelsDialog({ open, onClose }: Props) {
               <Plus size={16} />
             </button>
           </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              aria-label="Extra-config folder"
+              placeholder="llama-swap extra-config folder"
+              value={dirInput}
+              onChange={(e) => setDirInput(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button onClick={handleSaveDir} aria-label="Save folder" title="Save folder">
+              <Save size={16} />
+            </button>
+          </div>
+          {overlayDir === '' && (
+            <p role="status">Set llama-swap&apos;s extra-config folder once so added models show up.</p>
+          )}
+          {dirState === 'checking' && <p role="status">Checking&hellip;</p>}
+          {dirState === 'ready' && <p role="status">Ready</p>}
+          {dirState === 'hint' && (
+            <p role="status">llama-swap has not picked up the folder yet. Point its extra-config at it, then save again.</p>
+          )}
           {models.length === 0 && !overlayError ? (
             <p>No models</p>
           ) : (

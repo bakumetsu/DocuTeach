@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -168,12 +169,29 @@ def entry_yaml(llama_server: str, form: ModelForm) -> str:
 
 
 class Overlay:
-    def __init__(self, path: Path, history_keep: int = 20) -> None:
+    def __init__(
+        self,
+        path: Path,
+        history_keep: int = 20,
+        *,
+        target_dir: Callable[[], Path | None] | None = None,
+    ) -> None:
         self._path = path
         self._history_keep = history_keep
         self._history_dir = path.with_name(path.name + ".history")
         self._lock = threading.Lock()
         self._last_stamp: datetime | None = None
+        self._target_dir = target_dir
+
+    def active_path(self) -> Path:
+        if self._target_dir is not None:
+            td = self._target_dir()
+            if td is not None:
+                return td / self._path.name
+        return self._path
+
+    def set_target_dir(self, fn: Callable[[], Path | None] | None) -> None:
+        self._target_dir = fn
 
     # -- internal helpers (caller must hold self._lock for write paths) --
 
@@ -187,8 +205,9 @@ class Overlay:
     def _snapshot(self, stamp: str) -> None:
         self._history_dir.mkdir(parents=True, exist_ok=True)
         hist_file = self._history_dir / f"{stamp}.yaml"
-        if self._path.exists():
-            shutil.copyfile(self._path, hist_file)
+        src = self.active_path()
+        if src.exists():
+            shutil.copyfile(src, hist_file)
         else:
             hist_file.write_bytes(b"models: {}\n")
 
@@ -207,17 +226,18 @@ class Overlay:
         """Snapshot + atomic write + prune.  Caller must hold the lock."""
         stamp = self._stamp()
         self._snapshot(stamp)
-        write_atomic(self._path, text.encode("utf-8"))
+        write_atomic(self.active_path(), text.encode("utf-8"))
         self._prune_history()
         return stamp
 
     # -- public API --
 
     def read_entries(self) -> dict[str, dict[str, object]]:
-        if not self._path.exists():
+        p = self.active_path()
+        if not p.exists():
             return {}
         try:
-            text = self._path.read_text(encoding="utf-8")
+            text = p.read_text(encoding="utf-8")
         except OSError:
             raise ApiError("overlay_invalid", _INVALID_MSG, 409) from None
         return self.parse_entries(text)
@@ -246,7 +266,7 @@ class Overlay:
             return []
 
     def is_invalid(self) -> bool:
-        if not self._path.exists():
+        if not self.active_path().exists():
             return False
         try:
             self.read_entries()
@@ -299,5 +319,19 @@ class Overlay:
                     "The saved earlier version is damaged; nothing was changed",
                     409,
                 ) from None
-            write_atomic(self._path, content)
+            write_atomic(self.active_path(), content)
             newest.unlink(missing_ok=True)
+
+    def adopt_default_entries(self) -> None:
+        """Copy the default overlay file into the active path if the active file is absent."""
+        with self._lock:
+            if self._target_dir is None:
+                return
+            td = self._target_dir()
+            if td is None:
+                return
+            default_file = self._path
+            active = self.active_path()
+            if default_file.exists() and not active.exists():
+                active.parent.mkdir(parents=True, exist_ok=True)
+                write_atomic(active, default_file.read_bytes())

@@ -18,6 +18,7 @@ export const httpModels: DocuTeachApi['models'] = {
   customRemove: (id) => request('DELETE', `/models/custom/${enc(id)}`),
   customUndo: () => request('POST', '/models/custom/undo'),
   setServerPath: (path) => request('POST', '/models/server-path', { body: { path } }),
+  setOverlayDir: (path) => request('POST', '/models/overlay-dir', { body: { path } }),
 }
 
 const slugOf = (command: string): string => enc(command.replace(/^\//, ''))

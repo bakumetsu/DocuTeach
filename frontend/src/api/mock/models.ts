@@ -29,6 +29,7 @@ const store: ManagedModel[] = [
 const forms = new Map<string, ModelForm>()
 let undo: { models: ManagedModel[]; forms: Map<string, ModelForm> } | null = null
 const overlayError: string | null = null
+let overlayDir = ''
 
 function snapshot(): void {
   const f = new Map<string, ModelForm>()
@@ -66,7 +67,7 @@ export const mockModels: DocuTeachApi['models'] = {
       ...m,
       state: m.id === currentModel ? 'loaded' : 'unloaded',
     }))
-    return Promise.resolve({ models, overlayError })
+    return Promise.resolve({ models, overlayError, overlayDir })
   },
   async setDefault(id: string): Promise<void> {
     for (const m of store) m.isDefault = m.id === id
@@ -135,5 +136,8 @@ export const mockModels: DocuTeachApi['models'] = {
     }
     // path accepted; the mock keeps nothing
     return
+  },
+  async setOverlayDir(path: string): Promise<void> {
+    overlayDir = path
   },
 }

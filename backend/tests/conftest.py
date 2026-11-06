@@ -5,6 +5,7 @@ from __future__ import annotations
 import socket
 from collections.abc import AsyncIterator, Generator
 from pathlib import Path
+from typing import cast
 
 import httpx
 import pytest
@@ -39,11 +40,16 @@ def library(settings: Settings) -> Library:
 def block_non_loopback(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     """Ensure no test can open a socket to a non-loopback host."""
 
+    real_create_connection = socket.create_connection
+
     def _fake_create_connection(*args: object, **kwargs: object) -> socket.socket:  # type: ignore[no-untyped-def]
-        host = args[0] if args else kwargs.get("host", "")
+        target: object = args[0] if args else kwargs.get("host", "")
+        host: object = target
+        if isinstance(target, tuple):
+            host = cast("tuple[object, ...]", target)[0]
         if isinstance(host, str) and host not in ("127.0.0.1", "localhost", "::1"):
             raise RuntimeError(f"non-loopback connection blocked: {host}")
-        return socket.create_connection(*args, **kwargs)  # type: ignore[arg-type]
+        return real_create_connection(*args, **kwargs)  # type: ignore[arg-type]
 
     monkeypatch.setattr(socket, "create_connection", _fake_create_connection)
     yield

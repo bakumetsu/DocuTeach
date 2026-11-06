@@ -64,3 +64,8 @@ class SlotTable:
         result = self._erase_pending
         self._erase_pending = []
         return result
+
+    def clear(self) -> None:
+        self._mapping.clear()
+        self._generating.clear()
+        self._erase_pending.clear()

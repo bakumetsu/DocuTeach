@@ -24,6 +24,8 @@ from docuteach.api.export import ExportGate
 from docuteach.config import Settings, check_local_llm
 from docuteach.errors import install_error_handlers
 from docuteach.llm.client import LlmClient
+from docuteach.llm.models import ModelState
+from docuteach.llm.overlay import Overlay
 from docuteach.llm.stream import LlmService
 from docuteach.logs import RequestLogMiddleware, close_logging, setup_logging
 from docuteach.security import TokenHostMiddleware
@@ -38,6 +40,8 @@ def create_app(settings: Settings) -> FastAPI:
     library = Library(settings)
     client = LlmClient(settings)
     llm_service = LlmService(settings, client)
+    overlay = Overlay(settings.overlay_path)
+    model_state = ModelState(settings, overlay)
 
     @asynccontextmanager  # pyright: ignore[reportDeprecated]
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -53,6 +57,8 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.settings = settings
     app.state.llm_client = client
     app.state.llm = llm_service
+    app.state.overlay = overlay
+    app.state.model_state = model_state
     app.state.export_gate = ExportGate()
     hooks: list[Callable[[], None]] = []
     hooks.append(lambda: close_logging(settings.log_dir))

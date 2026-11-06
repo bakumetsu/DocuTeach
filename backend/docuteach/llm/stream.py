@@ -51,6 +51,7 @@ class LlmService:
         self._props: dict[str, tuple[int, int]] = {}
         self._active: set[str] = set()
         self._stopped: set[str] = set()
+        self._unloaded: set[str] = set()
         self._last_model: str | None = None
         self._logger: logging.Logger = logging.getLogger("docuteach")
 
@@ -207,6 +208,12 @@ class LlmService:
                     lines = resp.aiter_lines()
                     while True:
                         if chat_id in self._stopped:
+                            if chat_id in self._unloaded:
+                                yield {
+                                    "type": "error",
+                                    "code": "llm_unloaded",
+                                    "message": "The model was unloaded",
+                                }
                             return
                         timeout = (
                             self._settings.swap_timeout_s
@@ -318,6 +325,13 @@ class LlmService:
             self._active.discard(chat_id)
             self.slots.end(chat_id)
             self._stopped.discard(chat_id)
+            self._unloaded.discard(chat_id)
+
+    async def cancel_all(self) -> None:
+        for chat_id in self._active:
+            self._stopped.add(chat_id)
+            self._unloaded.add(chat_id)
+        self.slots.clear()
 
     async def release(self, chat_id: str) -> None:
         if chat_id in self._active:

@@ -44,6 +44,15 @@ class Settings(BaseModel):
     model_allowlist: list[str] = ["byteshape"]
     model_sizes_gb: dict[str, float] = {}
     allow_all_models: bool = False
+    llama_server_path: str = ""
+
+    @property
+    def models_json_path(self) -> Path:
+        return self.data_dir / "models.json"
+
+    @property
+    def overlay_path(self) -> Path:
+        return self.data_dir / "llama-swap-docuteach.yaml"
 
     @property
     def lessons_dir(self) -> Path:
@@ -71,6 +80,7 @@ class _SettingsOverride(BaseModel):
     export_timeout_s: int | None = None
     model_allowlist: list[str] | None = None
     model_sizes_gb: dict[str, float] | None = None
+    llama_server_path: str | None = None
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
@@ -102,6 +112,7 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     )
     model_sizes_gb: dict[str, float] = {}
     allow_all_models: bool = env.get("DOCUTEACH_ALLOW_ALL_MODELS", "") == "1"
+    llama_server_path: str = env.get("DOCUTEACH_LLAMA_SERVER_PATH", "")
 
     settings_file = data_dir / "settings.json"
     if settings_file.is_file():
@@ -140,6 +151,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
                 model_allowlist = o.model_allowlist
             if o.model_sizes_gb is not None:
                 model_sizes_gb = o.model_sizes_gb
+            if o.llama_server_path is not None:
+                llama_server_path = o.llama_server_path
         except (json.JSONDecodeError, OSError, ValueError):
             pass
 
@@ -163,6 +176,7 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         model_allowlist=model_allowlist,
         model_sizes_gb=model_sizes_gb,
         allow_all_models=allow_all_models,
+        llama_server_path=llama_server_path,
     )
 
 

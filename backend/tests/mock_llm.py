@@ -41,6 +41,8 @@ class MockLlm:
         self.last_request: dict[str, Any] | None = None
         self.requests: list[dict[str, Any]] = []
         self.props_calls: int = 0
+        self.unloaded: list[str] = []
+        self.running_state: str = "ready"
 
         self.app: FastAPI = FastAPI()
         self._register_routes()
@@ -53,8 +55,17 @@ class MockLlm:
         @self.app.get("/running")
         async def get_running() -> dict[str, Any]:
             if self.running_model is not None:
-                return {"running": [{"model": self.running_model, "state": "ready"}]}
+                return {"running": [{"model": self.running_model, "state": self.running_state}]}
             return {"running": []}
+
+        @self.app.post("/api/models/unload/{model}")
+        async def unload(model: str) -> Any:
+            if model not in self.models:
+                return PlainTextResponse("unknown model", status_code=404)
+            self.unloaded.append(model)
+            if self.running_model == model:
+                self.running_model = None
+            return PlainTextResponse("OK")
 
         @self.app.get("/upstream/{model}/props")
         async def get_props(model: str) -> dict[str, Any]:

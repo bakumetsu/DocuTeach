@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import AbstractAsyncContextManager
 from typing import Any, cast
+from urllib.parse import quote
 
 import httpx
 
@@ -65,6 +66,29 @@ class LlmClient:
             if item.get("state") == "ready":
                 return item["model"]
         return None
+
+    async def unload(self, model: str) -> None:
+        try:
+            resp = await self.http.post(f"/api/models/unload/{quote(model, safe='')}")
+        except Exception as exc:
+            raise self._offline(exc) from exc
+        if resp.status_code == 200 or resp.status_code == 404:
+            return
+        if resp.status_code >= 400:
+            raise ApiError("unload_failed", resp.text[:200], 502)
+
+    async def running_all(self) -> list[tuple[str, str]]:
+        try:
+            resp = await self.http.get("/running")
+            data: dict[str, object] = resp.json()
+        except Exception:
+            return []
+        raw = data.get("running")
+        items = cast("list[dict[str, str]]", raw) if isinstance(raw, list) else []
+        try:
+            return [(item["model"], item["state"]) for item in items]
+        except (KeyError, TypeError):
+            return []
 
     async def load(self, model: str) -> None:
         try:

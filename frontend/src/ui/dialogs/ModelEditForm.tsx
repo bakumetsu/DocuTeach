@@ -12,6 +12,11 @@ interface Props {
   onCancel: () => void;
 }
 
+/** Show at most 2 decimals so 0.7 never reads 0.699999. */
+export const fmt2 = (n: number): number => Math.round(n * 100) / 100;
+
+export const roundNums = (f: ModelForm): ModelForm => ({ ...f, parallel: fmt2(f.parallel), ctx_per_chat: fmt2(f.ctx_per_chat), temperature: fmt2(f.temperature), top_p: fmt2(f.top_p), top_k: fmt2(f.top_k), min_p: fmt2(f.min_p), ttl: fmt2(f.ttl) });
+
 type NumKey =
   | 'parallel'
   | 'ctx_per_chat'
@@ -24,7 +29,7 @@ type NumKey =
 const sanitizeId = (val: string) => val.replace(/[^a-z0-9.-]/g, '');
 
 export function ModelEditForm({ initial, editing, onSaved, onCancel }: Props) {
-  const [form, setForm] = useState<ModelForm>(initial);
+  const [form, setForm] = useState<ModelForm>(() => roundNums(initial));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [serverPathMissing, setServerPathMissing] = useState(false);

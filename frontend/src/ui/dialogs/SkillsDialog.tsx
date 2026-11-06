@@ -13,6 +13,17 @@ interface Props {
 
 type View = 'list' | 'edit' | 'import';
 
+const SKILL_TEXT_TEMPLATE = [
+  '---',
+  'command: /mycommand',
+  'name: Short name',
+  'description: What the skill does',
+  'insertAs: text   (teacherNote, blanks or text)',
+  '---',
+  'Instructions for the AI: what to write, in what style,',
+  'and how long it should be.',
+].join('\n');
+
 interface EditState {
   command: string;
   name: string;
@@ -393,7 +404,7 @@ export function SkillsDialog({ open, onClose }: Props) {
             >
               <Check size={16} />
             </button>
-            <button onClick={handleCancelEdit} aria-label="Cancel" title="Cancel">
+            <button className="icon-btn" onClick={handleCancelEdit} aria-label="Cancel" title="Cancel">
               <X size={16} />
             </button>
           </div>
@@ -407,6 +418,7 @@ export function SkillsDialog({ open, onClose }: Props) {
             <textarea
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
+              placeholder={SKILL_TEXT_TEMPLATE}
               rows={10}
               style={{ display: 'block', width: '100%', marginTop: 4 }}
               aria-label="Skill text"
@@ -467,6 +479,7 @@ export function SkillsDialog({ open, onClose }: Props) {
               <Upload size={16} />
             </button>
             <button
+              className="icon-btn"
               onClick={() => setView('list')}
               aria-label="Cancel"
               title="Cancel"

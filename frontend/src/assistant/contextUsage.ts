@@ -51,16 +51,8 @@ export function contextUsage(input: {
   };
 }
 
-export function contextTooltip(u: ContextUsage, estimated: boolean, nCtx: number | null): string {
-  const used = u.usedChars.toLocaleString('en-US');
-  const cap = u.capChars.toLocaleString('en-US');
-  const pct = Math.round(u.ratio * 100);
-  let result = `Context: ${used} of ${cap} characters (${pct}%)`;
-  if (estimated) {
-    result += ' · estimate (about 3 characters per token)';
-  }
-  if (nCtx != null) {
-    result += ` · model window ${nCtx} tokens per chat`;
-  }
-  return result;
+export function contextTooltip(u: ContextUsage): string {
+  const used = Math.round(u.usedChars / 3);
+  const total = Math.round(u.capChars / 3);
+  return `~${used.toLocaleString('en-US')} / ${total.toLocaleString('en-US')} tokens`;
 }

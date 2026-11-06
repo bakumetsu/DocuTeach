@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Eraser, ChevronsRight, Power } from 'lucide-react';
+import { Loader2, Eraser, ChevronsRight, Power, Undo2 } from 'lucide-react';
 import { useChats } from './chatStore';
 import { ChatTabs } from './ChatTabs';
 import { ChatView } from './ChatView';
@@ -68,9 +68,9 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
 
           {ms?.status === 'unloaded' ? (
             <button
-              className="icon-btn"
+              className="icon-btn model-unloaded-icon"
               aria-label="Model unloaded. Reload"
-              title="Model unloaded. Click to reload"
+              title="Model unloaded"
               onClick={() => void selectModel(activeId, chat.model)}
             >
               <Power size={14} />
@@ -91,18 +91,17 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
           )}
 
           {undo && ms?.status === 'unloaded' && (
-            <span role="status" className="model-error">
-              <span>Model unloaded</span>
-              <button
-                className="retry-btn"
-                onClick={() => {
-                  setUndo(false);
-                  void selectModel(activeId, chat.model);
-                }}
-              >
-                Undo
-              </button>
-            </span>
+            <button
+              className="icon-btn"
+              aria-label="Undo"
+              title="Undo unload"
+              onClick={() => {
+                setUndo(false);
+                void selectModel(activeId, chat.model);
+              }}
+            >
+              <Undo2 size={14} />
+            </button>
           )}
 
           {ms?.status === 'loading' && (

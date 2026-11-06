@@ -65,27 +65,8 @@ describe('contextUsage', () => {
     expect(u.warn).toBe(true)
   })
 
-  it('tooltip contains estimate text when estimated is true', () => {
-    const u = contextUsage({
-      messages: [],
-      refs: [],
-      draft: '',
-      capChars: 1000,
-    })
-    const tooltip = contextTooltip(u, true, 8192)
-    expect(tooltip).toContain('estimate')
-    expect(tooltip).toContain('model window 8192 tokens')
-  })
-
-  it('tooltip does not contain estimate text when estimated is false', () => {
-    const u = contextUsage({
-      messages: [],
-      refs: [],
-      draft: '',
-      capChars: 1000,
-    })
-    const tooltip = contextTooltip(u, false, null)
-    expect(tooltip).not.toContain('estimate')
-    expect(tooltip).not.toContain('model window')
+  it('tooltip uses the same base as the ring: ~used / cap tokens', () => {
+    const u = contextUsage({ messages: [], refs: [], draft: '', capChars: 1000 })
+    expect(contextTooltip(u)).toBe('~26 / 333 tokens')
   })
 })

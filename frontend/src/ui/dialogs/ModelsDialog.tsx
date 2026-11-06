@@ -199,7 +199,7 @@ export function ModelsDialog({ open, onClose }: Props) {
       {view === 'list' && (
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <button onClick={handleAdd} aria-label="Add model" title="Add model">
+            <button className="icon-btn" onClick={handleAdd} aria-label="Add model" title="Add model">
               <Plus size={16} />
             </button>
           </div>
@@ -211,7 +211,7 @@ export function ModelsDialog({ open, onClose }: Props) {
               onChange={(e) => setDirInput(e.target.value)}
               style={{ flex: 1 }}
             />
-            <button onClick={handleSaveDir} aria-label="Save folder" title="Save folder">
+            <button className="icon-btn" onClick={handleSaveDir} aria-label="Save folder" title="Save folder">
               <Save size={16} />
             </button>
           </div>
@@ -250,7 +250,7 @@ export function ModelsDialog({ open, onClose }: Props) {
                       </span>
                     )}
                   </span>
-                  <button
+                  <button className="icon-btn"
                     aria-label="Set default"
                     title="Set default"
                     disabled={m.isDefault}
@@ -259,7 +259,7 @@ export function ModelsDialog({ open, onClose }: Props) {
                     <Star size={16} />
                   </button>
                   {m.state === 'loaded' && (
-                    <button
+                    <button className="icon-btn"
                       aria-label="Unload"
                       title="Unload"
                       onClick={() => handleUnload(m.id)}
@@ -269,14 +269,14 @@ export function ModelsDialog({ open, onClose }: Props) {
                   )}
                   {m.source === 'added' && (
                     <>
-                      <button
+                      <button className="icon-btn"
                         aria-label="Edit model"
                         title="Edit"
                         onClick={() => handleEdit(m.id)}
                       >
                         <Pencil size={16} />
                       </button>
-                      <button
+                      <button className="icon-btn"
                         aria-label="Remove model"
                         title="Remove"
                         onClick={() => handleRemove(m.id, m.label)}
@@ -292,20 +292,20 @@ export function ModelsDialog({ open, onClose }: Props) {
           {overlayError && (
             <div role="status" style={{ marginTop: 8 }}>
               Your added models file is broken: {overlayError}{' '}
-              <button onClick={handleUndo}>Undo</button>
+              <button className="retry-btn" onClick={handleUndo}>Undo</button>
             </div>
           )}
           {status?.kind === 'removed' && (
             <div role="status" style={{ marginTop: 8 }}>
               Removed &ldquo;{status.label}&rdquo;{' '}
-              <button onClick={handleUndo}>Undo</button>
+              <button className="retry-btn" onClick={handleUndo}>Undo</button>
             </div>
           )}
           {status?.kind === 'entry_unreadable' && (
             <div role="status" style={{ marginTop: 8 }}>
               This model entry cannot be read{' '}
-              <button onClick={() => handleEntryRemoveAndAdd(status.id)}>Remove and add again</button>{' '}
-              <button onClick={handleEntryCancel}>Cancel</button>
+              <button className="retry-btn" onClick={() => handleEntryRemoveAndAdd(status.id)}>Remove and add again</button>{' '}
+              <button className="retry-btn" onClick={handleEntryCancel}>Cancel</button>
             </div>
           )}
         </>

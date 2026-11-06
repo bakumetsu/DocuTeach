@@ -24,6 +24,32 @@ describe('SkillsDialog', () => {
     expect(await screen.findByLabelText('Command')).toBeTruthy();
     expect(screen.getByLabelText('Save skill')).toBeTruthy();
   });
+
+  it('shows a placeholder template in the empty skill text box without filling it', async () => {
+    render(<SkillsDialog open onClose={() => {}} />);
+    fireEvent.click(await screen.findByLabelText('Import skill'));
+    const box = (await screen.findByLabelText('Skill text')) as HTMLTextAreaElement;
+    expect(box.value).toBe('');
+    expect(box.placeholder).toContain('command: /mycommand');
+    expect((screen.getByLabelText('Preview import') as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('SkillsDialog slash command', () => {
+  it('saves one leading slash and lists it without a double slash', async () => {
+    render(<SkillsDialog open onClose={() => {}} />);
+    fireEvent.click(await screen.findByLabelText('New skill'));
+    fireEvent.change(await screen.findByLabelText('Command'), { target: { value: 'slashfix' } });
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Slash fix' } });
+    fireEvent.change(screen.getByLabelText('Body'), { target: { value: 'b' } });
+    fireEvent.click(screen.getByLabelText('Save skill'));
+    await waitFor(async () =>
+      expect((await api.skills.manage()).some((k) => k.command === '/slashfix')).toBe(true),
+    );
+    expect(await screen.findByText('/slashfix')).toBeTruthy();
+    expect(screen.queryByText('//slashfix')).toBeNull();
+    await api.skills.remove('/slashfix');
+  });
 });
 
 describe('ModelsDialog', () => {
@@ -54,5 +80,21 @@ describe('ModelsDialog', () => {
     fireEvent.click(await screen.findByText('Undo'));
     await waitFor(async () =>
       expect((await api.models.manage()).models.some((m) => m.id === 'test-model')).toBe(true));
+  });
+});
+
+describe('ModelEditForm number display', () => {
+  it('rounds float noise to 2 decimals', async () => {
+    const { fmt2 } = await import('../src/ui/dialogs/ModelEditForm');
+    expect(fmt2(0.30000000000000004)).toBe(0.3);
+    expect(fmt2(0.95)).toBe(0.95);
+    expect(fmt2(40)).toBe(40);
+  });
+
+  it('rounds once when filled from initial, so input and state agree', async () => {
+    const { roundNums } = await import('../src/ui/dialogs/ModelEditForm');
+    const f = roundNums({ temperature: 0.30000000000000004, top_p: 0.001 } as never);
+    expect(f.temperature).toBe(0.3);
+    expect(f.top_p).toBe(0);
   });
 });

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardPaste, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert } from 'lucide-react';
+import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert } from 'lucide-react';
 import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
 import { useEditEntry } from './editEntry';
@@ -197,7 +197,7 @@ export function ChatView() {
   const usage = ctxInfo
     ? contextUsage({ messages: chat.messages, refs: chat.refs, draft: input, capChars: ctxInfo.promptCapChars })
     : null;
-  const ctxTooltip = usage && ctxInfo ? contextTooltip(usage, ctxInfo.estimated, ctxInfo.nCtx) : '';
+  const ctxTooltip = usage && ctxInfo ? contextTooltip(usage) : '';
 
   return (
     <div className="chat-view">
@@ -208,6 +208,14 @@ export function ChatView() {
               {msg.stopped && <span className="stopped-label">stopped</span>}
               <span className="msg-content">{msg.content}</span>
             </div>
+            <button
+              className="icon-btn msg-actions"
+              aria-label="Copy message"
+              title="Copy message"
+              onClick={() => void navigator.clipboard.writeText(msg.content)}
+            >
+              <Copy size={14} />
+            </button>
             {msg.role === 'assistant' && (
               <button
                 className="icon-btn msg-actions"

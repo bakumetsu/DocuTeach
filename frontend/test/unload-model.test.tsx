@@ -33,10 +33,13 @@ describe('unload model', () => {
     const btn = await screen.findByLabelText('Unload model');
     await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(btn);
-    expect(await screen.findByText('Model unloaded')).toBeTruthy();
+    const icon = await screen.findByLabelText('Model unloaded. Reload');
+    expect(icon.getAttribute('title')).toBe('Model unloaded');
+    expect(icon.classList.contains('model-unloaded-icon')).toBe(true);
+    expect(screen.queryByText('Model unloaded')).toBeNull();
     expect(useChats.getState().modelStatus[modelOf()]?.status).toBe('unloaded');
 
-    fireEvent.click(screen.getByText('Undo'));
+    fireEvent.click(screen.getByLabelText('Undo'));
     await waitFor(() => expect(useChats.getState().modelStatus[modelOf()]?.status).toBe('ready'));
   });
 

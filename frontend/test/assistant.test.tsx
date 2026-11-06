@@ -182,13 +182,31 @@ describe('Assistant pane', () => {
     expect(insertBtn.getAttribute('aria-disabled')).toBe('true')
   })
 
-  it('shows a context ring under Send with an estimate tooltip once context info resolves', async () => {
+  it('"Copy message" puts the exact message text on the clipboard', async () => {
+    const writeText = vi.fn(async (_t: string) => {})
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    try {
+      await renderApp()
+      const textarea = await screen.findByLabelText('Message')
+      fireEvent.change(textarea, { target: { value: 'hello  copy me' } })
+      fireEvent.keyDown(textarea, { key: 'Enter' })
+      await screen.findByText(/scripted reply/, undefined, REPLY_TIMEOUT)
+
+      const buttons = await screen.findAllByLabelText('Copy message')
+      fireEvent.click(buttons[0])
+      expect(writeText).toHaveBeenCalledWith('hello  copy me')
+    } finally {
+      Reflect.deleteProperty(navigator, 'clipboard')
+    }
+  })
+
+  it('shows a context ring under Send with a ~N / M tokens tooltip once context info resolves', async () => {
     await renderApp()
 
     const textarea = await screen.findByLabelText('Message')
     fireEvent.change(textarea, { target: { value: 'hello' } })
 
-    await screen.findByRole('img', { name: /estimate/ })
+    await screen.findByRole('img', { name: /^~[\d,]+ \/ [\d,]+ tokens$/ })
   })
 
   it('shows "Context almost full" warning when ratio >= 0.9, and hides it for tiny drafts', async () => {

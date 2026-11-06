@@ -6,6 +6,7 @@ import { Toolbar } from './Toolbar';
 import { ViewTabs } from './ViewTabs';
 import { EditorPane } from '../editor/EditorPane';
 import { PreviewPane } from '../editor/PreviewPane';
+import { ThemeDialog } from './dialogs/ThemeDialog';
 import { PageStyleDialog } from './dialogs/PageStyleDialog';
 import { SplitDialog } from './dialogs/SplitDialog';
 import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
@@ -91,6 +92,9 @@ export function Shell() {
           break;
         case 'edit.redo':
           redo();
+          break;
+        case 'options.colorTheme':
+          setDialog('colorTheme');
           break;
         case 'tools.pageStyle':
           setDialog('pageStyle');
@@ -209,6 +213,7 @@ export function Shell() {
         </div>
       )}
 
+      <ThemeDialog open={dialog === 'colorTheme'} onClose={() => setDialog(null)} />
       <PageStyleDialog open={dialog === 'pageStyle'} onClose={() => setDialog(null)} />
       <SplitDialog open={dialog === 'split'} onClose={() => setDialog(null)} />
       <ShortcutsDialog open={dialog === 'shortcuts'} onClose={() => setDialog(null)} />

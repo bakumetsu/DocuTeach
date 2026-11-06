@@ -41,6 +41,7 @@ const MENUS: MenuDef[] = [
     label: 'Options',
     items: [
       { label: 'Dark theme', checkbox: true, kind: 'theme' },
+      { label: 'Color theme…', id: 'options.colorTheme' },
       { label: 'Gradient background', checkbox: true, kind: 'bg' },
       { label: 'Spell check', checkbox: true, kind: 'spell' },
     ],

@@ -9,6 +9,8 @@
   --acc: #5a46d0;
   --acc-soft: #ebe8fd;
   --acc-ink: #ffffff;
+  --page-acc: #5a46d0;
+  --page-acc-soft: #ebe8fd;
   --note-bg: #fff2d6;
   --note-border: #e8a33a;
   --danger: #b91c1c;
@@ -55,6 +57,8 @@
   --acc: #a99bff;
   --acc-soft: #2e2a66;
   --acc-ink: #14142a;
+  --page-acc: #5a46d0;
+  --page-acc-soft: #ebe8fd;
   --note-bg: #3b2f0b;
   --note-border: #e8a33a;
   --danger: #f87171;
@@ -94,14 +98,135 @@
   --ground: var(--bg);
 }
 
+:root[data-palette="sky"]:not([data-theme="dark"]) {
+  --bg: #e6f0f5;
+  --bg-grad: linear-gradient(135deg, #e6f0f5, #eaf3f1);
+  --panel: #ffffff;
+  --text: #1c2b33;
+  --muted: #506672;
+  --border: #d5e4ec;
+  --acc: #1b6a88;
+  --acc-soft: #dcecf3;
+  --acc-ink: #ffffff;
+  --focus-ring: #1b6a88;
+  --page-acc: #1b6a88;
+  --page-acc-soft: #dcecf3;
+}
+
+:root[data-palette="sage"]:not([data-theme="dark"]) {
+  --bg: #e8f1e9;
+  --bg-grad: linear-gradient(135deg, #e8f1e9, #f1f1e4);
+  --panel: #ffffff;
+  --text: #1d2e22;
+  --muted: #52675a;
+  --border: #d6e5d9;
+  --acc: #2c6a3d;
+  --acc-soft: #dcecdf;
+  --acc-ink: #ffffff;
+  --focus-ring: #2c6a3d;
+  --page-acc: #2c6a3d;
+  --page-acc-soft: #dcecdf;
+}
+
+:root[data-palette="sand"]:not([data-theme="dark"]) {
+  --bg: #f5ece0;
+  --bg-grad: linear-gradient(135deg, #f5ece0, #f8e8e0);
+  --panel: #fffaf3;
+  --text: #33281f;
+  --muted: #6a5848;
+  --border: #e8d9c4;
+  --acc: #9a4219;
+  --acc-soft: #f6e2d1;
+  --acc-ink: #ffffff;
+  --focus-ring: #9a4219;
+  --page-acc: #9a4219;
+  --page-acc-soft: #f6e2d1;
+}
+
+:root[data-palette="rose"]:not([data-theme="dark"]) {
+  --bg: #f7e8ed;
+  --bg-grad: linear-gradient(135deg, #f7e8ed, #f1e9f8);
+  --panel: #ffffff;
+  --text: #35202a;
+  --muted: #6e5260;
+  --border: #f0d3dc;
+  --acc: #a22c4d;
+  --acc-soft: #f8dde5;
+  --acc-ink: #ffffff;
+  --focus-ring: #a22c4d;
+  --page-acc: #a22c4d;
+  --page-acc-soft: #f8dde5;
+}
+
+:root[data-theme="dark"][data-palette="sea"] {
+  --bg: #111b21;
+  --bg-grad: linear-gradient(135deg, #111b21, #15212b);
+  --panel: #192730;
+  --text: #e0eaef;
+  --muted: #9db3be;
+  --border: #2a3f4b;
+  --acc: #74c3d9;
+  --acc-soft: #1f4452;
+  --acc-ink: #111b21;
+  --focus-ring: #74c3d9;
+  --page-acc: #1b6a88;
+  --page-acc-soft: #dcecf3;
+}
+
+:root[data-theme="dark"][data-palette="forest"] {
+  --bg: #121c16;
+  --bg-grad: linear-gradient(135deg, #121c16, #17211a);
+  --panel: #1a2820;
+  --text: #e1ebe3;
+  --muted: #9fb7a6;
+  --border: #2f4638;
+  --acc: #8fcf9e;
+  --acc-soft: #24432f;
+  --acc-ink: #121c16;
+  --focus-ring: #8fcf9e;
+  --page-acc: #2c6a3d;
+  --page-acc-soft: #dcecdf;
+}
+
+:root[data-theme="dark"][data-palette="ember"] {
+  --bg: #1c1612;
+  --bg-grad: linear-gradient(135deg, #1c1612, #241a16);
+  --panel: #272019;
+  --text: #efe5db;
+  --muted: #bba998;
+  --border: #44352a;
+  --acc: #e8a478;
+  --acc-soft: #4a3022;
+  --acc-ink: #1c1612;
+  --focus-ring: #e8a478;
+  --page-acc: #9a4219;
+  --page-acc-soft: #f6e2d1;
+}
+
+:root[data-theme="dark"][data-palette="plum"] {
+  --bg: #1e1420;
+  --bg-grad: linear-gradient(135deg, #1e1420, #261826);
+  --panel: #2a1d2d;
+  --text: #eee0ef;
+  --muted: #b9a2bd;
+  --border: #473049;
+  --acc: #eb9fb9;
+  --acc-soft: #4a2638;
+  --acc-ink: #1e1420;
+  --focus-ring: #eb9fb9;
+  --page-acc: #a22c4d;
+  --page-acc-soft: #f8dde5;
+}
+
 /* the worksheet is paper: always light, also in dark mode */
 .page {
   --text: #23233a;
   --muted: #5d5d82;
   --border: #e1e3f4;
-  --acc: #5a46d0;
-  --acc-soft: #ebe8fd;
+  --acc: var(--page-acc);
+  --acc-soft: var(--page-acc-soft);
   --acc-ink: #ffffff;
+  --focus-ring: var(--page-acc);
   --note-bg: #fff2d6;
   --note-border: #e8a33a;
   --danger: #b91c1c;

@@ -5,9 +5,14 @@ import type { Meta } from '../markdown/frontmatter'
 import { EMPTY_META } from '../markdown/frontmatter'
 
 type Theme = 'light' | 'dark'
+export const DAY_PALETTES = ['violet', 'sky', 'sage', 'sand', 'rose'] as const
+export const NIGHT_PALETTES = ['dusk', 'sea', 'forest', 'ember', 'plum'] as const
+export type DayPalette = (typeof DAY_PALETTES)[number]
+export type NightPalette = (typeof NIGHT_PALETTES)[number]
+export type PaletteId = DayPalette | NightPalette
 type Background = 'gradient' | 'flat'
 type View = 'edit' | 'student' | 'teacher'
-type Dialog = null | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints' | 'lessons'
+type Dialog = null | 'colorTheme' | 'pageStyle' | 'split' | 'shortcuts' | 'about' | 'checkpoints' | 'lessons'
 type SaveState =
   | { kind: 'saved'; at: string }
   | { kind: 'saving' }
@@ -16,6 +21,8 @@ type SaveState =
 
 interface AppState {
   theme: Theme
+  dayPalette: DayPalette
+  nightPalette: NightPalette
   background: Background
   spellcheck: boolean
   view: View
@@ -32,6 +39,7 @@ interface AppState {
   lessonTitle: string
   dialog: Dialog
   setTheme: (t: Theme) => void
+  setPalette: (id: PaletteId) => void
   setBackground: (b: Background) => void
   setSpellcheck: (on: boolean) => void
   setView: (v: View) => void
@@ -54,8 +62,21 @@ const TOAST_DURATION = 2500
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-export const useApp = create<AppState>((set) => ({
+function loadPalette<T extends PaletteId>(key: string, ids: readonly T[]): T {
+  const v = loadJson<string>(key, ids[0])
+  return ids.find((id) => id === v) ?? ids[0]
+}
+
+function applyTheme(theme: Theme, day: DayPalette, night: NightPalette): void {
+  const root = document.documentElement
+  root.dataset.theme = theme
+  root.dataset.palette = theme === 'dark' ? night : day
+}
+
+export const useApp = create<AppState>((set, get) => ({
   theme: loadJson<Theme>('theme', 'light'),
+  dayPalette: loadPalette('dayPalette', DAY_PALETTES),
+  nightPalette: loadPalette('nightPalette', NIGHT_PALETTES),
   background: loadJson<Background>('background', 'gradient'),
   spellcheck: loadJson<boolean>('spellcheck', true),
   view: 'edit',
@@ -73,9 +94,19 @@ export const useApp = create<AppState>((set) => ({
   dialog: null,
 
   setTheme: (t) => {
-    document.documentElement.dataset.theme = t
+    applyTheme(t, get().dayPalette, get().nightPalette)
     saveJson('theme', t)
     set({ theme: t })
+  },
+  setPalette: (id) => {
+    const night = (NIGHT_PALETTES as readonly string[]).includes(id)
+    const theme: Theme = night ? 'dark' : 'light'
+    const day = night ? get().dayPalette : (id as DayPalette)
+    const nightId = night ? (id as NightPalette) : get().nightPalette
+    applyTheme(theme, day, nightId)
+    saveJson(night ? 'nightPalette' : 'dayPalette', id)
+    saveJson('theme', theme)
+    set({ theme, dayPalette: day, nightPalette: nightId })
   },
   setBackground: (b) => {
     document.documentElement.dataset.bg = b
@@ -120,7 +151,7 @@ export const useApp = create<AppState>((set) => ({
 
 export function initTheme(): void {
   const t = loadJson<Theme>('theme', 'light')
-  document.documentElement.dataset.theme = t
+  applyTheme(t, loadPalette('dayPalette', DAY_PALETTES), loadPalette('nightPalette', NIGHT_PALETTES))
   const bg = loadJson<Background>('background', 'gradient')
   document.documentElement.dataset.bg = bg
 }

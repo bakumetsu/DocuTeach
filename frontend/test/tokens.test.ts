@@ -132,3 +132,65 @@ describe('tokens.css', () => {
     })
   })
 })
+
+describe('colour palettes', () => {
+  const THEMED = [
+    'bg', 'bg-grad', 'panel', 'text', 'muted', 'border',
+    'acc', 'acc-soft', 'acc-ink', 'focus-ring', 'page-acc', 'page-acc-soft',
+  ].sort()
+  const DAY = ['sky', 'sage', 'sand', 'rose']
+  const NIGHT = ['sea', 'forest', 'ember', 'plum']
+
+  function paletteProps(id: string, night: boolean): Record<string, string> {
+    const sel = night
+      ? `:root[data-theme="dark"][data-palette="${id}"]`
+      : `:root[data-palette="${id}"]:not([data-theme="dark"])`
+    const start = css.indexOf(sel + ' {')
+    if (start < 0) throw new Error(`Block not found: ${sel}`)
+    return parseCustomProps(css.slice(css.indexOf('{', start), css.indexOf('}', start)))
+  }
+
+  const sets: Record<string, Record<string, string>> = {
+    violet: { ...light },
+    dusk: { ...dark },
+  }
+  for (const id of DAY) sets[id] = { ...light, ...paletteProps(id, false) }
+  for (const id of NIGHT) sets[id] = { ...dark, ...paletteProps(id, true) }
+
+  it('every palette block has exactly the 12 themed tokens', () => {
+    for (const id of DAY) expect(Object.keys(paletteProps(id, false)).sort(), id).toEqual(THEMED)
+    for (const id of NIGHT) expect(Object.keys(paletteProps(id, true)).sort(), id).toEqual(THEMED)
+  })
+
+  it('both base blocks define the paper accent tokens', () => {
+    for (const b of [light, dark]) {
+      expect(b).toHaveProperty('page-acc')
+      expect(b).toHaveProperty('page-acc-soft')
+    }
+  })
+
+  const pairs: [string, string][] = [
+    ['text', 'panel'], ['text', 'bg'], ['muted', 'panel'], ['muted', 'bg'],
+    ['muted', 'acc-soft'], ['acc', 'panel'], ['acc', 'acc-soft'], ['text', 'acc-soft'],
+    ['acc-ink', 'acc'], ['page-acc', 'page-acc-soft'],
+  ]
+
+  for (const [id, t] of Object.entries(sets)) {
+    it(`${id}: text pairs >= 4.5, focus ring >= 3, paper accent readable`, () => {
+      for (const [fg, bg] of pairs) {
+        const r = contrast(t[fg], t[bg])
+        expect(r, `${id} --${fg} on --${bg} = ${r.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
+      }
+      expect(contrast(t['focus-ring'], t['panel']), `${id} ring on panel`).toBeGreaterThanOrEqual(3)
+      expect(contrast(t['page-acc'], '#ffffff'), `${id} page-acc on white`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast('#ffffff', t['page-acc']), `${id} option letter`).toBeGreaterThanOrEqual(4.5)
+    })
+  }
+
+  it('.page pins the paper accent and its focus ring', () => {
+    const page = parseCustomProps(extractBlock(/^\.page\s*\{([^}]+)\}/m))
+    expect(page['acc']).toBe('var(--page-acc)')
+    expect(page['acc-soft']).toBe('var(--page-acc-soft)')
+    expect(page['focus-ring']).toBe('var(--page-acc)')
+  })
+})

@@ -1271,3 +1271,48 @@ body {
 .diff-del { background: var(--warn-bg); text-decoration: line-through; }
 .diff-ins { background: var(--ok-bg); text-decoration: none; }
 @container (max-width: 480px) { .suggest-cols { grid-template-columns: 1fr; } }
+
+/* Colour theme dialog */
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.theme-row-label {
+  width: 48px;
+  color: var(--muted);
+  font-size: var(--fs-md);
+}
+
+.theme-swatches {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.dialog-body .theme-swatch {
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dialog-body .theme-swatch.selected {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--acc);
+}
+
+.dialog-body .theme-swatch:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.theme-name {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: 12.5px;
+}

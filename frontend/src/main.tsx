@@ -42,6 +42,8 @@ async function main() {
     )
     return
   }
+  const { initTheme } = await import('./state/store')
+  initTheme()
   const { default: App } = await import('./App')
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

@@ -11,6 +11,7 @@ export interface PageEditRequest {
   instruction: string;
   scope: EditScope;
   allowProtected: boolean;
+  onReply?: (text: string) => void;
 }
 
 interface PageHandlers {

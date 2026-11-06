@@ -31,7 +31,7 @@ export function cancelPageEdit(editor: Editor): boolean {
 
 export function startPageEdit(
   editor: Editor,
-  opts: { instruction: string; scope: EditScope; allowProtected: boolean },
+  opts: { instruction: string; scope: EditScope; allowProtected: boolean; onReply?: (text: string) => void },
 ): boolean {
   if (isStreaming() || isEditRunning(editor)) {
     useApp.getState().showToast('Wait for the current draft or press Esc');
@@ -79,6 +79,12 @@ export function startPageEdit(
 
   void (async () => {
     let accumulated = '';
+    let replied = false;
+    const reply = (text: string) => {
+      if (replied) return;
+      replied = true;
+      opts.onReply?.(text);
+    };
     try {
       const stream = api.chat.stream(
         {
@@ -120,7 +126,7 @@ export function startPageEdit(
             const node = editor.state.doc.child(targetIdx);
 
             const item: Item = {
-              opId: event.opId,
+              opId: `${requestId}:${event.opId}`,
               kind: event.kind,
               from: targetBlock.from,
               to: targetBlock.to,
@@ -162,10 +168,12 @@ export function startPageEdit(
             addSkipped(editor, event.code, event.header);
             break;
           case 'error':
+            reply(event.message || 'The model failed.');
             noteStreamError(event.code);
             useApp.getState().showToast(event.message || 'Stream error');
             return;
           case 'done':
+            reply(accumulated.trim());
             clearAiNotice();
             break;
         }
@@ -173,6 +181,7 @@ export function startPageEdit(
     } catch {
       if (!controller.signal.aborted) {
         useApp.getState().showToast('Stream failed');
+        reply('The request failed.');
       }
       return;
     } finally {

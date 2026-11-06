@@ -17,6 +17,7 @@ class EditRun:
         self.skipped: int = 0
         self.skip_codes: collections.Counter[str] = collections.Counter()
         self._op_n: int = 0
+        self._replied: bool = False
 
     # -- public API ----------------------------------------------------------
 
@@ -30,7 +31,18 @@ class EditRun:
 
     def finish(self, complete: bool) -> list[dict[str, object]]:
         items = self._parser.finish(complete)
-        return self._convert_items(items)
+        events = self._convert_items(items)
+        if not self._replied:
+            events.append({"type": "token", "text": self._fallback_reply(complete)})
+            self._replied = True
+        return events
+
+    def _fallback_reply(self, complete: bool) -> str:
+        if not complete:
+            return "The model stopped before it finished."
+        if self.edits:
+            return "The model gave no explanation."
+        return "The model suggested no changes."
 
     def done_event(self) -> dict[str, object]:
         return {
@@ -59,6 +71,7 @@ class EditRun:
 
     def _convert(self, item: Item) -> dict[str, object] | None:
         if isinstance(item, Reply):
+            self._replied = self._replied or bool(item.text.strip())
             return {"type": "token", "text": item.text}
         if isinstance(item, Op):
             return self._convert_op(item)

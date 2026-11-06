@@ -353,3 +353,46 @@ async def test_edit_missing_payload(
     resp = await client.post("/api/chat/stream", json=payload)
     assert resp.status_code == 400
     assert "edit_missing" in resp.text
+
+
+async def test_instruction_reaches_model_prompt(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+) -> None:
+    mock, client = stream_env
+    mock.tokens = ["Done.\n", "@@ end @@\n"]
+    note = "make every verb past tense zq7"
+
+    resp = await client.post(
+        "/api/chat/stream",
+        json=body([("b1", "She goes home.")], instruction=note),
+    )
+    assert resp.status_code == 200
+
+    sent = [m for r in mock.requests for m in r.get("messages", []) if m.get("role") == "user"]
+    assert any(note in m["content"] for m in sent)
+
+
+async def test_edit_without_reply_still_gets_a_message(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+) -> None:
+    mock, client = stream_env
+    mock.tokens = ["@@ end @@\n"]
+
+    resp = await client.post("/api/chat/stream", json=body([("b1", "She goes home.")]))
+    assert resp.status_code == 200
+
+    token_texts = [e["text"] for e in events(resp) if e["type"] == "token"]
+    assert "".join(token_texts).strip() != ""
+
+
+async def test_edit_without_reply_but_with_edits_gets_fallback(
+    stream_env: tuple[MockLlm, httpx.AsyncClient],
+) -> None:
+    mock, client = stream_env
+    mock.tokens = ["@@ replace b1 @@\nShe went home.\n@@ end @@\n"]
+
+    resp = await client.post("/api/chat/stream", json=body([("b1", "She goes home.")]))
+    assert resp.status_code == 200
+
+    token_texts = [e["text"] for e in events(resp) if e["type"] == "token"]
+    assert "".join(token_texts) == "The model gave no explanation."

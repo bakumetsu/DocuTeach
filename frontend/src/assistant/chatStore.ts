@@ -388,10 +388,27 @@ export const useChats = create<ChatState>()((set, get) => {
       if (editState.on || isEditCmd) {
         const instruction = isEditCmd ? text.slice(6).trim() : text;
         if (!instruction) return;
+        let noteAdded = false;
+        let pendingReply = '';
+        const appendReply = (reply: string) => {
+          set((s) => ({
+            chats: s.chats.map((c) =>
+              c.id === chatId
+                ? { ...c, messages: [...c.messages, { role: 'assistant', content: reply }] }
+                : c,
+            ),
+          }));
+          schedulePersist();
+        };
         const handled = runPageEdit({
           instruction,
           scope: effectiveScope(chatId),
           allowProtected: useEditEntry.getState().allowProtected,
+          onReply: (reply) => {
+            if (!reply) return;
+            if (!noteAdded) pendingReply = reply;
+            else appendReply(reply);
+          },
         });
         const userMsg: ChatMessage = { role: 'user', content: text };
         const note: ChatMessage = {
@@ -404,6 +421,8 @@ export const useChats = create<ChatState>()((set, get) => {
           ),
         }));
         schedulePersist();
+        noteAdded = true;
+        if (pendingReply) appendReply(pendingReply);
         if (handled) {
           useEditEntry.getState().afterRun(chatId);
         }

@@ -100,7 +100,7 @@ describe('chat send path (edit)', () => {
 
     await useChats.getState().send(chatId, 'Make it shorter');
 
-    expect(runEdit).toHaveBeenCalledWith({ instruction: 'Make it shorter', scope: 'lesson', allowProtected: false });
+    expect(runEdit).toHaveBeenCalledWith({ instruction: 'Make it shorter', scope: 'lesson', allowProtected: false, onReply: expect.any(Function) });
     const chat = useChats.getState().chats.find((c) => c.id === chatId)!;
     const last = chat.messages[chat.messages.length - 1];
     expect(last.role).toBe('assistant');
@@ -248,6 +248,21 @@ describe('startPageEdit', () => {
   });
 });
 
+describe('second request while suggestions are pending', () => {
+  it('keeps the first suggestions and gives every item a unique opId', async () => {
+    await useChats.getState().init();
+
+    startPageEdit(editor, { instruction: 'rewrite it', scope: 'lesson', allowProtected: false });
+    await vi.waitFor(() => expect(getSuggestState(editor).running).toBe(false));
+    startPageEdit(editor, { instruction: 'delete it', scope: 'lesson', allowProtected: false });
+    await vi.waitFor(() => expect(getSuggestState(editor).running).toBe(false));
+
+    const items = getSuggestState(editor).items;
+    expect(items).toHaveLength(2);
+    expect(new Set(items.map((i) => i.opId)).size).toBe(2);
+  });
+});
+
 describe('large rewrite', () => {
   it('large rewrite sets largeRewrite and disables acceptAll, but single accept works', async () => {
     await useChats.getState().init();
@@ -275,9 +290,9 @@ describe('large rewrite', () => {
     // 1-block scope: the half rule does not apply
     expect(s.items[0].largeRewrite).toBeUndefined();
     expect(acceptAllDisabled(s.items, false)).toBe(false);
-    const result = acceptItem(editor, 'o1');
+    const result = acceptItem(editor, s.items[0].opId);
     expect(result.ok).toBe(true);
-    expect(getSuggestState(editor).items.find((i) => i.opId === 'o1')).toBeUndefined();
+    expect(getSuggestState(editor).items.find((i) => i.opId === s.items[0].opId)).toBeUndefined();
   });
 
   it('plain replace of 1 block in a 3-block lesson is NOT largeRewrite', async () => {
@@ -364,5 +379,31 @@ describe('large rewrite threshold and empty targets', () => {
     const s = getSuggestState(editor);
     expect(s.items).toHaveLength(0);
     expect(s.editSkipped).toHaveLength(1);
+  });
+});
+
+describe('edit reply reaches the chat', () => {
+  it('onReply gets the model reply after the run', async () => {
+    await useChats.getState().init();
+    const onReply = vi.fn();
+    startPageEdit(editor, { instruction: 'rewrite it', scope: 'lesson', allowProtected: false, onReply });
+    await vi.waitFor(() => expect(onReply).toHaveBeenCalledWith('Done: 1 suggestion.'));
+  });
+});
+
+describe('chat order with an instant edit run', () => {
+  it('shows user message, note, then the model reply', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().activeId;
+    useEditEntry.getState().setOn(chatId, true);
+    setPageHandlers({
+      runEdit: (r) => {
+        r.onReply?.('All verbs changed.');
+        return true;
+      },
+    });
+    await useChats.getState().send(chatId, 'Make it shorter');
+    const msgs = useChats.getState().chats.find((c) => c.id === chatId)!.messages.slice(-3);
+    expect(msgs.map((m) => m.content)).toEqual(['Make it shorter', 'Suggestions sent to the lesson', 'All verbs changed.']);
   });
 });

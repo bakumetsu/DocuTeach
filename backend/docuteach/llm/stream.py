@@ -24,6 +24,8 @@ class ChatMessage(BaseModel):
     role: str
     content: str
     stopped: bool | None = None
+    id: str | None = None
+    replyTo: str | None = None
 
 
 class Ref(BaseModel):
@@ -40,6 +42,38 @@ class ChatRequest(BaseModel):
     refs: list[Ref] | None = None
     mode: Literal["edit"] | None = None
     edit: EditPayload | None = None
+    replyTo: str | None = None
+
+
+def _branch_messages(
+    messages: list[ChatMessage], reply_to: str | None
+) -> list[ChatMessage]:
+    """Cut history to the branch containing *reply_to*.
+
+    Returns the list unchanged when reply_to is None or not found (stale).
+    Otherwise keeps messages up to and including the target, plus the
+    continuation branch (first later message whose replyTo matches) or the
+    last message when no continuation exists.
+    """
+    if reply_to is None:
+        return messages
+    i: int | None = None
+    for idx, m in enumerate(messages):
+        if m.id == reply_to:
+            i = idx
+            break
+    if i is None:
+        return messages
+    j: int | None = None
+    for idx in range(i + 1, len(messages)):
+        if messages[idx].replyTo == reply_to:
+            j = idx
+            break
+    if j is not None:
+        return messages[: i + 1] + messages[j:]
+    if len(messages) > i + 1:
+        return messages[: i + 1] + [messages[-1]]
+    return messages[: i + 1]
 
 
 class LlmService:
@@ -103,13 +137,28 @@ class LlmService:
                     system += f"\n\n```\nReference {ref.name}\n{ref.text}\n```"
             if req.selection:
                 system += f"\n\n```\nSelection\n{req.selection}\n```"
+        # Reply-to branch cut (plain-question path only; skill and edit ignore it)
+        reply_to = req.replyTo if req.skill is None else None
+        branched = _branch_messages(req.messages, reply_to)
+
+        # keep_from: number of elements from the front that may be popped.
+        # When no cut applies (reply_to is None or stale), no extra constraint.
+        keep_from = len(branched)
+        if reply_to is not None:
+            for idx, m in enumerate(branched):
+                if m.id == reply_to:
+                    keep_from = idx
+                    break
+
         history: list[dict[str, str]] = [
-            {"role": m.role, "content": m.content} for m in req.messages
+            {"role": m.role, "content": m.content} for m in branched
         ]
         total = len(system) + sum(len(m["content"]) for m in history)
-        while total > cap and len(history) > 1:
+        pops = 0
+        while total > cap and len(history) > 1 and pops < keep_from:
             total -= len(history[0]["content"])
             history.pop(0)
+            pops += 1
         if total > cap:
             raise ApiError(
                 "prompt_too_long",

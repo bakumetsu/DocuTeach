@@ -200,6 +200,52 @@ describe('Assistant pane', () => {
     }
   })
 
+  const sendHello = async (): Promise<HTMLElement> => {
+    await renderApp()
+    const textarea = await screen.findByLabelText('Message')
+    fireEvent.change(textarea, { target: { value: 'hello' } })
+    fireEvent.keyDown(textarea, { key: 'Enter' })
+    await screen.findByText(/scripted reply/, undefined, REPLY_TIMEOUT)
+    // The reply target is ignored until the chat phase is idle again.
+    await waitFor(() => {
+      expect(screen.getByLabelText('Reply to this message').getAttribute('aria-disabled')).toBeNull()
+    }, REPLY_TIMEOUT)
+    return textarea
+  }
+
+  it('shows a Reply icon on the assistant message only', async () => {
+    await sendHello()
+    expect(await screen.findAllByLabelText('Reply to this message')).toHaveLength(1)
+  })
+
+  it('Reply shows a chip and Clear reply removes it', async () => {
+    await sendHello()
+    fireEvent.click((await screen.findAllByLabelText('Reply to this message'))[0])
+    await screen.findByText(/Replying to:/)
+    fireEvent.click(screen.getByLabelText('Clear reply'))
+    expect(screen.queryByText(/Replying to:/)).toBeNull()
+  })
+
+  it('Escape clears the reply chip', async () => {
+    const textarea = await sendHello()
+    fireEvent.click((await screen.findAllByLabelText('Reply to this message'))[0])
+    await screen.findByText(/Replying to:/)
+    fireEvent.keyDown(textarea, { key: 'Escape' })
+    expect(screen.queryByText(/Replying to:/)).toBeNull()
+  })
+
+  it('a sent reply shows a quote header and a Continuing from chip', async () => {
+    const textarea = await sendHello()
+    fireEvent.click((await screen.findAllByLabelText('Reply to this message'))[0])
+    fireEvent.change(textarea, { target: { value: 'follow up' } })
+    fireEvent.keyDown(textarea, { key: 'Enter' })
+    await waitFor(() => {
+      expect(document.querySelectorAll('.msg.assistant')).toHaveLength(2)
+    }, REPLY_TIMEOUT)
+    expect(document.querySelector('.msg-quote')).not.toBeNull()
+    expect(await screen.findByText(/Continuing from:/)).toBeTruthy()
+}, 20000)
+
   it('shows a context ring under Send with a ~N / M tokens tooltip once context info resolves', async () => {
     await renderApp()
 

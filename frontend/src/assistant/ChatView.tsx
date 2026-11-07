@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert, TextSelect } from 'lucide-react';
+import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert, TextSelect, MessageSquareReply, X } from 'lucide-react';
 import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
 import { useEditEntry } from './editEntry';
@@ -23,6 +23,7 @@ export function ChatView() {
   const attachText = useChats((s) => s.attachText);
   const removeRef = useChats((s) => s.removeRef);
   const focusNonce = useChats((s) => s.focusNonce);
+  const setReplyTarget = useChats((s) => s.setReplyTarget);
 
   const view = useApp((s) => s.view);
   const showToast = useApp((s) => s.showToast);
@@ -40,6 +41,7 @@ export function ChatView() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const [selIn, setSelIn] = useState<{ idx: number; text: string } | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = () => {
@@ -165,6 +167,12 @@ export function ChatView() {
     void send(activeId, text);
   }, [input, activeId, isEdit, skills, showToast, setInput, send, entry]);
 
+  const jumpToMsg = (id: string) => {
+    setFlashId(id);
+    document.getElementById(`msg-${id}`)?.scrollIntoView({ block: 'center' });
+    setTimeout(() => setFlashId(null), 1200);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (slashOpen && activeSkills.length > 0) {
       if (e.key === 'ArrowDown') {
@@ -187,6 +195,11 @@ export function ChatView() {
         setSlashDismissed(true);
         return;
       }
+    }
+
+    if (e.key === 'Escape' && chat?.branchFrom && !slashOpen) {
+      setReplyTarget(chat.id, null);
+      return;
     }
 
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -234,7 +247,7 @@ export function ChatView() {
   const canSend = modelReady && input.trim().length > 0 && !isStreaming;
 
   const usage = ctxInfo
-    ? contextUsage({ messages: chat.messages, refs: chat.refs, draft: input, capChars: ctxInfo.promptCapChars })
+    ? contextUsage({ messages: chat.messages, refs: chat.refs, draft: input, capChars: ctxInfo.promptCapChars, replyTo: chat.branchFrom })
     : null;
   const ctxTooltip = usage && ctxInfo ? contextTooltip(usage) : '';
 
@@ -242,9 +255,23 @@ export function ChatView() {
     <div className="chat-view">
       <div className="chat-messages" ref={msgRef} onMouseUp={handleMsgMouseUp} onMouseDown={() => setReplyAt(null)}>
         {chat.messages.map((msg, i) => (
-          <div key={i} className={`msg ${msg.role}`} data-idx={i}>
+          <div key={i} id={`msg-${msg.id}`} className={`msg ${msg.role}${msg.id === flashId ? ' flash' : ''}`} data-idx={i}>
             <div className="msg-bubble">
               {msg.stopped && <span className="stopped-label">stopped</span>}
+              {msg.role === 'user' && msg.replyTo && (() => {
+                const target = chat.messages.find((m) => m.id === msg.replyTo);
+                return target ? (
+                  <button
+                    type="button"
+                    className="msg-quote"
+                    onClick={() => jumpToMsg(msg.replyTo!)}
+                  >
+                    {target.content.length > 80 ? target.content.slice(0, 80) + '…' : target.content}
+                  </button>
+                ) : (
+                  <span className="msg-quote">Earlier reply</span>
+                );
+              })()}
               <span className="msg-content">{msg.content}</span>
               {tokenStats && msg.role === 'assistant' && msg.stats && (
                 <span className="msg-stats">
@@ -285,6 +312,21 @@ export function ChatView() {
                 >
                   <ClipboardPaste size={14} />
                 </button>
+                {msg.id && !msg.note && msg.content.trim() !== '' && (
+                  <button
+                    className="icon-btn msg-actions"
+                    aria-label="Reply to this message"
+                    title="Reply to this message"
+                    aria-disabled={isStreaming || undefined}
+                    onClick={() => {
+                      if (isStreaming) return;
+                      setReplyTarget(chat.id, msg.id ?? null);
+                      inputRef.current?.focus();
+                    }}
+                  >
+                    <MessageSquareReply size={14} />
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -414,6 +456,25 @@ export function ChatView() {
           </>
         )}
       </div>
+      {chat.branchFrom && chat.messages.find((m) => m.id === chat.branchFrom) && (
+        <div className="reply-chip">
+          <span>
+            {chat.branchSent ? 'Continuing from: ' : 'Replying to: '}
+            {(() => {
+              const t = chat.messages.find((m) => m.id === chat.branchFrom);
+              return t!.content.length > 80 ? t!.content.slice(0, 80) + '…' : t!.content;
+            })()}
+          </span>
+          <button
+            className="icon-btn"
+            aria-label="Clear reply"
+            title="Clear reply"
+            onClick={() => setReplyTarget(chat.id, null)}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       <div className="chat-input">
         <button
           className="icon-btn chat-attach"

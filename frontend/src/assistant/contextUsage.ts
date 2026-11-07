@@ -13,11 +13,22 @@ export interface ContextUsage {
 // Approximation: the length of the backend's generic system prompt (backend/docuteach/llm/stream.py build_messages); skill prompts are longer.
 export const SYSTEM_BASE_CHARS: number = 'You are a helpful assistant for an English grammar teacher. Answer in Markdown.'.length;
 
+export function branchMessages(messages: ChatMessage[], replyTo: string | undefined): ChatMessage[] {
+  if (!replyTo) return messages;
+  const i = messages.findIndex((m) => m.id === replyTo);
+  if (i === -1) return messages;
+  const j = messages.findIndex((m, idx) => idx > i && m.replyTo === replyTo);
+  if (j !== -1) return messages.slice(0, i + 1).concat(messages.slice(j));
+  if (messages.length > i + 1) return messages.slice(0, i + 1).concat([messages[messages.length - 1]]);
+  return messages.slice(0, i + 1);
+}
+
 export function contextUsage(input: {
   messages: ChatMessage[];
   refs: { name: string; text: string }[];
   draft: string;
   capChars: number;
+  replyTo?: string;
 }): ContextUsage {
   let usedChars = SYSTEM_BASE_CHARS;
 
@@ -25,7 +36,7 @@ export function contextUsage(input: {
     usedChars += ref.name.length + ref.text.length + 30;
   }
 
-  for (const msg of input.messages) {
+  for (const msg of branchMessages(input.messages, input.replyTo)) {
     usedChars += msg.content.length;
   }
 

@@ -296,3 +296,116 @@ async def test_events_rejects_second_stream_on_live_chat() -> None:
         {"type": "error", "code": "chat_busy", "message": "This chat is already generating"}
     ]
     assert "c1" in svc._active  # pyright: ignore[reportPrivateUsage]
+
+
+# ---------------------------------------------------------------------------
+# LlmService.build_messages – reply-to branch cut
+# ---------------------------------------------------------------------------
+
+
+def test_build_messages_reply_cuts_history() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    msgs = [
+        ChatMessage(id="m1", role="user", content="m1"),
+        ChatMessage(id="m2", role="assistant", content="m2"),
+        ChatMessage(id="m3", role="user", content="m3"),
+        ChatMessage(id="m4", role="assistant", content="m4"),
+        ChatMessage(id="m5", role="user", content="m5"),
+        ChatMessage(id="m6", role="assistant", content="m6"),
+        ChatMessage(id="m7", role="user", content="m7"),
+        ChatMessage(id="m8", role="assistant", content="m8"),
+        ChatMessage(id="m9", role="user", content="m9", replyTo="m3"),
+    ]
+    req = ChatRequest(
+        chatId="c1", model="byteshape", messages=msgs, replyTo="m3"
+    )
+    result = svc.build_messages(req, 100_000)
+    contents = [m["content"] for m in result[1:]]
+    assert contents == ["m1", "m2", "m3", "m9"]
+
+
+def test_build_messages_reply_branch_continues() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    msgs = [
+        ChatMessage(id="m1", role="user", content="m1"),
+        ChatMessage(id="m2", role="assistant", content="m2"),
+        ChatMessage(id="m3", role="user", content="m3"),
+        ChatMessage(id="m4", role="assistant", content="m4"),
+        ChatMessage(id="m5", role="user", content="m5"),
+        ChatMessage(id="m6", role="assistant", content="m6"),
+        ChatMessage(id="m7", role="user", content="m7"),
+        ChatMessage(id="m8", role="assistant", content="m8"),
+        ChatMessage(id="m9", role="user", content="m9", replyTo="m3"),
+        ChatMessage(id="m10", role="assistant", content="m10"),
+        ChatMessage(id="m11", role="user", content="m11"),
+    ]
+    req = ChatRequest(
+        chatId="c1", model="byteshape", messages=msgs, replyTo="m3"
+    )
+    result = svc.build_messages(req, 100_000)
+    contents = [m["content"] for m in result[1:]]
+    assert contents == ["m1", "m2", "m3", "m9", "m10", "m11"]
+
+
+def test_build_messages_reply_stale_ignored() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    msgs = [
+        ChatMessage(id="m1", role="user", content="m1"),
+        ChatMessage(id="m2", role="assistant", content="m2"),
+        ChatMessage(id="m3", role="user", content="m3"),
+    ]
+    req = ChatRequest(
+        chatId="c1", model="byteshape", messages=msgs, replyTo="zzz"
+    )
+    result = svc.build_messages(req, 100_000)
+    contents = [m["content"] for m in result[1:]]
+    assert contents == ["m1", "m2", "m3"]
+
+
+def test_build_messages_reply_cap_keeps_target() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    msgs = [
+        ChatMessage(id="m1", role="user", content="A" * 100),
+        ChatMessage(id="m2", role="assistant", content="B" * 100),
+        ChatMessage(id="m3", role="user", content="C" * 100),
+        ChatMessage(id="m4", role="assistant", content="D" * 100),
+        ChatMessage(id="m5", role="user", content="E" * 100),
+        ChatMessage(id="m6", role="assistant", content="F" * 100),
+        ChatMessage(id="m7", role="user", content="G" * 100),
+        ChatMessage(id="m8", role="assistant", content="H" * 100),
+        ChatMessage(id="m9", role="user", content="I" * 100, replyTo="m3"),
+    ]
+    req = ChatRequest(
+        chatId="c1", model="byteshape", messages=msgs, replyTo="m3"
+    )
+    # Cap forces trimming but must keep m3 and m9
+    result = svc.build_messages(req, 350)
+    contents = [m["content"] for m in result[1:]]
+    assert "C" * 100 in contents
+    assert "I" * 100 in contents
+    # m1 (A*100) should be trimmed (it's before m3)
+    assert "A" * 100 not in contents
+
+
+def test_build_messages_reply_skill_ignored() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    msgs = [
+        ChatMessage(id="m1", role="user", content="m1"),
+        ChatMessage(id="m2", role="assistant", content="m2"),
+    ]
+    # mode="edit" with no edit payload → edit_missing raised; replyTo is ignored
+    req = ChatRequest(
+        chatId="c1",
+        model="byteshape",
+        mode="edit",
+        messages=msgs,
+        replyTo="m1",
+    )
+    with pytest.raises(ApiError) as exc_info:
+        svc.build_messages(req, 100_000)
+    assert exc_info.value.code == "edit_missing"

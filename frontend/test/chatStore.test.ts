@@ -263,4 +263,84 @@ describe('chatStore', () => {
 
     vi.useRealTimers();
   });
+
+  it('messages have ids after send', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().chats[0].id;
+
+    await useChats.getState().send(chatId, 'hello');
+
+    const chat = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(chat.messages[0].id).toBeTruthy();
+    expect(chat.messages[1].id).toBeTruthy();
+  });
+
+  it('setReplyTarget sets branchFrom/branchSent; null clears', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().chats[0].id;
+
+    await useChats.getState().send(chatId, 'hello');
+    const assistantId = useChats.getState().chats.find((c) => c.id === chatId)!.messages[1].id!;
+
+    useChats.getState().setReplyTarget(chatId, assistantId);
+    const c2 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(c2.branchFrom).toBe(assistantId);
+    expect(c2.branchSent).toBe(false);
+
+    useChats.getState().setReplyTarget(chatId, null);
+    const c3 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(c3.branchFrom).toBeUndefined();
+    expect(c3.branchSent).toBeUndefined();
+  });
+
+  it('send after setReplyTarget: replyTo on first, none on second; branchFrom persists', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().chats[0].id;
+
+    await useChats.getState().send(chatId, 'hello');
+    const assistantId = useChats.getState().chats.find((c) => c.id === chatId)!.messages[1].id!;
+
+    useChats.getState().setReplyTarget(chatId, assistantId);
+
+    await useChats.getState().send(chatId, 'q2');
+    const c2 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    const userQ2 = c2.messages.find((m) => m.content === 'q2')!;
+    expect(userQ2.replyTo).toBe(assistantId);
+    expect(c2.branchSent).toBe(true);
+    expect(c2.branchFrom).toBe(assistantId);
+
+    await useChats.getState().send(chatId, 'q3');
+    const c3 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    const userQ3 = c3.messages.find((m) => m.content === 'q3')!;
+    expect(userQ3.replyTo).toBeUndefined();
+    expect(c3.branchFrom).toBe(assistantId);
+  });
+
+  it('setReplyTarget with unknown id then send clears branchFrom', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().chats[0].id;
+
+    await useChats.getState().send(chatId, 'hello');
+
+    useChats.getState().setReplyTarget(chatId, 'nonexistent-id');
+    const c1 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(c1.branchFrom).toBe('nonexistent-id');
+
+    await useChats.getState().send(chatId, 'q2');
+    const c2 = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(c2.branchFrom).toBeUndefined();
+  });
+
+  it('setReplyTarget is ignored while phase is not idle', async () => {
+    await useChats.getState().init();
+    const chatId = useChats.getState().chats[0].id;
+
+    useChats.setState((s) => ({
+      chats: s.chats.map((c) => (c.id === chatId ? { ...c, phase: 'generating' as const } : c)),
+    }));
+
+    useChats.getState().setReplyTarget(chatId, 'some-id');
+    const c = useChats.getState().chats.find((c) => c.id === chatId)!;
+    expect(c.branchFrom).toBeUndefined();
+  });
 });

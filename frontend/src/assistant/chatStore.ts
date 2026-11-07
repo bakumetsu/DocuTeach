@@ -13,6 +13,8 @@ export interface Chat {
   messages: ChatMessage[];
   refs: { name: string; text: string }[];
   phase: 'idle' | 'swapping' | 'generating';
+  branchFrom?: string;
+  branchSent?: boolean;
 }
 
 interface ChatState {
@@ -43,6 +45,7 @@ interface ChatState {
   attachText: (chatId: string, name: string, text: string) => void;
   removeRef: (chatId: string, name: string) => void;
   send: (chatId: string, text: string, opts?: { selection?: string }) => Promise<void>;
+  setReplyTarget: (chatId: string, id: string | null) => void;
   stop: (chatId: string) => void;
   flushCache: (chatId: string) => void;
   persist: () => void;
@@ -53,6 +56,10 @@ interface ChatState {
 let idCounter = 0;
 function genId(): string {
   return `chat-${++idCounter}`;
+}
+
+export function newMsgId(): string {
+  return Math.random().toString(36).slice(2, 10);
 }
 
 const controllers = new Map<string, AbortController>();
@@ -157,7 +164,7 @@ export const useChats = create<ChatState>()((set, get) => {
             id: r.id,
             name: r.name,
             model: r.model,
-            messages: r.messages,
+            messages: r.messages.map((m) => (m.id ? m : { ...m, id: newMsgId() })),
             refs: r.refs,
             phase: 'idle' as const,
           }));
@@ -424,7 +431,7 @@ export const useChats = create<ChatState>()((set, get) => {
           set((s) => ({
             chats: s.chats.map((c) =>
               c.id === chatId
-                ? { ...c, messages: [...c.messages, { role: 'assistant', content: reply }] }
+                ? { ...c, messages: [...c.messages, { role: 'assistant', content: reply, id: newMsgId() }] }
                 : c,
             ),
           }));
@@ -440,14 +447,18 @@ export const useChats = create<ChatState>()((set, get) => {
             else appendReply(reply);
           },
         });
-        const userMsg: ChatMessage = { role: 'user', content: text };
+        const userMsg: ChatMessage = { role: 'user', content: text, id: newMsgId() };
         const note: ChatMessage = {
           role: 'assistant',
           content: handled ? 'Suggestions sent to the lesson' : 'The page is not available for edits',
+          id: newMsgId(),
+          note: true,
         };
         set((s) => ({
           chats: s.chats.map((c) =>
-            c.id === chatId ? { ...c, messages: [...c.messages, userMsg, note] } : c,
+            c.id === chatId
+              ? { ...c, messages: [...c.messages, userMsg, note], branchFrom: undefined, branchSent: undefined }
+              : c,
           ),
         }));
         schedulePersist();
@@ -469,15 +480,19 @@ export const useChats = create<ChatState>()((set, get) => {
           chatId,
         });
 
-        const userMsg: ChatMessage = { role: 'user', content: text };
+        const userMsg: ChatMessage = { role: 'user', content: text, id: newMsgId() };
         const note: ChatMessage = {
           role: 'assistant',
           content: handled ? 'Draft sent to the page' : 'The page is not available for drafts',
+          id: newMsgId(),
+          note: true,
         };
 
         set((s) => ({
           chats: s.chats.map((c) =>
-            c.id === chatId ? { ...c, messages: [...c.messages, userMsg, note] } : c,
+            c.id === chatId
+              ? { ...c, messages: [...c.messages, userMsg, note], branchFrom: undefined, branchSent: undefined }
+              : c,
           ),
         }));
         schedulePersist();
@@ -485,11 +500,26 @@ export const useChats = create<ChatState>()((set, get) => {
       }
 
       // ── Plain question path ──
-      const userMsg: ChatMessage = { role: 'user', content: text };
-      const assistantMsg: ChatMessage = { role: 'assistant', content: '' };
+      const userMsg: ChatMessage = { role: 'user', content: text, id: newMsgId() };
+      const assistantMsg: ChatMessage = { role: 'assistant', content: '', id: newMsgId() };
 
       const controller = new AbortController();
       controllers.set(chatId, controller);
+
+      // Branch (reply-to) logic
+      let replyTo: string | undefined;
+      let clearBranch = false;
+      if (chat.branchFrom) {
+        const targetExists = chat.messages.some((m) => m.id === chat.branchFrom);
+        if (targetExists) {
+          if (!chat.branchSent) {
+            userMsg.replyTo = chat.branchFrom;
+          }
+          replyTo = chat.branchFrom;
+        } else {
+          clearBranch = true;
+        }
+      }
 
       // Messages for the request: existing + new user (no empty assistant placeholder)
       const reqMessages: ChatMessage[] = [...chat.messages, userMsg];
@@ -497,7 +527,13 @@ export const useChats = create<ChatState>()((set, get) => {
       set((s) => ({
         chats: s.chats.map((c) =>
           c.id === chatId
-            ? { ...c, messages: [...c.messages, userMsg, assistantMsg], phase: 'swapping' as const }
+            ? {
+                ...c,
+                messages: [...c.messages, userMsg, assistantMsg],
+                phase: 'swapping' as const,
+                branchSent: replyTo !== undefined ? true : c.branchSent,
+                ...(clearBranch ? { branchFrom: undefined, branchSent: undefined } : {}),
+              }
             : c,
         ),
       }));
@@ -508,6 +544,7 @@ export const useChats = create<ChatState>()((set, get) => {
         messages: reqMessages,
         selection: opts?.selection,
         refs: chat.refs,
+        replyTo,
       };
 
       let errored = false;
@@ -603,6 +640,17 @@ export const useChats = create<ChatState>()((set, get) => {
       }
 
       schedulePersist();
+    },
+
+    setReplyTarget(chatId, id) {
+      set((s) => ({
+        chats: s.chats.map((c) => {
+          if (c.id !== chatId) return c;
+          if (c.phase !== 'idle') return c;
+          if (id === null) return { ...c, branchFrom: undefined, branchSent: undefined };
+          return { ...c, branchFrom: id, branchSent: false };
+        }),
+      }));
     },
 
     stop(chatId) {

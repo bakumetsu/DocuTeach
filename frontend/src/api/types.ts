@@ -16,7 +16,7 @@ export interface SkillImportPreview { skill: { command: string; name: string; de
 export interface ManagedModel { id: string; label: string; sizeGb: number; state: 'loaded' | 'unloaded' | 'loading' | 'missing' | 'unknown'; isDefault: boolean; source: 'default' | 'added' }
 export interface ModelManageList { models: ManagedModel[]; overlayError: string | null; overlayDir: string }
 export interface ModelForm { id: string; model_path: string; parallel: number; ctx_per_chat: number; reasoning: boolean; temperature: number; top_p: number; top_k: number; min_p: number; ttl: number }
-export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean; stats?: { in: number; out: number; tps: number | null } }
+export interface ChatMessage { role: 'user' | 'assistant'; content: string; stopped?: boolean; stats?: { in: number; out: number; tps: number | null }; id?: string; replyTo?: string; note?: true }
 export type EditScope = 'selection' | 'section' | 'lesson'
 export interface EditBlock { id: string; kind: string; md: string; role: 'edit' | 'context' }
 export interface EditPayload { instruction: string; scope: EditScope; allowProtected: boolean; part?: { k: number; n: number; outline: string[] }; blocks: EditBlock[] }
@@ -24,7 +24,7 @@ export interface EditOp { opId: string; kind: 'replace' | 'insert' | 'delete' | 
 export interface ChatRequest {
   chatId: string; model: string; skill?: string
   messages: ChatMessage[]; selection?: string; refs?: { name: string; text: string }[]
-  mode?: 'edit'; edit?: EditPayload
+  mode?: 'edit'; edit?: EditPayload; replyTo?: string
 }
 export type StreamEvent =
   | { type: 'status'; status: 'swapping' | 'generating' | 'thinking' }

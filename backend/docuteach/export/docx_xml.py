@@ -8,7 +8,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.oxml.xmlchemy import BaseOxmlElement
 from docx.shared import Cm, RGBColor
-from docx.table import _Cell
+from docx.table import _Cell, _Row
 from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 
@@ -105,6 +105,20 @@ def cell_borders(cell: _Cell, color: str) -> None:
         el.set(qn("w:color"), color)
         borders.append(el)
     tcpr.insert_element_before(borders, "w:shd", *_TCPR_AFTER_SHD)
+
+
+def row_header(row: _Row) -> None:
+    """Mark *row* as a table header row."""
+    trpr = row._tr.get_or_add_trPr()
+    if trpr.find(qn("w:tblHeader")) is None:
+        trpr.append(OxmlElement("w:tblHeader"))
+
+
+def row_cant_split(row: _Row) -> None:
+    """Prevent *row* from splitting across pages."""
+    trpr = row._tr.get_or_add_trPr()
+    if trpr.find(qn("w:cantSplit")) is None:
+        trpr.append(OxmlElement("w:cantSplit"))
 
 
 def hanging(p: Paragraph, left_cm: float, first_cm: float) -> None:

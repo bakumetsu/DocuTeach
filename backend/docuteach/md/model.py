@@ -72,6 +72,7 @@ class TableCell:
 @dataclass(frozen=True)
 class Table:
     rows: tuple[tuple[TableCell, ...], ...]
+    aligns: tuple[str | None, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -137,6 +138,8 @@ def to_json(node: object) -> object:
         for f in dataclasses.fields(node):
             if f.name == "unlocked" and not getattr(node, f.name):
                 continue  # keeps the golden JSON of locked notes unchanged
+            if f.name == "aligns" and not getattr(node, f.name):
+                continue  # keeps the golden JSON of unaligned tables unchanged
             d[f.name] = to_json(getattr(node, f.name))
         return d
     if isinstance(node, tuple):

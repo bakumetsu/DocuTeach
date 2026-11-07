@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 
 from docuteach.errors import ApiError
 from docuteach.export.fonts import FONTS_DIR, resolve_font, typst_font_arg
+from docuteach.export.table_layout import column_weights
 from docuteach.export.typst_inline import InlineWriter, PageStyle, typst_string
 from docuteach.md.project import (
     StudentBlank,
@@ -191,19 +192,60 @@ def _render_table(writer: InlineWriter, block: StudentTable) -> str:
     if not block.rows:
         return "#table(columns: 1)"
     max_cols = max(len(row) for row in block.rows)
-    cells: list[str] = []
+    if max_cols == 0:
+        return "#table(columns: 1)"
+    lengths: list[list[int]] = []
     for row in block.rows:
+        row_lengths: list[int] = []
+        for j in range(max_cols):
+            if j < len(row):
+                total = 0
+                for item in row[j].content:
+                    if isinstance(item, StudentText):
+                        total += len(item.text)
+                    else:
+                        total += 10
+                row_lengths.append(total)
+            else:
+                row_lengths.append(0)
+        lengths.append(row_lengths)
+    weights = column_weights(lengths, max_cols)
+    cols = ", ".join(f"{weight}fr" for weight in weights)
+    aligns: list[str] = []
+    for j in range(max_cols):
+        align = block.aligns[j] if j < len(block.aligns) else None
+        aligns.append(align if align in ("left", "center", "right") else "auto")
+    args: list[str] = [
+        f"columns: ({cols})",
+        f"align: ({', '.join(aligns)})",
+        "stroke: 0.5pt + luma(150)",
+        "inset: 6pt",
+    ]
+    has_header = all(cell.header for cell in block.rows[0])
+    body_rows = block.rows[1:] if has_header else block.rows
+    if has_header:
+        header_cells: list[str] = []
+        for j in range(max_cols):
+            if j < len(block.rows[0]):
+                inline = writer.emit(block.rows[0][j].content)
+                header_cells.append(f"[#strong[{inline}]]")
+            else:
+                header_cells.append("[]")
+        args.append(f"table.header({', '.join(header_cells)})")
+    body_cells: list[str] = []
+    for row in body_rows:
         for j in range(max_cols):
             if j < len(row):
                 cell = row[j]
                 inline = writer.emit(cell.content)
                 if cell.header:
-                    cells.append(f"[#strong[{inline}]]")
+                    body_cells.append(f"[#strong[{inline}]]")
                 else:
-                    cells.append(f"[{inline}]")
+                    body_cells.append(f"[{inline}]")
             else:
-                cells.append("[]")
-    return f"#table(columns: {max_cols}, " + ", ".join(cells) + ")"
+                body_cells.append("[]")
+    args.extend(body_cells)
+    return "#table(" + ", ".join(args) + ")"
 
 
 def _render_mcq(

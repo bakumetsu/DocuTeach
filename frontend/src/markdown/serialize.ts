@@ -97,21 +97,22 @@ function serializeMcq(node: PMNode): string {
 
 function serializeTable(node: PMNode): string {
   const lines: string[] = []
-  let n = 0
+  const sep: string[] = []
 
   for (let i = 0; i < node.childCount; i++) {
     const row = node.child(i)
-    if (i === 0) {
-      n = row.childCount
-    }
     const cells: string[] = []
     for (let j = 0; j < row.childCount; j++) {
       const cell = row.child(j)
+      if (i === 0) {
+        const a = cell.attrs.textAlign
+        sep.push(a === 'center' ? ':---:' : a === 'left' ? ':---' : a === 'right' ? '---:' : '---')
+      }
       cells.push(serializeInline(cell.firstChild!, { cell: true, lineStart: false }))
     }
     lines.push('| ' + cells.join(' | ') + ' |')
     if (i === 0) {
-      lines.push('| ' + Array(n).fill('---').join(' | ') + ' |')
+      lines.push('| ' + sep.join(' | ') + ' |')
     }
   }
 

@@ -14,6 +14,13 @@ import { Align } from './nodes/Align'
 import { FontStyle } from './fontStyle'
 import { SuggestExtension } from './suggest/plugin'
 
+const cellAlign = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.style.textAlign || null,
+  renderHTML: (attrs: Record<string, unknown>) =>
+    attrs.textAlign ? { style: `text-align: ${String(attrs.textAlign)}` } : {},
+}
+
 export const extensions = [
   DocMeta,
   StarterKit.configure({
@@ -43,9 +50,15 @@ export const extensions = [
   TableRow,
   TableHeader.extend({
     content: 'paragraph',
+    addAttributes() {
+      return { ...this.parent?.(), textAlign: cellAlign }
+    },
   }),
   TableCell.extend({
     content: 'paragraph',
+    addAttributes() {
+      return { ...this.parent?.(), textAlign: cellAlign }
+    },
   }),
   TeacherNote,
   Blank,

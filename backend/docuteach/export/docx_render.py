@@ -11,7 +11,7 @@ from docx import Document
 from docx.blkcntnr import BlockItemContainer
 from docx.document import Document as DocumentObject
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Cm
+from docx.shared import Cm, Emu
 from docx.styles.style import ParagraphStyle
 
 from docuteach.export.answer_key import AnswerKey, build_answer_key
@@ -23,16 +23,21 @@ from docuteach.export.docx_xml import (
     hanging,
     hex_color,
     paragraph_shade,
+    row_cant_split,
+    row_header,
     set_rfonts,
     set_size,
     style_run,
 )
+from docuteach.export.table_layout import column_weights
 from docuteach.export.typst_inline import PageStyle
 from docuteach.md.model import (
+    Blank,
     Block,
     BulletList,
     Doc,
     Heading,
+    Inline,
     Mcq,
     McqOption,
     OrderedList,
@@ -41,6 +46,7 @@ from docuteach.md.model import (
     SplitPoint,
     Table,
     TeacherNote,
+    Text,
 )
 from docuteach.md.numbering import number_questions
 
@@ -235,6 +241,13 @@ class _Builder:
             self._dispatch(sub, cell, None)
         container.add_paragraph()
 
+    def _inline_width_length(self, inline: Inline) -> int:
+        if isinstance(inline, Text):
+            return len(inline.text)
+        if isinstance(inline, Blank):
+            return max((len(a) for a in inline.answers), default=10)
+        return 0
+
     def _table(self, block: Table, container: BlockItemContainer) -> None:
         if not block.rows:
             return
@@ -242,12 +255,39 @@ class _Builder:
         cols = max((len(r) for r in block.rows), default=0)
         if cols == 0:
             return
-        table = self._add_table(container, rows, cols)
-        table.style = "Table Grid"
-        for i, row in enumerate(block.rows):
+        lengths: list[list[int]] = []
+        for row in block.rows:
+            row_lengths: list[int] = []
             for j in range(cols):
                 if j < len(row):
-                    cell = table.cell(i, j)
+                    row_lengths.append(sum(self._inline_width_length(x) for x in row[j].content))
+                else:
+                    row_lengths.append(0)
+            lengths.append(row_lengths)
+        weights = column_weights(lengths, cols)
+        table = self._add_table(container, rows, cols)
+        table.style = "Table Grid"
+        table.autofit = False
+        total_width = int(self._text_width)
+        total_weight = sum(weights)
+        for j, weight in enumerate(weights):
+            col_width = Emu(total_width * weight // total_weight)
+            table.columns[j].width = col_width
+            for cell in table.columns[j].cells:
+                cell.width = col_width
+        for i, row in enumerate(block.rows):
+            docx_row = table.rows[i]
+            row_cant_split(docx_row)
+            if i == 0 and all(cell.header for cell in row):
+                row_header(docx_row)
+                for cell in docx_row.cells:
+                    cell_shade(cell, "F3F4F6")
+            for j in range(cols):
+                cell = table.cell(i, j)
+                cell_borders(cell, "969696")
+                align = block.aligns[j] if j < len(block.aligns) else None
+                cell.paragraphs[0].alignment = _ALIGN_MAP.get(align or "", WD_ALIGN_PARAGRAPH.LEFT)
+                if j < len(row):
                     self._writer.add(
                         cell.paragraphs[0], row[j].content, bold=row[j].header
                     )

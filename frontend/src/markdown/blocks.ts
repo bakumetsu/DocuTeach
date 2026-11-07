@@ -188,12 +188,14 @@ export function buildBlocks(tokens: Token[], lines: string[], schema: Schema, ct
   }
 
   function parseTable(): PMNode {
+    const aligns = (tokens[cur.i].meta?.aligns ?? []) as (string | null)[]
     cur.i++ // past table_open
     const rows: PMNode[] = []
     while (cur.i < tokens.length && tokens[cur.i].type !== 'table_close') {
       if (tokens[cur.i].type === 'tr_open') {
         cur.i++ // past tr_open
         const cells: PMNode[] = []
+        let col = 0
         while (cur.i < tokens.length && tokens[cur.i].type !== 'tr_close') {
           const cellTok = tokens[cur.i]
           const isHeader = cellTok.type === 'th_open'
@@ -202,7 +204,8 @@ export function buildBlocks(tokens: Token[], lines: string[], schema: Schema, ct
           cur.i++ // past inline
           cur.i++ // past th_close/td_close
           const para = safe('paragraph', null, inlineToNodes(inlineTok.children, schema))
-          cells.push(safe(isHeader ? 'tableHeader' : 'tableCell', null, [para]))
+          cells.push(safe(isHeader ? 'tableHeader' : 'tableCell', { textAlign: aligns[col] ?? null }, [para]))
+          col++
         }
         cur.i++ // past tr_close
         rows.push(safe('tableRow', null, cells))

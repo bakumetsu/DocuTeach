@@ -187,6 +187,9 @@ function tableRule(state: StateBlock, startLine: number, endLine: number, silent
   // --- Emit tokens ---
   const tableOpen = state.push('table_open', 'table', 1);
   tableOpen.map = [startLine, bodyEnd];
+  const aligns = alignCells.map((c) => (c.startsWith(':') ? (c.endsWith(':') ? 'center' : 'left') : c.endsWith(':') ? 'right' : null));
+  while (aligns.length < maxCols) aligns.push(null);
+  tableOpen.meta = { aligns };
 
   state.push('thead_open', 'thead', 1);
   state.push('tr_open', 'tr', 1);

@@ -80,6 +80,7 @@ class StudentTableCell:
 @dataclass(frozen=True)
 class StudentTable:
     rows: tuple[tuple[StudentTableCell, ...], ...]
+    aligns: tuple[str | None, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -163,7 +164,7 @@ def _project_block(block: Block) -> StudentBlock | None:
             return StudentBulletList(items=tuple(_project_list_item(i) for i in items))
         case OrderedList(items=items):
             return StudentOrderedList(items=tuple(_project_list_item(i) for i in items))
-        case Table(rows=rows):
+        case Table(rows=rows, aligns=aligns):
             return StudentTable(
                 rows=tuple(
                     tuple(
@@ -175,6 +176,7 @@ def _project_block(block: Block) -> StudentBlock | None:
                     )
                     for row in rows
                 ),
+                aligns=aligns,
             )
         case Mcq(question=q, options=opts, multi=m):
             correct_count = sum(1 for o in opts if o.correct)

@@ -197,9 +197,24 @@ def _table_rule(
         while len(row) < max_cols:
             row.append("")
 
+    # Parse column alignments
+    aligns: list[str | None] = []
+    for cell in align_cells:
+        if cell.startswith(":") and cell.endswith(":"):
+            aligns.append("center")
+        elif cell.startswith(":"):
+            aligns.append("left")
+        elif cell.endswith(":"):
+            aligns.append("right")
+        else:
+            aligns.append(None)
+    while len(aligns) < max_cols:
+        aligns.append(None)
+
     # --- Emit tokens ---
     table_open: Token = state.push("table_open", "table", 1)
     table_open.map = [start_line, body_end]
+    table_open.meta = {"aligns": aligns}
 
     state.push("thead_open", "thead", 1)
     state.push("tr_open", "tr", 1)

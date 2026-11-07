@@ -298,6 +298,10 @@ class _BlockBuilder:
         return None
 
     def _parse_table(self) -> Table:
+        table_open_tok = self._tokens[self._i]
+        aligns_raw: list[str | None] = (
+            table_open_tok.meta.get("aligns", []) if table_open_tok.meta else []
+        )
         self._i += 1  # past table_open
         tokens = self._tokens
         rows: list[tuple[TableCell, ...]] = []
@@ -319,7 +323,8 @@ class _BlockBuilder:
             else:
                 self._i += 1  # skip thead_open, thead_close, tbody_open, tbody_close
         self._i += 1  # past table_close
-        return Table(tuple(rows))
+        aligns = tuple(aligns_raw) if any(a is not None for a in aligns_raw) else ()
+        return Table(tuple(rows), aligns)
 
     def _parse_teacher(self, open_tok: Token) -> TeacherNote:
         tag = _meta_str(open_tok, "tag")

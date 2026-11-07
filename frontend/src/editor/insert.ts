@@ -7,6 +7,7 @@ import { slotKey } from './stream';
 import { docToMarkdown } from './docio';
 import { api } from '../api';
 import { useApp } from '../state/store';
+import { normalizeModelMarkdown } from './modelMarkdown';
 
 export interface InsertResult { ok: boolean; fallback: boolean }
 
@@ -16,9 +17,11 @@ const ALLOWED_TYPES = new Set([
   'orderedList',
   'bulletList',
   'mcq',
+  'heading',
+  'table',
 ]);
 
-const EDIT_ALLOWED_TYPES = new Set([...ALLOWED_TYPES, 'heading', 'table', 'splitPoint']);
+const EDIT_ALLOWED_TYPES = new Set([...ALLOWED_TYPES, 'splitPoint']);
 
 export function validateFragment(nodes: PMNode[], warnings: string[]): boolean {
   if (warnings.length > 0) return false;
@@ -74,7 +77,7 @@ export function insertFragment(
     if (opts?.checkpoint) {
       before = docToMarkdown(editor);
     }
-    const { nodes, warnings } = parseFragment(markdown, { stripStyle: true });
+    const { nodes, warnings } = parseFragment(normalizeModelMarkdown(markdown), { stripStyle: true });
     let toInsert: PMNode[];
     let fallback = false;
 

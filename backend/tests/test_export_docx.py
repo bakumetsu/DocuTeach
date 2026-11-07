@@ -228,3 +228,16 @@ def test_docx_empty_table_block_is_skipped() -> None:
     texts = _texts(result.data)
     assert "after" in texts
     assert len(Document(io.BytesIO(result.data)).tables) == 0
+
+
+def test_docx_mcq_explanation_note_in_teacher_guide() -> None:
+    md = (
+        "Which one?\n"
+        "- [ ] lives\n"
+        "- [x] has lived\n"
+        "\n"
+        "::: teacher\n"
+        "ZZ-EXPLAIN-9 because of the present perfect.\n"
+        ":::\n"
+    )
+    assert "ZZ-EXPLAIN-9" in _xml(_docx(md).data)

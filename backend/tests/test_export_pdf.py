@@ -340,3 +340,18 @@ def test_part_numbering_split() -> None:
     result = render_source(sdoc, page, k + 1, None)
     assert '#"3."' in result.source
     assert "first" not in result.source
+
+
+def test_mcq_explanation_note_not_in_student_pdf() -> None:
+    md = (
+        "Which one?\n"
+        "- [ ] lives\n"
+        "- [x] has lived\n"
+        "\n"
+        "::: teacher\n"
+        "ZZ-EXPLAIN-9 because of the present perfect.\n"
+        ":::\n"
+    )
+    text = pdf_text(build_pdf(md))
+    assert "ZZ-EXPLAIN-9" not in text
+    assert "✓" not in text

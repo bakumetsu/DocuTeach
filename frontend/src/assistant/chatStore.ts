@@ -35,6 +35,8 @@ interface ChatState {
   selectModel: (chatId: string, modelId: string) => Promise<void>;
   retryModel: (chatId: string) => void;
   unloadModel: (chatId: string) => Promise<void>;
+  reloadModel: (chatId: string) => Promise<void>;
+  refreshModels: () => Promise<void>;
   setInput: (chatId: string, text: string) => void;
   quoteIntoInput: (text: string) => void;
   setPaneTab: (tab: 'assistant' | 'skills') => void;
@@ -56,6 +58,7 @@ function genId(): string {
 const controllers = new Map<string, AbortController>();
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 let closedTimer: ReturnType<typeof setTimeout> | null = null;
+let initPromise: Promise<void> | null = null;
 
 // ── skill matching ──────────────────────────────────────────────────
 function matchSkill(text: string, skills: SkillInfo[]): { skill: string; rest: string } | null {
@@ -132,47 +135,68 @@ export const useChats = create<ChatState>()((set, get) => {
     ready: false,
 
     async init() {
-      const [models, skills, storedChats] = await Promise.all([
-        api.models.list(),
-        api.skills.list(),
-        api.chats.load(useApp.getState().lessonId),
-      ]);
+      if (initPromise) return initPromise;
 
-      const currentModel = (await api.models.current()) ?? models[0]?.id ?? '';
+      initPromise = (async () => {
+        const [modelsR, skillsR, storedR, currentR] = await Promise.allSettled([
+          api.models.list(),
+          api.skills.list(),
+          api.chats.load(useApp.getState().lessonId),
+          api.models.current(),
+        ]);
+        const models = modelsR.status === 'fulfilled' ? modelsR.value : ([] as ModelInfo[]);
+        const skills = skillsR.status === 'fulfilled' ? skillsR.value : ([] as SkillInfo[]);
+        const storedChats = storedR.status === 'fulfilled' ? storedR.value : ([] as ChatRecord[]);
+        let currentModel: string | null | undefined =
+          currentR.status === 'fulfilled' ? currentR.value : undefined;
+        if (!currentModel) currentModel = models[0]?.id ?? '';
 
-      let chats: Chat[];
-      if (storedChats.length > 0) {
-        chats = storedChats.map((r) => ({
-          id: r.id,
-          name: r.name,
-          model: r.model,
-          messages: r.messages,
-          refs: r.refs,
-          phase: 'idle' as const,
-        }));
-      } else {
-        chats = [
-          {
-            id: genId(),
-            name: 'Chat 1',
-            model: currentModel,
-            messages: [],
-            refs: [],
-            phase: 'idle',
-          },
-        ];
-      }
+        let chats: Chat[];
+        if (storedChats.length > 0) {
+          chats = storedChats.map((r) => ({
+            id: r.id,
+            name: r.name,
+            model: r.model,
+            messages: r.messages,
+            refs: r.refs,
+            phase: 'idle' as const,
+          }));
+        } else {
+          chats = [
+            {
+              id: genId(),
+              name: 'Chat 1',
+              model: currentModel,
+              messages: [],
+              refs: [],
+              phase: 'idle',
+            },
+          ];
+        }
 
-      set({
-        models,
-        skills,
-        chats,
-        activeId: chats[0].id,
-        ready: true,
-      });
+        set({
+          models,
+          skills,
+          chats,
+          activeId: chats[0].id,
+          ready: true,
+        });
 
-      // Mark default model ready
-      await get().selectModel(chats[0].id, currentModel);
+        if (currentModel) {
+          try {
+            await get().selectModel(chats[0].id, currentModel);
+          } catch {
+            set((s) => ({
+              modelStatus: {
+                ...s.modelStatus,
+                [currentModel]: { id: currentModel, status: 'failed', error: 'AI offline' },
+              },
+            }));
+          }
+        }
+      })();
+
+      return initPromise;
     },
 
     newChat() {
@@ -208,22 +232,6 @@ export const useChats = create<ChatState>()((set, get) => {
       const chat = chats[index];
       const remaining = chats.filter((c) => c.id !== id);
 
-      // Never leave zero chats
-      let finalChats = remaining;
-      let replacedByFresh = false;
-      if (finalChats.length === 0) {
-        const fresh: Chat = {
-          id: genId(),
-          name: `Chat ${chats.length + 1}`,
-          model: chat.model,
-          messages: [],
-          refs: [],
-          phase: 'idle',
-        };
-        finalChats = [fresh];
-        replacedByFresh = true;
-      }
-
       // Cancel running reply (abort + release + mark stopped + idle)
       if (chat.phase === 'swapping' || chat.phase === 'generating') {
         cancelRunning(id);
@@ -238,9 +246,10 @@ export const useChats = create<ChatState>()((set, get) => {
       }, 10_000);
 
       set((s) => ({
-        chats: finalChats,
-        activeId: s.activeId === id ? finalChats[0].id : s.activeId,
-        closed: { chat, index, replacedByFresh },
+        chats: remaining,
+        activeId:
+          s.activeId === id ? (remaining[Math.min(index, remaining.length - 1)]?.id ?? '') : s.activeId,
+        closed: { chat, index, replacedByFresh: false },
       }));
       schedulePersist();
     },
@@ -319,6 +328,27 @@ export const useChats = create<ChatState>()((set, get) => {
       const id = chat.model;
       await api.models.unload(id);
       set((s) => ({ modelStatus: { ...s.modelStatus, [id]: { id, status: 'unloaded' } } }));
+    },
+
+    async reloadModel(chatId) {
+      const chat = get().chats.find((c) => c.id === chatId);
+      if (!chat) return;
+      if (chat.phase !== 'idle') get().stop(chatId);
+      await get().unloadModel(chatId);
+      await get().selectModel(chatId, chat.model);
+    },
+
+    async refreshModels() {
+      const [modelsR, currentR] = await Promise.allSettled([api.models.list(), api.models.current()]);
+      if (modelsR.status !== 'fulfilled' || modelsR.value.length === 0) return;
+      const models = modelsR.value;
+      const current = (currentR.status === 'fulfilled' && currentR.value) || models[0].id;
+      set({ models });
+      const { chats, activeId } = get();
+      const chat = chats.find((c) => c.id === activeId);
+      if (!chat) return;
+      const target = chat.model && models.some((m) => m.id === chat.model) ? chat.model : current;
+      await get().selectModel(chat.id, target);
     },
 
     setInput(chatId, text) {
@@ -609,6 +639,7 @@ export const useChats = create<ChatState>()((set, get) => {
 // ── test helper ─────────────────────────────────────────────────────
 export function resetChatsForTest(): void {
   idCounter = 0;
+  initPromise = null;
   controllers.clear();
   if (persistTimer) {
     clearTimeout(persistTimer);

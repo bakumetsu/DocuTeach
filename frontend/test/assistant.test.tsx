@@ -160,8 +160,8 @@ describe('Assistant pane', () => {
 
     fireEvent.change(select, { target: { value: brokenOption!.value } })
 
-    await screen.findByText('Could not load')
-    await screen.findByText('Retry')
+    const retry = await screen.findByLabelText('Retry')
+    expect(retry.getAttribute('title')).toContain('Could not load')
 
     const sendBtn = (await screen.findByLabelText('Send')) as HTMLButtonElement
     expect(sendBtn.disabled).toBe(true)

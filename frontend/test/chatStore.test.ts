@@ -26,6 +26,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   mockConfig.swapMs = originalConfig.swapMs;
   mockConfig.loadMs = originalConfig.loadMs;
   mockConfig.tokenMinMs = originalConfig.tokenMinMs;
@@ -191,15 +192,40 @@ describe('chatStore', () => {
     expect(useChats.getState().closed).toBeNull();
   });
 
-  it('closing the last chat creates a fresh one', async () => {
+  it('closing the last chat leaves none; Undo restores it; New chat starts again', async () => {
     await useChats.getState().init();
     const { chats } = useChats.getState();
     expect(chats).toHaveLength(1);
 
     useChats.getState().closeChat(chats[0].id);
-    const after = useChats.getState().chats;
-    expect(after).toHaveLength(1);
-    expect(after[0].id).not.toBe(chats[0].id);
+    expect(useChats.getState().chats).toHaveLength(0);
+    expect(useChats.getState().activeId).toBe('');
+
+    useChats.getState().undoClose();
+    expect(useChats.getState().chats.map((c) => c.id)).toEqual([chats[0].id]);
+
+    useChats.getState().closeChat(chats[0].id);
+    useChats.getState().newChat();
+    expect(useChats.getState().chats).toHaveLength(1);
+    expect(useChats.getState().activeId).not.toBe('');
+  });
+
+  it('init is idempotent: a second call does not reload the model', async () => {
+    await useChats.getState().init();
+    const sel = vi.spyOn(api.models, 'select');
+    await useChats.getState().init();
+    expect(sel).not.toHaveBeenCalled();
+  });
+
+  it('init with the LLM endpoint down still yields Chat 1', async () => {
+    vi.spyOn(api.models, 'list').mockRejectedValue(new Error('down'));
+    vi.spyOn(api.skills, 'list').mockRejectedValue(new Error('down'));
+    vi.spyOn(api.models, 'current').mockRejectedValue(new Error('down'));
+    await useChats.getState().init();
+    const s = useChats.getState();
+    expect(s.ready).toBe(true);
+    expect(s.chats).toHaveLength(1);
+    expect(s.chats[0].name).toBe('Chat 1');
   });
 
   it('chats persist: after persist flush, load returns chats and new init restores them', async () => {

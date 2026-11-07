@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Eraser, ChevronsRight, Power, Undo2 } from 'lucide-react';
+import { Loader2, RotateCw, AlertTriangle, ChevronsRight, Power, Undo2 } from 'lucide-react';
 import { useChats } from './chatStore';
 import { ChatTabs } from './ChatTabs';
 import { ChatView } from './ChatView';
@@ -12,8 +12,10 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
   const chats = useChats((s) => s.chats);
   const activeId = useChats((s) => s.activeId);
   const selectModel = useChats((s) => s.selectModel);
+  const newChat = useChats((s) => s.newChat);
   const retryModel = useChats((s) => s.retryModel);
-  const flushCache = useChats((s) => s.flushCache);
+  const reloadModel = useChats((s) => s.reloadModel);
+  const refreshModels = useChats((s) => s.refreshModels);
   const unloadModel = useChats((s) => s.unloadModel);
   const [undo, setUndo] = useState(false);
   const paneTab = useChats((s) => s.paneTab);
@@ -26,9 +28,9 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
     void useChats.getState().init();
   }, []);
 
-  if (!chat) return null;
-
-  const ms = modelStatus[chat.model];
+  const modelId = chat?.model ?? models[0]?.id ?? '';
+  const ms = modelStatus[modelId];
+  const ready = !!chat;
 
   return (
     <div className="assistant-body">
@@ -56,7 +58,8 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
           <select
             className="model-select"
             aria-label="Model"
-            value={chat.model}
+            value={modelId}
+            disabled={!ready}
             onChange={(e) => void selectModel(activeId, e.target.value)}
           >
             {models.map((m) => (
@@ -66,12 +69,41 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
             ))}
           </select>
 
+          <span className="model-slot">
+            {ms?.status === 'loading' ? (
+              <span className="spin" aria-label="Loading model">
+                <Loader2 size={14} />
+              </span>
+            ) : ms?.status === 'failed' ? (
+              <button
+                className="icon-btn model-unloaded-icon"
+                aria-label="Retry"
+                title={ms.error ? `${ms.error}. Retry` : 'Retry'}
+                onClick={() => retryModel(activeId)}
+              >
+                <AlertTriangle size={14} />
+              </button>
+            ) : undo && ms?.status === 'unloaded' ? (
+              <button
+                className="icon-btn"
+                aria-label="Undo"
+                title="Undo unload"
+                onClick={() => {
+                  setUndo(false);
+                  void selectModel(activeId, modelId);
+                }}
+              >
+                <Undo2 size={14} />
+              </button>
+            ) : null}
+          </span>
+
           {ms?.status === 'unloaded' ? (
             <button
               className="icon-btn model-unloaded-icon"
               aria-label="Model unloaded. Reload"
               title="Model unloaded"
-              onClick={() => void selectModel(activeId, chat.model)}
+              onClick={() => void selectModel(activeId, modelId)}
             >
               <Power size={14} />
             </button>
@@ -80,9 +112,9 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
               className="icon-btn"
               aria-label="Unload model"
               title="Unload model"
-              disabled={ms?.status !== 'ready'}
+              disabled={!ready || ms?.status !== 'ready'}
               onClick={() => {
-                if (chat.phase !== 'idle' && !window.confirm('Stop the reply and unload the model?')) return;
+                if (chat && chat.phase !== 'idle' && !window.confirm('Stop the reply and unload the model?')) return;
                 void unloadModel(activeId).then(() => setUndo(true));
               }}
             >
@@ -90,41 +122,14 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
             </button>
           )}
 
-          {undo && ms?.status === 'unloaded' && (
-            <button
-              className="icon-btn"
-              aria-label="Undo"
-              title="Undo unload"
-              onClick={() => {
-                setUndo(false);
-                void selectModel(activeId, chat.model);
-              }}
-            >
-              <Undo2 size={14} />
-            </button>
-          )}
-
-          {ms?.status === 'loading' && (
-            <span className="spin" aria-label="Loading model">
-              <Loader2 size={14} />
-            </span>
-          )}
-
-          {ms?.status === 'failed' && (
-            <span className="model-error">
-              <span>{ms.error}</span>
-              <button className="retry-btn" onClick={() => retryModel(activeId)}>
-                Retry
-              </button>
-            </span>
-          )}
-
           <button
             className="icon-btn"
-            aria-label="Flush cache"
-            onClick={() => flushCache(activeId)}
+            aria-label="Reload model"
+            title="Reload model"
+            disabled={!ready && models.length > 0}
+            onClick={() => void (models.length === 0 ? refreshModels() : reloadModel(activeId))}
           >
-            <Eraser size={14} />
+            <RotateCw size={14} />
           </button>
 
           <button
@@ -141,7 +146,16 @@ export function AssistantPane({ onCollapse }: { onCollapse: () => void }) {
       {paneTab === 'assistant' ? (
         <>
           <ChatTabs />
-          <ChatView />
+          {chat ? (
+            <ChatView />
+          ) : (
+            <div className="chat-none">
+              <p>No chats</p>
+              <button className="retry-btn" onClick={newChat}>
+                New chat
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <SkillsTab />

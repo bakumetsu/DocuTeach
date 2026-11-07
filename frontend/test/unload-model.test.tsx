@@ -73,3 +73,64 @@ describe('unload model', () => {
     expect(useChats.getState().modelStatus[modelOf()]?.status).toBe('ready');
   });
 });
+
+describe('chat panel header', () => {
+  it('renders header and empty state with the LLM offline and no chats', async () => {
+    vi.spyOn(api.models, 'list').mockRejectedValue(new Error('offline'));
+    render(<AssistantPane onCollapse={() => {}} />);
+    await screen.findByLabelText('Reload model');
+    await waitFor(() => expect(useChats.getState().chats.length).toBe(1));
+    fireEvent.click(screen.getByLabelText('Close chat'));
+    await screen.findByText('No chats');
+    fireEvent.click(screen.getByText('New chat'));
+    await waitFor(() => expect(useChats.getState().chats.length).toBe(1));
+  });
+
+  it('collapsing after unload does not reload the model', async () => {
+    const { unmount } = render(<AssistantPane onCollapse={() => {}} />);
+    const btn = await screen.findByLabelText('Unload model');
+    await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(btn);
+    await screen.findByLabelText('Model unloaded. Reload');
+    const sel = vi.spyOn(api.models, 'select');
+    unmount();
+    render(<AssistantPane onCollapse={() => {}} />);
+    await screen.findByLabelText('Model unloaded. Reload');
+    expect(sel).not.toHaveBeenCalled();
+  });
+
+  it('Reload model button calls reloadModel for the active chat', async () => {
+    render(<AssistantPane onCollapse={() => {}} />);
+    const btn = await screen.findByLabelText('Reload model');
+    await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
+    const sel = vi.spyOn(api.models, 'select');
+    fireEvent.click(btn);
+    await waitFor(() => expect(sel).toHaveBeenCalledWith(modelOf()));
+    await waitFor(() => expect(useChats.getState().modelStatus[modelOf()]?.status).toBe('ready'));
+  });
+
+  it('closing the active of two chats activates the neighbour and renders ChatView', async () => {
+    render(<AssistantPane onCollapse={() => {}} />);
+    await screen.findByLabelText('Message');
+    act(() => useChats.getState().newChat());
+    await waitFor(() => expect(useChats.getState().chats.length).toBe(2));
+    const [a, b] = useChats.getState().chats;
+    expect(useChats.getState().activeId).toBe(b.id);
+    fireEvent.click(screen.getAllByLabelText('Close chat')[1]);
+    await waitFor(() => expect(useChats.getState().activeId).toBe(a.id));
+    expect(screen.queryByText('No chats')).toBeNull();
+    await screen.findByLabelText('Message');
+  });
+
+  it('Reload refetches the model list after the LLM comes back', async () => {
+    const real = api.models.list.bind(api.models);
+    vi.spyOn(api.models, 'list').mockRejectedValueOnce(new Error('offline')).mockImplementation(real);
+    render(<AssistantPane onCollapse={() => {}} />);
+    await waitFor(() => expect(useChats.getState().ready).toBe(true));
+    expect(useChats.getState().models).toHaveLength(0);
+    fireEvent.click(screen.getByLabelText('Reload model'));
+    await waitFor(() => expect(useChats.getState().models.length).toBeGreaterThan(0));
+    const m = useChats.getState().models[0].id;
+    await waitFor(() => expect(useChats.getState().modelStatus[m]?.status).toBe('ready'));
+  });
+});

@@ -80,6 +80,21 @@ describe('projectStudent', () => {
     expect(json).toContain('MARK_OPT_RIGHT');
   });
 
+  it('removes an unlocked teacher note from the student projection', () => {
+    const doc = parseMarkdown(
+      'Intro.\n\n::: teacher {tag="CCQ" unlocked="true"}\nMARK_UNLOCKED_TEXT\n:::\n',
+    ).doc;
+    const s = projectStudent(doc);
+    const json = JSON.stringify(s.toJSON());
+    const html = generateHTML(s.toJSON(), extensions);
+    for (const out of [json, html]) {
+      expect(out).not.toContain('MARK_UNLOCKED_TEXT');
+      expect(out).not.toContain('teacherNote');
+      expect(out).not.toContain('unlocked');
+    }
+    expect(json).toContain('Intro.');
+  });
+
   it('removes all teacher-only data from generated HTML', () => {
     const doc = buildDoc();
     const s = projectStudent(doc);

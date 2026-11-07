@@ -113,6 +113,22 @@ def test_styled_blank_and_option() -> None:
     assert "\u2713" not in source
 
 
+def test_unlocked_note_hidden_from_student_pdf() -> None:
+    md = (
+        "Intro line.\n"
+        "\n"
+        '::: teacher {tag="CCQ" unlocked="true"}\n'
+        "ZZ-UNLOCKED-NOTE\n"
+        ":::\n"
+    )
+    source = build_source(md)
+    everything = pdf_everything(build_pdf(md))
+    assert "Intro line." in source
+    assert "ZZ-UNLOCKED-NOTE" not in source
+    assert "ZZ-UNLOCKED-NOTE" not in everything
+    assert "unlocked" not in source
+
+
 KINDS: tuple[str, ...] = (
     "heading",
     "paragraph",

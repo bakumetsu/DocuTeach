@@ -22,6 +22,18 @@ function inlineText(tokens: Token[]): string {
 }
 
 describe('div block rule', () => {
+  it('parses the unlocked flag with and without a tag', () => {
+    const a = parse('::: teacher {tag="CCQ" unlocked="true"}\nhi\n:::\n');
+    expect(a.tokens[0].meta).toEqual({ tag: 'CCQ', unlocked: true });
+    const b = parse('::: teacher {unlocked="true"}\nhi\n:::\n');
+    expect(b.tokens[0].meta).toEqual({ tag: '', unlocked: true });
+  });
+
+  it('does not parse an empty attribute block as a teacher note', () => {
+    const { tokens } = parse('::: teacher {}\nhi\n:::\n');
+    expect(types(tokens)).not.toContain('teacher_open');
+  });
+
   it('parses a teacher note with a tag', () => {
     const { tokens } = parse('::: teacher {tag="note"}\nhello\n:::\n');
 
@@ -32,7 +44,7 @@ describe('div block rule', () => {
       'paragraph_close',
       'teacher_close',
     ]);
-    expect(tokens[0].meta).toEqual({ tag: 'note' });
+    expect(tokens[0].meta).toEqual({ tag: 'note', unlocked: false });
     expect(inlineText(tokens)).toBe('hello');
   });
 
@@ -46,7 +58,7 @@ describe('div block rule', () => {
       'paragraph_close',
       'teacher_close',
     ]);
-    expect(tokens[0].meta).toEqual({ tag: '' });
+    expect(tokens[0].meta).toEqual({ tag: '', unlocked: false });
   });
 
   it('parses a teacher tag containing an escaped quote', () => {
@@ -59,7 +71,7 @@ describe('div block rule', () => {
       'paragraph_close',
       'teacher_close',
     ]);
-    expect(tokens[0].meta).toEqual({ tag: 'a"b' });
+    expect(tokens[0].meta).toEqual({ tag: 'a"b', unlocked: false });
   });
 
   it('parses an empty teacher tag', () => {
@@ -72,7 +84,7 @@ describe('div block rule', () => {
       'paragraph_close',
       'teacher_close',
     ]);
-    expect(tokens[0].meta).toEqual({ tag: '' });
+    expect(tokens[0].meta).toEqual({ tag: '', unlocked: false });
   });
 
   it('tokenizes a bullet list inside a teacher note', () => {

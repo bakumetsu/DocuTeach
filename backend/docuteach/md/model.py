@@ -91,6 +91,7 @@ class Mcq:
 class TeacherNote:
     tag: str | None
     blocks: tuple[Block, ...]
+    unlocked: bool = False
 
 
 @dataclass(frozen=True)
@@ -134,6 +135,8 @@ def to_json(node: object) -> object:
     if dataclasses.is_dataclass(node) and not isinstance(node, type):
         d: dict[str, object] = {"type": type(node).__name__}
         for f in dataclasses.fields(node):
+            if f.name == "unlocked" and not getattr(node, f.name):
+                continue  # keeps the golden JSON of locked notes unchanged
             d[f.name] = to_json(getattr(node, f.name))
         return d
     if isinstance(node, tuple):

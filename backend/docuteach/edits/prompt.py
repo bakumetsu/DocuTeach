@@ -48,7 +48,7 @@ def _protected_label(md: str) -> str | None:
     except Exception:
         return None
     for b in blocks:
-        if isinstance(b, TeacherNote):
+        if isinstance(b, TeacherNote) and not b.unlocked:
             return "teacher note"
     for b in blocks:
         if isinstance(b, RawBlock):

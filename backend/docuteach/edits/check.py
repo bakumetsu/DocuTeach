@@ -27,6 +27,20 @@ from docuteach.md.model import (
 from docuteach.md.parser import parse_markdown
 
 
+def _unlocked_notes_kept(
+    old_unlocked: list[TeacherNote], new_blocks: list[Block], kind: str
+) -> bool:
+    """An unlocked note may be rewritten, but not removed, retagged or locked."""
+    if not old_unlocked:
+        return True
+    if kind == "delete":
+        return False
+    new_notes = [b for b in new_blocks if isinstance(b, TeacherNote)]
+    if len(new_notes) < len(old_unlocked):
+        return False
+    return all(n.unlocked and n.tag == o.tag for o, n in zip(old_unlocked, new_notes, strict=False))
+
+
 @dataclass(frozen=True)
 class Checked:
     op: Op
@@ -285,7 +299,12 @@ class OpChecker:
         # --- Violations (checked in order) ---
         code: str | None = None
         if has_targets:
-            if any(isinstance(b, TeacherNote) for b in old_blocks):
+            old_unlocked = [b for b in old_blocks if isinstance(b, TeacherNote) and b.unlocked]
+            if any(isinstance(b, TeacherNote) and not b.unlocked for b in old_blocks):
+                code = "protected_note"
+            elif op.kind in ("replace", "delete") and not _unlocked_notes_kept(
+                old_unlocked, new_blocks, op.kind
+            ):
                 code = "protected_note"
             elif any(isinstance(b, RawBlock) for b in old_blocks):
                 code = "protected_raw"

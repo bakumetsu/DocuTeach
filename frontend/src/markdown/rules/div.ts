@@ -3,7 +3,7 @@ import { unescapeTag } from '../escape';
 
 const ALIGN_RE = /^::: \{\.(center|right|justify)\}\s*$/;
 const BARE_RE = /^:::\s*$/;
-const TEACHER_RE = /^::: teacher(?:\s+\{tag="((?:[^"\\]|\\.)*)"\})?\s*$/;
+const TEACHER_RE = /^::: teacher(?:\s+\{(?!\s*\})(?:tag="((?:[^"\\]|\\.)*)")?\s*(?:(unlocked)="true")?\s*\})?\s*$/;
 
 type Align = 'center' | 'right' | 'justify';
 
@@ -25,10 +25,10 @@ function alignFrom(text: string): Align | null {
   return m[1] as Align;
 }
 
-function teacherTagFrom(text: string): string | null {
+function teacherHeaderFrom(text: string): { tag: string; unlocked: boolean } | null {
   const m = TEACHER_RE.exec(text);
   if (!m) return null;
-  return m[1] === undefined ? '' : unescapeTag(m[1]);
+  return { tag: m[1] === undefined ? '' : unescapeTag(m[1]), unlocked: m[2] !== undefined };
 }
 
 function findCloseLine(state: StateBlock, startLine: number, endLine: number): number | null {
@@ -132,8 +132,8 @@ export function divPlugin(md: MarkdownItType): void {
       return false;
     }
 
-    const tag = teacherTagFrom(text);
-    if (tag !== null) {
+    const header = teacherHeaderFrom(text);
+    if (header !== null) {
       if (silent) return true;
 
       const closeLine = findCloseLine(state, startLine, endLine);
@@ -145,7 +145,7 @@ export function divPlugin(md: MarkdownItType): void {
 
       const open = state.push('teacher_open', 'div', 1);
       open.map = [startLine, blockEnd];
-      open.meta = { tag };
+      open.meta = header;
 
       tokenizeNestedBlocks(state, startLine + 1, closeLine === null ? endLine : closeLine, 'teacher');
 

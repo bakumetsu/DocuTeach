@@ -1,0 +1,83 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Unlocked note",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "CCQ",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Ask why.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ],
+    "unlocked": true
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "No tag.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ],
+    "unlocked": true
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Drills",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Locked.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
+import { Lock, LockOpen } from 'lucide-react'
 import { Popover } from '../../ui/Popover'
 import { useViewMode } from '../ViewContext'
-import { setNoteTag } from '../commands'
+import { setNoteTag, setNoteUnlocked } from '../commands'
+import { useEditEntry } from '../../assistant/editEntry'
 
 const TAG_PRESETS = ['CCQ', 'Pitfalls', 'Distractors', 'Drills'] as const
 
@@ -15,6 +17,8 @@ export function TeacherNoteView({ node, editor, getPos }: NodeViewProps) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [value, setValue] = useState('')
 
+  const globalUnlock = useEditEntry((s) => s.allowProtected)
+  const unlocked = node.attrs.unlocked === true
   const tag = typeof node.attrs.tag === 'string' ? node.attrs.tag : ''
 
   const openPopover = useCallback(() => {
@@ -38,6 +42,13 @@ export function TeacherNoteView({ node, editor, getPos }: NodeViewProps) {
     if (pos == null) return
     setNoteTag(editor, pos, value.trim())
     setOpen(false)
+  }
+
+  const toggleLock = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    const pos = getPos()
+    if (pos == null) return
+    setNoteUnlocked(editor, pos, !unlocked)
   }
 
   const cancel = () => {
@@ -81,6 +92,24 @@ export function TeacherNoteView({ node, editor, getPos }: NodeViewProps) {
         onClick={onChipClick}
       >
         {chipLabel}
+      </button>
+
+      <button
+        type="button"
+        contentEditable={false}
+        className="note-lock"
+        disabled={globalUnlock || view !== 'edit' || !editor.isEditable}
+        aria-pressed={unlocked || globalUnlock}
+        title={
+          globalUnlock
+            ? 'Unlocked by the global setting'
+            : unlocked
+              ? 'Model may edit this box'
+              : 'Protected from the model'
+        }
+        onClick={toggleLock}
+      >
+        {unlocked || globalUnlock ? <LockOpen size={12} /> : <Lock size={12} />}
       </button>
 
       {open && view === 'edit' && (

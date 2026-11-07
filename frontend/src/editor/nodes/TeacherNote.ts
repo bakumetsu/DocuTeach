@@ -12,6 +12,9 @@ export const TeacherNote = Node.create<NodeConfig & { tag: string }>({
       tag: {
         default: '',
       },
+      unlocked: {
+        default: false,
+      },
     }
   },
 
@@ -21,7 +24,7 @@ export const TeacherNote = Node.create<NodeConfig & { tag: string }>({
         tag: 'div[data-type="teacher-note"]',
         getAttrs: (node) => {
           const el = node as HTMLElement
-          return { tag: el.dataset.tag ?? '' }
+          return { tag: el.dataset.tag ?? '', unlocked: el.dataset.unlocked === 'true' }
         },
       },
     ]
@@ -33,6 +36,7 @@ export const TeacherNote = Node.create<NodeConfig & { tag: string }>({
       mergeAttributes(HTMLAttributes, {
         'data-type': 'teacher-note',
         'data-tag': node.attrs.tag,
+        ...(node.attrs.unlocked ? { 'data-unlocked': 'true' } : {}),
       }),
       0,
     ]

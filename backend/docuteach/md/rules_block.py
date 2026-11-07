@@ -10,7 +10,9 @@ from markdown_it.rules_block import StateBlock
 
 _ALIGN_RE = re.compile(r"^::: \{\.(center|right|justify)\}\s*$")
 _BARE_RE = re.compile(r"^:::\s*$")
-_TEACHER_RE = re.compile(r'^::: teacher(?:\s+\{tag="((?:[^"\\]|\\.)*)"\})?\s*$')
+_TEACHER_RE = re.compile(
+    r'^::: teacher(?:\s+\{(?!\s*\})(?:tag="((?:[^"\\]|\\.)*)")?\s*(?:(unlocked)="true")?\s*\})?\s*$'
+)
 _SPLIT_RE = re.compile(r"^<!--\s*split:\s*(.*?)\s*-->")
 _FENCE_RE = re.compile(r"^(`{3,}|~{3,})(.*)$")
 _HR_RE = re.compile(r"^(-(\s*-){2,}|\*(\s*\*){2,}|_(\s*_){2,})$")
@@ -48,11 +50,12 @@ def div_plugin(md: MarkdownIt) -> None:
         m = _ALIGN_RE.match(text)
         return m.group(1) if m else None
 
-    def _teacher_tag_from(text: str) -> str | None:
+    def _teacher_tag_from(text: str) -> tuple[str, bool] | None:
         m = _TEACHER_RE.match(text)
         if m is None:
             return None
-        return _unescape_tag(m.group(1)) if m.group(1) is not None else ""
+        tag = _unescape_tag(m.group(1)) if m.group(1) is not None else ""
+        return tag, m.group(2) is not None
 
     def _find_close_line(
         state: StateBlock, start_line: int, end_line: int
@@ -147,8 +150,9 @@ def div_plugin(md: MarkdownIt) -> None:
         if not allowed_for_teacher_and_unknown:
             return False
 
-        tag = _teacher_tag_from(text)
-        if tag is not None:
+        teacher = _teacher_tag_from(text)
+        if teacher is not None:
+            tag, unlocked = teacher
             if silent:
                 return True
 
@@ -162,7 +166,7 @@ def div_plugin(md: MarkdownIt) -> None:
 
             open_tok = state.push("teacher_open", "div", 1)
             open_tok.map = [start_line, block_end]
-            open_tok.meta = {"tag": tag}
+            open_tok.meta = {"tag": tag, "unlocked": unlocked}
 
             inner_end = close_line if close_line is not None else end_line
             _tokenize_nested_blocks(state, start_line + 1, inner_end, "teacher")

@@ -14,6 +14,7 @@ import {
   insertTeacherNote,
   setBlankAnswers,
   setNoteTag,
+  setNoteUnlocked,
   toggleCorrect,
 } from '../src/editor/commands'
 import { parseMarkdown } from '../src/markdown/parse'
@@ -318,6 +319,30 @@ describe('editor commands', () => {
 
     editor.commands.undo()
     expect(editor.state.doc.toJSON()).toEqual(before)
+  })
+
+  it('setNoteUnlocked toggles the flag, keeps the tag, and undoes and redoes', () => {
+    const editor = makeEditor('')
+    editor.commands.setTextSelection({ from: 1, to: 1 })
+    insertTeacherNote(editor)
+
+    const notePos = nodePos(editor.state.doc, 'teacherNote')
+    setNoteTag(editor, notePos, 'CCQ')
+    const before = editor.state.doc.toJSON()
+    setNoteUnlocked(editor, notePos, true)
+
+    const attrs = findFirst(docJson(editor), 'teacherNote')!.attrs
+    expect(attrs?.unlocked).toBe(true)
+    expect(attrs?.tag).toBe('CCQ')
+
+    setNoteTag(editor, notePos, 'ICQ')
+    expect(findFirst(docJson(editor), 'teacherNote')!.attrs?.unlocked).toBe(true)
+    editor.commands.undo()
+
+    editor.commands.undo()
+    expect(editor.state.doc.toJSON()).toEqual(before)
+    editor.commands.redo()
+    expect(findFirst(docJson(editor), 'teacherNote')!.attrs?.unlocked).toBe(true)
   })
 
   it('Enter in an mcq option adds a new option after the current option', () => {

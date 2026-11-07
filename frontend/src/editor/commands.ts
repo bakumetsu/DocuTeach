@@ -315,7 +315,19 @@ export function setNoteTag(editor: Editor, pos: number, tag: string): void {
   step(editor, () => {
     const tr = editor
       .state.tr
-      .setNodeMarkup(pos, undefined, { tag })
+      .setNodeMarkup(pos, undefined, { ...editor.state.doc.nodeAt(pos)?.attrs, tag })
+    editor.view.dispatch(tr)
+  })
+}
+
+/**
+ * Set whether the local model may edit a teacherNote node.
+ */
+export function setNoteUnlocked(editor: Editor, pos: number, unlocked: boolean): void {
+  step(editor, () => {
+    const tr = editor
+      .state.tr
+      .setNodeMarkup(pos, undefined, { ...editor.state.doc.nodeAt(pos)?.attrs, unlocked })
     editor.view.dispatch(tr)
   })
 }

@@ -64,8 +64,11 @@ function serializeList(node: PMNode, ordered: boolean): string {
 }
 
 function serializeTeacherNote(node: PMNode): string {
-  const tag = (node.attrs as { tag?: string | null }).tag
-  const header = '::: teacher' + (tag ? ` {tag="${escapeTag(tag)}"}` : '')
+  const { tag, unlocked } = node.attrs as { tag?: string | null; unlocked?: boolean }
+  const attrs = [tag ? `tag="${escapeTag(tag)}"` : '', unlocked ? 'unlocked="true"' : '']
+    .filter(Boolean)
+    .join(' ')
+  const header = '::: teacher' + (attrs ? ` {${attrs}}` : '')
   const children: string[] = []
   for (let i = 0; i < node.childCount; i++) {
     children.push(blockToLines(node.child(i)))

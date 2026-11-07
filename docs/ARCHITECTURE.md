@@ -32,7 +32,7 @@ Four custom block/inline constructs are defined. The round trip (parse → seria
 
 | Block | Markdown syntax | ProseMirror node |
 |-------|----------------|-----------------|
-| Teacher note | Fenced `::: teacher {tag="CCQ"}` … `:::` (tag optional) | `TeacherNote` |
+| Teacher note | Fenced `::: teacher {tag="CCQ" unlocked="true"}` … `:::` (tag and `unlocked` optional; `unlocked` lets the local model edit the note) | `TeacherNote` |
 | Blank (answer) | Inline `{{answer}}`; alternatives separated by `\|` e.g. `{{has lived \| 's lived}}`; escapes `\|`, `\}`, `\\`, `\{{` | `Blank` (attr `answers[]`) |
 | Multiple choice | Question paragraph followed by `- [ ] option` / `- [x] correct option` list | `Mcq` (attr `multi`), `McqQuestion`, `McqOption` (attr `correct`) |
 | Split point | `<!-- split: Homework starts here -->` | `SplitPoint` (attr `label`) |

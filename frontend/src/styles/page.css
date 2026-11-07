@@ -96,6 +96,20 @@
   padding: 1px 8px;
 }
 
+.note-lock {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: .6;
+  cursor: pointer;
+}
+.note-lock:hover:not(:disabled) { opacity: 1; }
+.note-lock:disabled { cursor: default; }
+
 .note-content {
   margin: 0;
 }

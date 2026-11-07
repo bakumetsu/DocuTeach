@@ -215,13 +215,15 @@ export function buildBlocks(tokens: Token[], lines: string[], schema: Schema, ct
   }
 
   function parseTeacher(openTok: Token): PMNode {
-    const tag = openTok.meta ? (openTok.meta as { tag?: string }).tag : undefined
+    const meta = openTok.meta as { tag?: string; unlocked?: boolean } | null
+    const tag = meta?.tag
+    const unlocked = meta?.unlocked === true
     cur.i++ // past teacher_open
     const children = parseSeq('teacher_close', 'note')
     cur.i++ // past teacher_close
     const coerced = children.flatMap(coerceToAllowed)
     const content = coerced.length > 0 ? coerced : [schema.node('paragraph', null, [])]
-    return safe('teacherNote', { tag }, content)
+    return safe('teacherNote', { tag, unlocked }, content)
   }
 
   function coerceToAllowed(node: PMNode): PMNode[] {

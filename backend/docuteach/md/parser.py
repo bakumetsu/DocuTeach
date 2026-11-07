@@ -323,6 +323,7 @@ class _BlockBuilder:
 
     def _parse_teacher(self, open_tok: Token) -> TeacherNote:
         tag = _meta_str(open_tok, "tag")
+        unlocked = bool((open_tok.meta or {}).get("unlocked"))
         self._i += 1  # past teacher_open
         children = self._parse_seq("teacher_close", "note")
         self._i += 1  # past teacher_close
@@ -330,7 +331,7 @@ class _BlockBuilder:
         for child in children:
             coerced.extend(_coerce_to_allowed(child))
         blocks: tuple[Block, ...] = tuple(coerced) if coerced else (Paragraph(()),)
-        return TeacherNote(tag, blocks)
+        return TeacherNote(tag, blocks, unlocked)
 
     def _parse_align(self, open_tok: Token, mode: str) -> list[Block]:
         align = _meta_str(open_tok, "align")

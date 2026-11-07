@@ -5,6 +5,7 @@ import { getSuggestState, type Item } from './suggest/plugin';
 import { hasBlockingFlag, stepFocus } from './suggest/card';
 import { acceptAll, rejectAll, undoReject } from './suggest/apply';
 import { useApp } from '../state/store';
+import { useEditError } from './suggest/edit';
 
 const SKIPPED_REASONS: Record<string, string> = {
   protected_note: "Would change a teacher note: switch on 'Allow changes to notes and answers' to allow it",
@@ -56,6 +57,7 @@ export function ReviewBar({ editor }: { editor: Editor }): ReactElement | null {
   }, [editor]);
 
   const s = getSuggestState(editor);
+  const editError = useEditError((st) => st.message);
 
   // Auto-clear lastRejected after 8 s
   useEffect(() => {
@@ -73,6 +75,22 @@ export function ReviewBar({ editor }: { editor: Editor }): ReactElement | null {
   const blockingDisabled =
     n > 0 && !s.running && s.items.some((i) => i.status === 'pending' && hasBlockingFlag(i));
 
+  if (editError && n === 0 && !s.running) {
+    return (
+      <div className="review-bar" role="alert">
+        <span className="review-reply">{editError}</span>
+        <button
+          type="button"
+          className="icon-btn review-dismiss"
+          aria-label="Dismiss"
+          title="Dismiss"
+          onClick={() => useEditError.getState().set(null)}
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
   if (dismissed) return null;
   if (n === 0 && !s.running && !lastRejected) return null;
 

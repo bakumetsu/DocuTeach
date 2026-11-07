@@ -1263,7 +1263,7 @@ body {
 .review-bar .spin { animation: review-spin 1s linear infinite; }
 @keyframes review-spin { to { transform: rotate(360deg); } }
 
-.suggest-target { background: var(--acc-soft); box-shadow: inset 3px 0 0 var(--acc); }
+.suggest-target { background: var(--acc-soft); box-shadow: inset 3px 0 0 var(--acc); padding-left: 6px; }
 .suggest-target.kind-delete { text-decoration: line-through; text-decoration-color: var(--muted); }
 .suggest-target.kind-move-source { opacity: .6; }
 

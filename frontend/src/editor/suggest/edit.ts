@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core';
+import { create } from 'zustand';
 import type { EditScope, EditBlock } from '../../api/types';
 import { api } from '../../api';
 import { useChats } from '../../assistant/chatStore';
@@ -17,6 +18,12 @@ import {
   type Item,
 } from './plugin';
 import { isStreaming } from '../stream';
+
+/** Why the last page edit request failed; shown by the review bar. */
+export const useEditError = create<{ message: string | null; set: (m: string | null) => void }>((set) => ({
+  message: null,
+  set: (message) => set({ message }),
+}));
 
 let current: { controller: AbortController; requestId: string } | null = null;
 
@@ -65,6 +72,7 @@ export function startPageEdit(
 
   const blocks = buildPayloadBlocks(editor, snap, scopeIndices);
 
+  useEditError.getState().set(null);
   startRequest(editor, requestId, opts.instruction);
   setRunning(editor, true);
 
@@ -168,9 +176,9 @@ export function startPageEdit(
             addSkipped(editor, event.code, event.header);
             break;
           case 'error':
+            useEditError.getState().set(event.code === 'llm_offline' ? 'The model is not reachable. Start the local model server and try again.' : event.message || 'The model failed.');
             reply(event.message || 'The model failed.');
             noteStreamError(event.code);
-            useApp.getState().showToast(event.message || 'Stream error');
             return;
           case 'done':
             reply(accumulated.trim());
@@ -180,7 +188,7 @@ export function startPageEdit(
       }
     } catch {
       if (!controller.signal.aborted) {
-        useApp.getState().showToast('Stream failed');
+        useEditError.getState().set('The request failed. Check that the local model server is running.');
         reply('The request failed.');
       }
       return;

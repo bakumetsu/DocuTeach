@@ -44,7 +44,10 @@ export function SelectionPopover({ editor }: { editor: Editor }) {
     const ok = startPageEdit(editor, { instruction: trimmed, scope: 'selection', allowProtected: useEditEntry.getState().allowProtected })
     if (ok) {
       setInstruction('')
-      if (!lock) setEditOpen(false)
+      if (!lock) {
+        setEditOpen(false)
+        editor.commands.setTextSelection(editor.state.selection.to)
+      }
     }
   }
 

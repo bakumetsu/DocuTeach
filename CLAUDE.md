@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Auto-loaded: do not read it at session start. Note `git hash-object CLAUDE.md` of the original (`E:\Github Project\DocuTeach\CLAUDE.md`); reread it only when that hash changed (new task, before creating a ticket workspace or sending a task text, in a ticket when it changed).
+Auto-loaded: do not read it at session start. Note `git hash-object CLAUDE.md` of the original (`E:\Github Project\DocuTeach\CLAUDE.md`); reread it only when that hash changed (new task, before opening a ticket or sending a task text).
 
 ## The product
 
@@ -32,11 +32,4 @@ Product rules for every change:
 
 ## Skills
 
-Load the skill when you do the thing (`skills.md`):
-- `orca-ticket-ops`: opening, launching, checking, finishing or deleting a ticket; task texts; reviewing ticket reports and designs.
-- `ticket-reports`: writing or relaying a ticket report; messages to the planner; handoff at the context threshold; backup files.
-- `design-workflow`: starting, writing, reviewing or closing a design ticket.
-- `commit-and-push`: any commit, squash or push; diff review; test failure; docs before a push.
-- `build-and-log`: trial build, tests, dev server, logs.
-- `session-handoff`: long or ending planner session; user says "cleanwipe" or "go midnight".
-- `impeccable`: designing or polishing a frontend screen.
+Load the skill when you do the thing: list and triggers in `skills.md` (next to this file).

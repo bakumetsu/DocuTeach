@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert } from 'lucide-react';
+import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert, TextSelect } from 'lucide-react';
 import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
 import { useEditEntry } from './editEntry';
@@ -38,6 +38,44 @@ export function ChatView() {
   const msgRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const [selIn, setSelIn] = useState<{ idx: number; text: string } | null>(null);
+
+  useEffect(() => {
+    const handler = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+        setSelIn(null);
+        return;
+      }
+      const text = sel.toString().trim();
+      if (!text) {
+        setSelIn(null);
+        return;
+      }
+      const anchorEl = sel.anchorNode instanceof Element ? sel.anchorNode : sel.anchorNode?.parentElement;
+      const focusEl = sel.focusNode instanceof Element ? sel.focusNode : sel.focusNode?.parentElement;
+      const aContent = anchorEl?.closest('.msg-content');
+      const fContent = focusEl?.closest('.msg-content');
+      if (!aContent || !fContent || aContent !== fContent) {
+        setSelIn(null);
+        return;
+      }
+      const msgEl = aContent.closest('.msg');
+      if (!msgEl || !msgEl.classList.contains('assistant') || !msgEl.closest('.chat-messages')) {
+        setSelIn(null);
+        return;
+      }
+      const idx = Number(msgEl.getAttribute('data-idx'));
+      if (Number.isNaN(idx)) {
+        setSelIn(null);
+        return;
+      }
+      setSelIn({ idx, text: sel.toString() });
+    };
+    document.addEventListener('selectionchange', handler);
+    return () => document.removeEventListener('selectionchange', handler);
+  }, []);
 
   const input = inputs[activeId] ?? '';
   const isEdit = view === 'edit';
@@ -204,7 +242,7 @@ export function ChatView() {
     <div className="chat-view">
       <div className="chat-messages" ref={msgRef} onMouseUp={handleMsgMouseUp} onMouseDown={() => setReplyAt(null)}>
         {chat.messages.map((msg, i) => (
-          <div key={i} className={`msg ${msg.role}`}>
+          <div key={i} className={`msg ${msg.role}`} data-idx={i}>
             <div className="msg-bubble">
               {msg.stopped && <span className="stopped-label">stopped</span>}
               <span className="msg-content">{msg.content}</span>
@@ -224,17 +262,30 @@ export function ChatView() {
               <Copy size={14} />
             </button>
             {msg.role === 'assistant' && (
-              <button
-                className="icon-btn msg-actions"
-                aria-label="Insert below cursor"
-                aria-disabled={!isEdit || undefined}
-                title={!isEdit ? 'Switch to Edit view to insert' : undefined}
-                onClick={() => {
-                  if (isEdit) insertFromChat(msg.content);
-                }}
-              >
-                <ClipboardPaste size={14} />
-              </button>
+              <>
+                {selIn?.idx === i && (
+                  <button
+                    className="icon-btn msg-actions"
+                    aria-label="Copy selection"
+                    title="Copy selection"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => void navigator.clipboard.writeText(selIn.text)}
+                  >
+                    <TextSelect size={14} />
+                  </button>
+                )}
+                <button
+                  className="icon-btn msg-actions"
+                  aria-label="Insert below cursor"
+                  aria-disabled={!isEdit || undefined}
+                  title={!isEdit ? 'Switch to Edit view to insert' : undefined}
+                  onClick={() => {
+                    if (isEdit) insertFromChat(msg.content);
+                  }}
+                >
+                  <ClipboardPaste size={14} />
+                </button>
+              </>
             )}
           </div>
         ))}

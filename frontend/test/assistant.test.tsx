@@ -256,7 +256,7 @@ describe('Assistant pane', () => {
   })
 
   it('shows "Context almost full" warning when ratio >= 0.9, and hides it for tiny drafts', async () => {
-    const spy = vi.spyOn(api.models, 'context').mockResolvedValue({ nCtx: 128, promptCapChars: 100, estimated: false })
+    const spy = vi.spyOn(api.models, 'context').mockResolvedValue({ nCtx: 128, promptCapChars: 500, estimated: false })
     try {
       await renderApp()
 

@@ -195,7 +195,7 @@ def test_build_messages_trims_oldest_first() -> None:
         ChatMessage(role="user", content="C" * 100),
     ]
     req = ChatRequest(chatId="c1", model="byteshape", messages=msgs)
-    result = svc.build_messages(req, 250)
+    result = svc.build_messages(req, 250 + 209)
     assert result[0]["role"] == "system"
     assert len(result) < 4
     # Oldest messages (A, B) trimmed; only C remains
@@ -383,7 +383,7 @@ def test_build_messages_reply_cap_keeps_target() -> None:
         chatId="c1", model="byteshape", messages=msgs, replyTo="m3"
     )
     # Cap forces trimming but must keep m3 and m9
-    result = svc.build_messages(req, 350)
+    result = svc.build_messages(req, 350 + 209)
     contents = [m["content"] for m in result[1:]]
     assert "C" * 100 in contents
     assert "I" * 100 in contents
@@ -409,3 +409,18 @@ def test_build_messages_reply_skill_ignored() -> None:
     with pytest.raises(ApiError) as exc_info:
         svc.build_messages(req, 100_000)
     assert exc_info.value.code == "edit_missing"
+
+
+def test_default_system_prompt_has_table_sentence() -> None:
+    settings = Settings(data_dir=Path("/tmp"), log_dir=Path("/tmp"))
+    svc = _make_service(settings)
+    req = ChatRequest(
+        chatId="c1",
+        model="byteshape",
+        messages=[ChatMessage(role="user", content="hello")],
+    )
+    result = svc.build_messages(req, 100_000)
+    system = result[0]["content"]
+    assert "pipe table" in system
+    assert "\\|" in system
+    assert "Answer in Markdown" in system

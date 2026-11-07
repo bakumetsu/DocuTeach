@@ -10,8 +10,8 @@ export interface ContextUsage {
   warn: boolean;
 }
 
-// Approximation: the length of the backend's generic system prompt (backend/docuteach/llm/stream.py build_messages); skill prompts are longer.
-export const SYSTEM_BASE_CHARS: number = 'You are a helpful assistant for an English grammar teacher. Answer in Markdown.'.length;
+// Approximation: the length of the backend's generic system prompt (backend/docuteach/llm/stream.py DEFAULT_SYSTEM); keep in step with stream.py; skill prompts are longer.
+export const SYSTEM_BASE_CHARS: number = ('You are a helpful assistant for an English grammar teacher. Answer in Markdown. ' + 'For tabular content use a Markdown pipe table: header row, a `| --- |` separator row, the same number of cells in every row, one line per row, no line breaks inside a cell, write a pipe inside a cell as `\\|`.').length;
 
 export function branchMessages(messages: ChatMessage[], replyTo: string | undefined): ChatMessage[] {
   if (!replyTo) return messages;

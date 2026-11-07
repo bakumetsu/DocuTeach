@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChatMarkdown } from './ChatMarkdown';
 import { ClipboardPaste, Copy, Send, Square, Plus, CornerUpLeft, Pencil, Lock, LockOpen, ShieldAlert, TextSelect, MessageSquareReply, X } from 'lucide-react';
 import { replyWithSelection } from './reply';
 import { useChats } from './chatStore';
@@ -272,7 +273,9 @@ export function ChatView() {
                   <span className="msg-quote">Earlier reply</span>
                 );
               })()}
-              <span className="msg-content">{msg.content}</span>
+              <span className="msg-content">
+                {msg.role === 'assistant' ? <ChatMarkdown text={msg.content} /> : msg.content}
+              </span>
               {tokenStats && msg.role === 'assistant' && msg.stats && (
                 <span className="msg-stats">
                   {`${(msg.stats.in + msg.stats.out).toLocaleString('en-US')} tokens`}

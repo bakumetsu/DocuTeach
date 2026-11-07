@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { contextUsage, contextTooltip, branchMessages } from '../src/assistant/contextUsage'
+import { contextUsage, contextTooltip, branchMessages, SYSTEM_BASE_CHARS } from '../src/assistant/contextUsage'
 
 describe('contextUsage', () => {
   it('returns ok below 75%', () => {
@@ -15,28 +15,28 @@ describe('contextUsage', () => {
   })
 
   it('returns high at exactly 75%', () => {
-    // SYSTEM_BASE_CHARS = 79; message content 71 chars → usedChars 150; cap 200 → ratio 0.75
+    // message content fills usedChars to 600; cap 800 → ratio 0.75
     const u = contextUsage({
-      messages: [{ role: 'user', content: 'a'.repeat(71) }],
+      messages: [{ role: 'user', content: 'a'.repeat(600 - SYSTEM_BASE_CHARS) }],
       refs: [],
       draft: '',
-      capChars: 200,
+      capChars: 800,
     })
-    expect(u.usedChars).toBe(150)
+    expect(u.usedChars).toBe(600)
     expect(u.ratio).toBe(0.75)
     expect(u.level).toBe('high')
     expect(u.warn).toBe(false)
   })
 
   it('returns full and warn at exactly 90%', () => {
-    // message content 101 chars → usedChars 180; cap 200 → ratio 0.9
+    // message content fills usedChars to 720; cap 800 → ratio 0.9
     const u = contextUsage({
-      messages: [{ role: 'user', content: 'a'.repeat(101) }],
+      messages: [{ role: 'user', content: 'a'.repeat(720 - SYSTEM_BASE_CHARS) }],
       refs: [],
       draft: '',
-      capChars: 200,
+      capChars: 800,
     })
-    expect(u.usedChars).toBe(180)
+    expect(u.usedChars).toBe(720)
     expect(u.ratio).toBe(0.9)
     expect(u.level).toBe('full')
     expect(u.warn).toBe(true)
@@ -49,8 +49,8 @@ describe('contextUsage', () => {
       draft: 'draft content',
       capChars: 1000,
     })
-    // ref: 'file.txt'(8) + 'hello world'(11) + 30 = 49; draft: 13; base: 79 → 141
-    expect(u.usedChars).toBe(141)
+    // ref: 'file.txt'(8) + 'hello world'(11) + 30 = 49; draft: 13; base: SYSTEM_BASE_CHARS
+    expect(u.usedChars).toBe(49 + 13 + SYSTEM_BASE_CHARS)
   })
 
   it('returns full when capChars is 0', () => {
@@ -67,7 +67,7 @@ describe('contextUsage', () => {
 
   it('tooltip uses the same base as the ring: ~used / cap tokens', () => {
     const u = contextUsage({ messages: [], refs: [], draft: '', capChars: 1000 })
-    expect(contextTooltip(u)).toBe('~26 / 333 tokens')
+    expect(contextTooltip(u)).toBe(`~${Math.round(SYSTEM_BASE_CHARS / 3)} / 333 tokens`)
   })
 })
 

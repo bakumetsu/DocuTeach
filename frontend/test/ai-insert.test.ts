@@ -56,6 +56,19 @@ describe('insertFragment checkpoint', () => {
     editor.destroy();
   });
 
+  it('a chat table insert is one undo step', () => {
+    const editor = createEditor();
+    const before = docToMarkdown(editor);
+
+    insertFragment(editor, '| a | b |\n| --- | --- |\n| 1 | 2 |', null, { checkpoint: 'Before AI: chat' });
+    expect(docToMarkdown(editor)).toContain('| a | b |');
+
+    editor.commands.undo();
+    expect(docToMarkdown(editor)).toBe(before);
+
+    editor.destroy();
+  });
+
   it('without the checkpoint option, create is not called', () => {
     const editor = createEditor();
 

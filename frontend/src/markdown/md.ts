@@ -40,3 +40,17 @@ export function createMd(): MarkdownItType {
 
   return md;
 }
+
+export function createChatMd(): MarkdownItType {
+  const md = new MarkdownIt({
+    html: false,
+    linkify: false,
+    typographer: false,
+  });
+
+  md.disable(['link', 'image', 'autolink', 'reference', 'html_block', 'html_inline']);
+
+  md.use(tablePlugin);
+
+  return md;
+}

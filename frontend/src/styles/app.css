@@ -805,6 +805,39 @@ body {
   word-break: break-word;
 }
 
+.msg-content p,
+.msg-content ul,
+.msg-content ol,
+.msg-content blockquote,
+.msg-content .chat-pre { margin: 0 0 6px; }
+.msg-content > :last-child { margin-bottom: 0; }
+.msg-content .chat-h { margin: 6px 0 4px; font-size: 1em; }
+.msg-content ul,
+.msg-content ol { padding-left: 20px; }
+.msg-content .chat-pre { overflow-x: auto; padding: 6px 8px; background: var(--page-subtle); border-radius: 4px; }
+
+.chat-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 0 6px;
+}
+
+.chat-table {
+  border-collapse: collapse;
+  white-space: normal;
+}
+
+.chat-table th,
+.chat-table td {
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.chat-table th { background: var(--acc-soft); font-weight: 600; }
+.chat-table .chat-table-more { font-style: italic; text-align: center; }
+
 .msg-actions {
   flex-shrink: 0;
   width: 28px;

@@ -117,7 +117,11 @@ export function normalizeModelMarkdown(md: string): string {
     }
 
     // Ordinary line – pass through
-    result.push(line);
+    if (line.trim().startsWith('|')) {
+      result.push(line.replace(/<br\s*\/?>/gi, ' '));
+    } else {
+      result.push(line);
+    }
     i++;
   }
 

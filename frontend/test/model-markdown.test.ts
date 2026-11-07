@@ -77,6 +77,28 @@ describe('normalizeModelMarkdown', () => {
     const md = '```\nA) x\nB) y\nAnswer: B\n```';
     expect(normalizeModelMarkdown(md)).toBe(md);
   });
+
+  it('passes a well-formed pipe table through byte-identical', () => {
+    const md = '| H1 | H2 |\n| --- | --- |\n| a | b |\n| c | d |';
+    expect(normalizeModelMarkdown(md)).toBe(md);
+  });
+
+  it('replaces <br> variants with a single space in pipe-table lines', () => {
+    expect(normalizeModelMarkdown('| a<br>b | c |')).toBe('| a b | c |');
+    expect(normalizeModelMarkdown('| a<BR/>b | c |')).toBe('| a b | c |');
+    expect(normalizeModelMarkdown('| a<br />b | c |')).toBe('| a b | c |');
+  });
+
+  it('applies br replacement to | lines without separator, leaves non-table lines alone', () => {
+    const md = '| a<br>b | c |\n| d | e |';
+    expect(normalizeModelMarkdown(md)).toBe('| a b | c |\n| d | e |');
+    expect(normalizeModelMarkdown('hello<br>world')).toBe('hello<br>world');
+  });
+
+  it('does not replace <br> inside fenced code table lines', () => {
+    const md = '```\n| a<br>b | c |\n```';
+    expect(normalizeModelMarkdown(md)).toBe(md);
+  });
 });
 
 describe('insertFragment with model markdown', () => {

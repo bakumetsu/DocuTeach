@@ -42,6 +42,16 @@ export function scriptFor(
     md += ` You selected: "${selection.slice(0, 80)}".`
   }
   md += ` (This is a scripted reply from the mock assistant.)`
+  if (/table/i.test(userText)) {
+    md += [
+      '',
+      '',
+      '| Form | Example |',
+      '| --- | --- |',
+      '| has lived | She has lived here. |',
+      '| have worked | They have worked here. |',
+    ].join('\n')
+  }
   return { kind: 'text', markdown: md }
 }
 

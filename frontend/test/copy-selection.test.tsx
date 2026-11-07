@@ -33,7 +33,10 @@ const select = (from: Node, fromOff: number, to: Node, toOff: number) => {
   })
 }
 
-const textNode = (el: Element): Text => el.firstChild as Text
+const textNode = (el: Element): Text => {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+  return walker.nextNode() as Text
+}
 
 vi.setConfig({ testTimeout: 20000 })
 
@@ -81,6 +84,20 @@ describe('Copy selection in the chat', () => {
     fireEvent.click(buttons[0])
     expect(writeText).toHaveBeenCalledTimes(1)
     expect(writeText).toHaveBeenCalledWith((contents[0].textContent ?? '').slice(0, 3))
+  })
+
+  it('copies the rendered text of a selection from the paragraph into a table cell', async () => {
+    await renderApp()
+    await send('give me a table', 1)
+    const content = document.querySelector('.msg.assistant .msg-content')!
+    expect(content.querySelector('table')).not.toBeNull()
+    const cells = content.querySelectorAll('td')
+    select(textNode(content), 0, textNode(cells[1]), 5)
+    fireEvent.click(await screen.findByLabelText('Copy selection'))
+    expect(writeText).toHaveBeenCalledTimes(1)
+    const copied = (writeText.mock.calls[0] as unknown as [string])[0]
+    expect(copied).toContain('scripted reply')
+    expect(copied).toContain('She h')
   })
 
   it('shows no button for a selection across two messages', async () => {

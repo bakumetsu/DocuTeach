@@ -99,6 +99,15 @@ def build_answer_key(doc: Doc) -> AnswerKey:
             for b in blanks:
                 if blank_text(b) == "(empty)":
                     _add_warning(f"empty_answer: question {qn.label} has an empty blank")
+        elif isinstance(block, Paragraph):
+            blanks = [x for x in block.content if isinstance(x, Blank)]
+            if not blanks:
+                continue
+            text = "; ".join(blank_text(b) for b in blanks)
+            section_lines.setdefault(qn.section, []).append(KeyLine(qn.label, text))
+            for b in blanks:
+                if blank_text(b) == "(empty)":
+                    _add_warning(f"empty_answer: question {qn.label} has an empty blank")
         elif isinstance(block, Mcq):
             correct = [chr(ord("a") + i) for i, opt in enumerate(block.options) if opt.correct]
             if not correct:
@@ -110,8 +119,11 @@ def build_answer_key(doc: Doc) -> AnswerKey:
                 text = ", ".join(correct)
             section_lines.setdefault(qn.section, []).append(KeyLine(qn.label, text))
 
+    numbered = {qn.index for qn in questions}
     other: list[str] = []
-    for block in doc.blocks:
+    for idx, block in enumerate(doc.blocks):
+        if idx in numbered:
+            continue
         if isinstance(block, (Paragraph, Heading)):
             for inline in block.content:
                 if isinstance(inline, Blank):

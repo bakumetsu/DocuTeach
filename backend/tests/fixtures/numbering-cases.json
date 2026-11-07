@@ -1,0 +1,71 @@
+[
+  {
+    "name": "mcq",
+    "markdown": "Which?\n- [ ] a\n- [x] b\n\nAnd?\n- [x] c\n- [ ] d\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "olist_with_blank",
+    "markdown": "1. I {{am}} here.\n2. You {{are}} here.\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "olist_without_blank",
+    "markdown": "1. Read.\n2. Write.\n",
+    "labels": []
+  },
+  {
+    "name": "paragraph_blank",
+    "markdown": "Intro text.\n\nShe {{is}} happy.\n\nHe {{was}} sad.\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "two_sections",
+    "markdown": "## A\n\n1. I {{am}}.\n\n## B\n\n1. You {{are}}.\n2. We {{are}}.\n",
+    "labels": [
+      "1",
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "note_between",
+    "markdown": "1. I {{am}}.\n\n::: teacher {tag=\"Notes\"}\nhint {{z}}\n:::\n\n2. You {{are}}.\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "split_point",
+    "markdown": "1. I {{am}}.\n\n<!-- split: Homework -->\n\n2. You {{are}}.\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "nested_list",
+    "markdown": "1. I {{am}}.\n   1. inner {{x}}\n2. You {{are}}.\n",
+    "labels": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "name": "bullets",
+    "markdown": "- one {{a}}\n- two\n\n1. I {{am}}.\n",
+    "labels": [
+      "1"
+    ]
+  }
+]

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from docuteach.md.model import (
+    Blank,
     BulletList,
     Doc,
     Heading,
@@ -18,6 +22,7 @@ from docuteach.md.model import (
     Text,
 )
 from docuteach.md.numbering import number_questions
+from docuteach.md.parser import parse_markdown
 
 
 def _doc(*blocks: object) -> Doc:
@@ -25,6 +30,10 @@ def _doc(*blocks: object) -> Doc:
 
 
 def _ordered(*texts: str) -> OrderedList:
+    return OrderedList(tuple(ListItem((Text(t), Blank(("x",)))) for t in texts))
+
+
+def _plain(*texts: str) -> OrderedList:
     return OrderedList(tuple(ListItem((Text(t),)) for t in texts))
 
 
@@ -48,7 +57,7 @@ def _bullet(*texts: str) -> BulletList:
                 Heading(2, (Text("B"),)),
                 _ordered("c", "d"),
             ),
-            ((1, 1, "1.1"), (1, 2, "1.2"), (2, 1, "2.1"), (2, 2, "2.2")),
+            ((1, 1, "1"), (1, 2, "2"), (2, 1, "1"), (2, 2, "2")),
         ),
         (
             "c",
@@ -79,7 +88,7 @@ def _bullet(*texts: str) -> BulletList:
                 OrderedList(
                     (
                         ListItem(
-                            (Text("a"),),
+                            (Text("a"), Blank(("x",))),
                             (
                                 OrderedList(
                                     (
@@ -107,10 +116,24 @@ def _bullet(*texts: str) -> BulletList:
         (
             "h",
             _doc(Heading(2, (Text("1. Rule"),)), _ordered("a", "b")),
-            ((1, 1, "1.1"), (1, 2, "1.2")),
+            ((1, 1, "1"), (1, 2, "2")),
+        ),
+        (
+            "i",
+            _doc(_plain("a", "b")),
+            (),
+        ),
+        (
+            "j",
+            _doc(
+                Paragraph((Text("I "), Blank(("am",)))),
+                Paragraph((Text("no blank"),)),
+                _ordered("a"),
+            ),
+            ((0, 1, "1"), (0, 2, "2")),
         ),
     ],
-    ids=["a", "b", "c", "d", "e", "f", "g", "h"],
+    ids=["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"],
 )
 def test_numbering(
     name: str,
@@ -130,3 +153,14 @@ def test_index_and_item() -> None:
     assert nums[0].item == 0
     assert nums[1].index == 0
     assert nums[1].item == 1
+
+
+_CASES = json.loads(
+    (Path(__file__).parent / "fixtures" / "numbering-cases.json").read_text(encoding="utf-8")
+)
+
+
+@pytest.mark.parametrize("case", _CASES, ids=[c["name"] for c in _CASES])
+def test_numbering_fixture(case: dict[str, object]) -> None:
+    doc = parse_markdown(str(case["markdown"])).doc
+    assert [q.label for q in number_questions(doc)] == case["labels"]

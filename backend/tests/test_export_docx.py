@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from docuteach.export.answer_key import KeyLine, build_answer_key
+from docuteach.export.answer_key import KeyLine, KeySection, build_answer_key
 from docuteach.export.docx_render import DocxResult, render_docx
 from docuteach.export.typst_inline import DEFAULT_PAGE, PageStyle, read_page_style
 from docuteach.md.model import Doc, Meta, Paragraph, Table, Text
@@ -55,10 +55,10 @@ def test_key_lines() -> None:
     assert key.sections[0].heading == "Part A"
     assert key.sections[1].heading == "Part B"
     assert key.sections[0].lines == (
-        KeyLine("1.1", "has lived / 's lived"),
-        KeyLine("1.2", "am; are"),
+        KeyLine("1", "has lived / 's lived"),
+        KeyLine("2", "am; are"),
     )
-    assert key.sections[1].lines == (KeyLine("2.1", "b, c"),)
+    assert key.sections[1].lines == (KeyLine("1", "b, c"),)
     assert key.other == ()
     assert key.warnings == ()
 
@@ -76,8 +76,8 @@ def test_key_other_blanks() -> None:
     md = "Intro {{alpha}} text.\n\n- bullet {{beta}}\n"
     doc, _ = _model(md)
     key = build_answer_key(doc)
-    assert key.sections == ()
-    assert key.other == ("alpha", "beta")
+    assert key.sections == (KeySection(None, (KeyLine("1", "alpha"),)),)
+    assert key.other == ("beta",)
 
 
 def test_docx_is_valid_zip_and_has_key() -> None:
@@ -96,8 +96,8 @@ def test_docx_is_valid_zip_and_has_key() -> None:
     texts = _texts(result.data)
     assert "Answer key" in texts
     assert "Part A" in texts
-    assert any(t.startswith("1.1") and "has lived / 's lived" in t for t in texts)
-    assert any(t.startswith("2.1") and t.endswith("b, c") for t in texts)
+    assert any(t.startswith("1  ") and "has lived / 's lived" in t for t in texts)
+    assert any(t.startswith("1  ") and t.endswith("b, c") for t in texts)
     ak_idx = texts.index("Answer key")
     she_idx = next(i for i, t in enumerate(texts) if "She" in t)
     assert ak_idx > she_idx
@@ -241,3 +241,18 @@ def test_docx_mcq_explanation_note_in_teacher_guide() -> None:
         ":::\n"
     )
     assert "ZZ-EXPLAIN-9" in _xml(_docx(md).data)
+
+
+def test_docx_paragraph_gap_fill_label() -> None:
+    md = "## A\n\n1. I {{am}}.\n2. You {{are}}.\n\nShe {{is}} happy.\n"
+    texts = _texts(_docx(md).data)
+    assert any(t.startswith("3.\tShe") for t in texts)
+    assert not any("1.1" in t or "2.1" in t for t in texts)
+
+
+def test_docx_nested_ordered_list_keeps_letters() -> None:
+    md = "1. I {{am}}.\n   1. inner one\n   2. inner two\n2. You {{are}}.\n"
+    texts = _texts(_docx(md).data)
+    assert any(t.startswith("1.\tI") for t in texts)
+    assert any(t.startswith("a.\tinner one") for t in texts)
+    assert any(t.startswith("b.\tinner two") for t in texts)

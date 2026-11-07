@@ -10,6 +10,7 @@ from docuteach.errors import ApiError
 from docuteach.export.fonts import FONTS_DIR, resolve_font, typst_font_arg
 from docuteach.export.table_layout import column_weights
 from docuteach.export.typst_inline import InlineWriter, PageStyle, typst_string
+from docuteach.md.numbering import number_blocks
 from docuteach.md.project import (
     StudentBlank,
     StudentBlock,
@@ -101,23 +102,28 @@ def _block_visible(block: StudentBlock) -> bool:
 
 def student_labels(doc: StudentDoc) -> dict[int, tuple[str, ...]]:
     """Map block index to tuple of question labels."""
-    labels: dict[int, tuple[str, ...]] = {}
-    section = 0
-    n = 0
-    for i, block in enumerate(doc.blocks):
+    kinds: list[tuple[str, bool, int]] = []
+    for block in doc.blocks:
         if isinstance(block, StudentHeading) and block.level == 2:
-            section += 1
-            n = 0
-        elif isinstance(block, StudentOrderedList):
-            item_labels: list[str] = []
-            for _ in block.items:
-                n += 1
-                item_labels.append(str(n) if section == 0 else f"{section}.{n}")
-            labels[i] = tuple(item_labels)
+            kinds.append(("h2", False, 0))
         elif isinstance(block, StudentMcq):
-            n += 1
-            labels[i] = (str(n) if section == 0 else f"{section}.{n}",)
-    return labels
+            kinds.append(("mcq", False, 0))
+        elif isinstance(block, StudentOrderedList):
+            has_blank = any(
+                any(isinstance(x, StudentBlank) for x in item.content)
+                for item in block.items
+            )
+            kinds.append(("olist", has_blank, len(block.items)))
+        elif isinstance(block, StudentParagraph):
+            has_blank = any(isinstance(x, StudentBlank) for x in block.content)
+            kinds.append(("para", has_blank, 0))
+        else:
+            kinds.append(("other", False, 0))
+    results = number_blocks(kinds)
+    grouped: dict[int, list[str]] = {}
+    for qn in results:
+        grouped.setdefault(qn.index, []).append(qn.label)
+    return {idx: tuple(lbls) for idx, lbls in grouped.items()}
 
 
 # ---------------------------------------------------------------------------
@@ -141,8 +147,23 @@ def _render_heading(writer: InlineWriter, block: StudentHeading) -> str:
     )
 
 
-def _render_paragraph(writer: InlineWriter, block: StudentParagraph) -> str:
+def _render_paragraph(
+    writer: InlineWriter,
+    block: StudentParagraph,
+    label: str | None = None,
+) -> str:
     inline = writer.emit(block.content)
+    if label is not None:
+        label_cell = f"[#{typst_string(label + '.')}"
+        align = _heading_align(block.align)
+        if align != "left":
+            content_cell = f"[#align({align})[{inline}]]"
+        else:
+            content_cell = f"[{inline}]"
+        return (
+            f"#grid(columns: (2.4em, 1fr), column-gutter: 0.3em, "
+            f"row-gutter: 0.6em, {label_cell}], {content_cell})"
+        )
     if block.align == "justify":
         return f"#par(justify: true)[{inline}]"
     align = _heading_align(block.align)
@@ -282,7 +303,8 @@ def _render_block(
     if isinstance(block, StudentHeading):
         return _render_heading(writer, block)
     if isinstance(block, StudentParagraph):
-        return _render_paragraph(writer, block)
+        para_labels = labels.get(block_idx, ())
+        return _render_paragraph(writer, block, para_labels[0] if para_labels else None)
     if isinstance(block, StudentBulletList):
         return _render_bullet_list(writer, block)
     if isinstance(block, StudentOrderedList):

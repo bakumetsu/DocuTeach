@@ -131,7 +131,7 @@ class _Builder:
         if isinstance(block, Heading):
             self._heading(block, container)
         elif isinstance(block, Paragraph):
-            self._para(block, container)
+            self._para(block, container, block_index)
         elif isinstance(block, OrderedList):
             self._ordered_list(block, container, 0, block_index)
         elif isinstance(block, BulletList):
@@ -153,9 +153,15 @@ class _Builder:
         scale = _HEADING_SCALE.get(block.level, 1.0)
         self._writer.add(p, block.content, size=self._page.size * scale, bold=True)
 
-    def _para(self, block: Paragraph, container: BlockItemContainer) -> None:
+    def _para(
+        self, block: Paragraph, container: BlockItemContainer, block_index: int | None = None
+    ) -> None:
         p = container.add_paragraph()
         p.alignment = _ALIGN_MAP.get(block.align, WD_ALIGN_PARAGRAPH.LEFT)
+        label = self._labels.get((block_index, None)) if block_index is not None else None
+        if label is not None:
+            hanging(p, 0.9, 0.9)
+            p.add_run(f"{label}.\t").bold = True
         self._writer.add(p, block.content)
 
     def _ordered_list(
@@ -168,10 +174,13 @@ class _Builder:
         for j, item in enumerate(block.items):
             p = container.add_paragraph()
             hanging(p, 0.9 * (depth + 1), 0.9)
-            if block_index is not None:
-                label = self._labels.get((block_index, j), "")
-            else:
+            label = self._labels.get((block_index, j)) if block_index is not None else None
+            if label is not None:
+                label = f"{label}."
+            elif depth > 0:
                 label = f"{chr(ord('a') + j)}."
+            else:
+                label = f"{j + 1}."
             run = p.add_run(f"{label}\t")
             run.bold = True
             self._writer.add(p, item.content)
@@ -203,11 +212,8 @@ class _Builder:
         self, block: Mcq, container: BlockItemContainer, block_index: int | None
     ) -> None:
         p = container.add_paragraph()
-        if block_index is not None:
-            label = self._labels.get((block_index, None), "")
-        else:
-            label = ""
-        run = p.add_run(f"{label}\t")
+        label = self._labels.get((block_index, None)) if block_index is not None else None
+        run = p.add_run(f"{label}.\t" if label is not None else "")
         run.bold = True
         self._writer.add(p, block.question)
         if block.multi:

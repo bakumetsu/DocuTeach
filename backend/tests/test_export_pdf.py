@@ -355,3 +355,11 @@ def test_mcq_explanation_note_not_in_student_pdf() -> None:
     text = pdf_text(build_pdf(md))
     assert "ZZ-EXPLAIN-9" not in text
     assert "✓" not in text
+
+
+def test_paragraph_gap_fill_label_in_source() -> None:
+    md = "## A\n\n1. I {{am}}.\n2. You {{are}}.\n\nShe {{is}} happy.\n"
+    _, sdoc, _ = student_doc(md)
+    src = render_source(sdoc, DEFAULT_PAGE).source
+    assert '"3."' in src
+    assert "2.1" not in src

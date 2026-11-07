@@ -210,7 +210,7 @@ export function ChatView() {
               <span className="msg-content">{msg.content}</span>
               {tokenStats && msg.role === 'assistant' && msg.stats && (
                 <span className="msg-stats">
-                  {`${msg.stats.in.toLocaleString('en-US')} in · ${msg.stats.out.toLocaleString('en-US')} out`}
+                  {`${(msg.stats.in + msg.stats.out).toLocaleString('en-US')} tokens`}
                   {msg.stats.tps !== null && ` · ${Math.round(msg.stats.tps)} tok/s`}
                 </span>
               )}

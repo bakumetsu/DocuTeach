@@ -242,10 +242,10 @@ export function MenuBar({ onAction }: MenuBarProps) {
                     onClick={() => activateItem(mi, ii)}
                     onMouseEnter={() => setActiveItem(ii)}
                   >
-                    {item.checkbox && (
-                      <span className="check">{isChecked(item.kind) ? '✓' : ''}</span>
-                    )}
                     <span>{item.label}</span>
+                    {item.checkbox && (
+                      <span className={`switch${isChecked(item.kind) ? ' on' : ''}`} aria-hidden="true" />
+                    )}
                   </button>
                 </Fragment>
               ))}

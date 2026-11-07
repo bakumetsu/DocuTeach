@@ -35,6 +35,7 @@ const MENUS: MenuDef[] = [
     items: [
       { label: 'Revert', id: 'edit.undo' },
       { label: 'Redo', id: 'edit.redo' },
+      { label: 'Number questions', id: 'edit.numberQuestions' },
       { label: 'Save checkpoint…', id: 'edit.checkpoint' },
       { label: 'Checkpoints…', id: 'edit.checkpoints' },
     ],

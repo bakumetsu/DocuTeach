@@ -17,6 +17,7 @@ import { ModelsDialog } from './dialogs/ModelsDialog';
 import { ConfirmHost } from './ConfirmHost';
 import { installGlobalKeys } from '../editor/globalKeys';
 import { revert, redo } from '../editor/history';
+import { removeTypedNumbers } from '../editor/commands';
 import {
   newDocument,
   openDocument,
@@ -95,6 +96,17 @@ export function Shell() {
         case 'edit.redo':
           redo();
           break;
+        case 'edit.numberQuestions': {
+          const ed = useApp.getState().editor;
+          if (!ed) break;
+          const changed = removeTypedNumbers(ed);
+          useApp.getState().showToast(
+            changed > 0
+              ? `Removed typed numbers from ${changed} question${changed === 1 ? '' : 's'}`
+              : 'No typed numbers found',
+          );
+          break;
+        }
         case 'options.skills':
           setDialog('skills');
           break;

@@ -23,7 +23,6 @@
 .page-content {
   outline: none;
   min-height: 60vh;
-  counter-reset: q 0;
 }
 
 .page-content p {
@@ -44,7 +43,6 @@
 .page-content h2 {
   font-size: 1.3em;
   margin: .8em 0 .3em;
-  counter-reset: q;
 }
 
 .page-content h3 {
@@ -269,29 +267,21 @@
   margin-bottom: .3em;
 }
 
-/* ── Numbering (section 7) ─────────────────────────────────────── */
-.page-content > ol {
+/* ── Numbering (decorations from numberingPlugin) ────────────── */
+.page-content > ol.q-list {
   list-style: none;
   padding-left: 0;
 }
 
-.page-content > ol > li {
-  counter-increment: q;
+.page-content > ol.q-list > li {
   display: block;
 }
 
-.page-content > ol > li > p:first-child::before {
-  content: counter(q) ". ";
+.q-num {
+  display: inline-block;
+  min-width: 2.4em;
   font-weight: 600;
-}
-
-.page-content > .react-renderer.node-mcq {
-  counter-increment: q;
-}
-
-.page-content > .react-renderer.node-mcq .mcq-question::before {
-  content: counter(q) ". ";
-  font-weight: 600;
+  user-select: none;
 }
 
 /* ── Warnings strip ────────────────────────────────────────────── */

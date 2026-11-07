@@ -1,6 +1,7 @@
 import type { Editor } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import { TextSelection, NodeSelection } from '@tiptap/pm/state'
+import { numberQuestions } from './numbering'
 
 /**
  * Wraps a discrete editing action so it becomes exactly one undo step.
@@ -330,4 +331,42 @@ export function setNoteUnlocked(editor: Editor, pos: number, unlocked: boolean):
       .setNodeMarkup(pos, undefined, { ...editor.state.doc.nodeAt(pos)?.attrs, unlocked })
     editor.view.dispatch(tr)
   })
+}
+
+/**
+ * Removes typed number prefixes (e.g. "1.", "2)", "(3):") from question text blocks.
+ * All deletions are applied in a single undo step.
+ * @returns The number of questions whose prefix was removed.
+ */
+export function removeTypedNumbers(editor: Editor): number {
+  let count = 0
+  step(editor, () => {
+    const doc = editor.state.doc
+    const qs = numberQuestions(doc)
+    const ranges: [number, number][] = []
+
+    for (const q of qs) {
+      if (q.textPos === -1) continue
+      const block = doc.resolve(q.textPos).parent
+      const text = block.textContent
+      const match = /^\s*\(?\d{1,3}[.):]\s+/.exec(text)
+      if (!match) continue
+      // Guard: prefix must be contiguous plain text (no inline nodes like blank in between)
+      if (doc.textBetween(q.textPos, q.textPos + match[0].length) !== match[0]) continue
+      ranges.push([q.textPos, q.textPos + match[0].length])
+    }
+
+    if (ranges.length > 0) {
+      const tr = editor.state.tr
+      // Delete in reverse order so earlier positions remain valid
+      for (let i = ranges.length - 1; i >= 0; i--) {
+        const [from, to] = ranges[i]
+        tr.delete(from, to)
+      }
+      editor.view.dispatch(tr)
+    }
+
+    count = ranges.length
+  })
+  return count
 }

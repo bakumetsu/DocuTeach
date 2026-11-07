@@ -4,7 +4,7 @@ A local, private editor for an English grammar teacher. One Markdown document is
 
 ## Status
 
-Frontend, FastAPI backend (lesson library, checkpoints, student PDF and teacher DOCX export, streamed local LLM drafts, AI page edits shown as suggestions to accept or reject, skill files, custom local models) and a Windows desktop launcher. Plain `pnpm dev` without the backend uses a mock in the browser (localStorage).
+Frontend, FastAPI backend (lesson library, checkpoints, student PDF and teacher DOCX export with auto-numbered questions, streamed local LLM drafts, assistant chat with Markdown tables, AI page edits shown as suggestions to accept or reject, skill files, custom local models) and a Windows desktop launcher. Plain `pnpm dev` without the backend uses a mock in the browser (localStorage).
 
 ## Prerequisites
 

@@ -18,12 +18,12 @@ All source lives under `frontend/src/`.
 |--------|---------------|
 | `main.tsx`, `App.tsx` | Entry point and root component. |
 | `api/` | `types.ts` defines `interface DocuTeachApi` (models including custom models, `chat.stream`, chats, skills, lessons, docs with checkpoints, export, fonts). `index.ts` exports `api = hasToken() ? httpApi : mockApi`. `api/http/` is the real client (`client.ts` sends `X-DocuTeach-Token` to `/api`, `stream.ts` reads the chat stream, `export.ts` downloads exports). `api/mock/` implements the mock (chat, config, docs, models, script, skills). Docs and checkpoints are persisted in `localStorage` under keys prefixed `docuteach:v1:doc:` and `docuteach:v1:ckpt:`. |
-| `markdown/` | Pure Markdown parse/serialise layer. `parse.ts` (`parseMarkdown`, `parseFragment`), `serialize.ts`, `serialize-inline.ts`, `blocks.ts`, `inline.ts`, `escape.ts`, `frontmatter.ts` (YAML → `Meta`), `md.ts` (`createMd`: markdown-it with `html:false`, `linkify:false`), `rules/` (custom markdown-it rules for blank, comment, div, mark, raw, span, table). |
-| `editor/` | TipTap integration. `extensions.ts` (extension list, StarterKit). `nodes/` (Align, Blank, DocMeta, Mcq/McqQuestion/McqOption, RawBlock, SplitPoint, TeacherNote). `nodeviews/` (React views for Blank, Mcq, Raw, Split, TeacherNote). `EditorPane.tsx`, `PreviewPane.tsx`. `project.ts` (`projectStudent`). `ViewContext.ts` (`ViewMode`). `stream.ts` (StreamSlot, `startPageStream`, `cancelPageStream`). `insert.ts` (`validateFragment`, `plainParagraphs`, `insertFragment`). `history.ts` (revert/redo, `setDraftCanceller`). `guards.ts` (SplitGuard). `docio.ts` (`docToMarkdown`, `docJsonFromMarkdown`). Plus commands, formatting, keymaps, numbering, page style, split config, selection popover, page handlers, initial doc, UI extensions. `suggest/` holds AI edit suggestions (`plugin.ts` state, `card.ts` cards, `apply.ts` accept/reject, `edit.ts` request, `snapshot.ts`, `diff.ts`), and `ReviewBar.tsx` is the accept/reject bar. `pageBreaks.ts` and `pageBreaksPlugin.ts` draw page gaps and A4 page breaks. `listLines.ts` toggles list lines and `TableHandle.tsx` is the table handle. |
-| `assistant/` | `AssistantPane.tsx`, `ChatTabs.tsx`, `ChatView.tsx`, `SkillsTab.tsx`, `SlashList.tsx`, `OfflineNotice.tsx` and `aiNotice.ts` (offline or busy notice with Retry). `chatStore.ts` (zustand `useChats`). `editEntry.ts` (zustand `useEditEntry`: edit mode, scope, lock). `ContextRing.tsx` and `contextUsage.ts` (context-window ring). `reply.ts`. `pageBridge.ts` (`setPageHandlers`, `runPageSkill`, `insertFromChat`). |
+| `markdown/` | Pure Markdown parse/serialise layer. `parse.ts` (`parseMarkdown`, `parseFragment`), `serialize.ts`, `serialize-inline.ts`, `blocks.ts`, `inline.ts`, `escape.ts`, `frontmatter.ts` (YAML → `Meta`), `md.ts` (`createMd`: markdown-it with `html:false`, `linkify:false`; `createChatMd`: chat variant with tables only, no links or HTML), `rules/` (custom markdown-it rules for blank, comment, div, mark, raw, span, table). |
+| `editor/` | TipTap integration. `extensions.ts` (extension list, StarterKit). `nodes/` (Align, Blank, DocMeta, Mcq/McqQuestion/McqOption, RawBlock, SplitPoint, TeacherNote). `nodeviews/` (React views for Blank, Mcq, Raw, Split, TeacherNote). `EditorPane.tsx`, `PreviewPane.tsx`. `project.ts` (`projectStudent`). `ViewContext.ts` (`ViewMode`). `stream.ts` (StreamSlot, `startPageStream`, `cancelPageStream`). `insert.ts` (`validateFragment`, `plainParagraphs`, `insertFragment`). `history.ts` (revert/redo, `setDraftCanceller`). `guards.ts` (SplitGuard). `docio.ts` (`docToMarkdown`, `docJsonFromMarkdown`). `modelMarkdown.ts` (`normalizeModelMarkdown`) rewrites multiple-choice forms from model output into `- [ ]` / `- [x]` syntax before insert. Plus commands, formatting, keymaps, numbering (`numbering.ts`; `numberingPlugin.ts` draws the question-number widgets), page style, split config, selection popover, page handlers, initial doc, UI extensions. `suggest/` holds AI edit suggestions (`plugin.ts` state, `card.ts` cards, `apply.ts` accept/reject, `edit.ts` request, `snapshot.ts`, `diff.ts`), and `ReviewBar.tsx` is the accept/reject bar. `pageBreaks.ts` and `pageBreaksPlugin.ts` draw page gaps and A4 page breaks. `listLines.ts` toggles list lines and `TableHandle.tsx` is the table handle. |
+| `assistant/` | `AssistantPane.tsx`, `ChatTabs.tsx`, `ChatView.tsx`, `SkillsTab.tsx`, `SlashList.tsx`, `OfflineNotice.tsx` and `aiNotice.ts` (offline or busy notice with Retry). `chatStore.ts` (zustand `useChats`). `editEntry.ts` (zustand `useEditEntry`: edit mode, scope, lock). `ContextRing.tsx` and `contextUsage.ts` (context-window ring). `reply.ts`. `ChatMarkdown.tsx` renders assistant replies as Markdown (tables included). `pageBridge.ts` (`setPageHandlers`, `runPageSkill`, `insertFromChat`). |
 | `files/` | `exportActions.ts` (`loadExportPlan`, `runExport`). `fileio.ts` (File System Access API open/save, `hasFsAccess`). `fileActions.ts` (`newDocument`, `openDocument`, `saveDocument`, `saveCheckpoint`, `restoreCheckpoint`). `autosave.ts` (`startAutosave`, `flushAutosave`). `fsaccess.d.ts` (type shims). |
 | `state/` | `store.ts` (zustand `useApp`: theme, day/night palette, background, spellcheck, tokenStats, view, assistantWidth, assistantCollapsed, saveState, fileName, dirty, editor, toast, warnings, docMeta, dialog). `persist.ts` (`loadJson`/`saveJson` to `localStorage`, prefix `docuteach:v1:`). |
-| `ui/` | Shell, MenuBar, Toolbar, ViewTabs, Popover, ConfirmHost, dialogs (Dialog, CheckpointsDialog, HelpDialogs, LessonsDialog, PageStyleDialog, SplitDialog, SkillsDialog, ModelsDialog with ModelEditForm, ThemeDialog for the colour theme). The toolbar holds font and size controls and the Export menu. The MenuBar Options menu groups Editor, Theme, Skills and Models, with the opt-in "Show token stats" toggle. |
+| `ui/` | Shell, MenuBar, Toolbar, ViewTabs, Popover, ConfirmHost, dialogs (Dialog, CheckpointsDialog, HelpDialogs, LessonsDialog, PageStyleDialog, SplitDialog, SkillsDialog, ModelsDialog with ModelEditForm, ThemeDialog for the colour theme). The toolbar holds font and size controls and the Export menu. The MenuBar Edit menu has Number questions. The MenuBar Options menu groups Editor, Theme, Skills and Models, with the opt-in "Show token stats" toggle. |
 | `styles/` | `app.css`, `page.css`, `tokens.css`. `tokens.css` holds the colour themes: `data-theme` (light or dark) and `data-palette` on the root element pick one of five day and five night palettes. |
 
 ## Custom blocks and the Markdown round trip
@@ -32,10 +32,12 @@ Four custom block/inline constructs are defined. The round trip (parse → seria
 
 | Block | Markdown syntax | ProseMirror node |
 |-------|----------------|-----------------|
-| Teacher note | Fenced `::: teacher {tag="CCQ" unlocked="true"}` … `:::` (tag and `unlocked` optional; `unlocked` lets the local model edit the note) | `TeacherNote` |
+| Teacher note | Fenced `::: teacher {tag="CCQ" unlocked="true"}` … `:::` (tag and `unlocked` optional; `unlocked` lets the local model edit the note; the lock button on each note in edit view sets it) | `TeacherNote` |
 | Blank (answer) | Inline `{{answer}}`; alternatives separated by `\|` e.g. `{{has lived \| 's lived}}`; escapes `\|`, `\}`, `\\`, `\{{` | `Blank` (attr `answers[]`) |
 | Multiple choice | Question paragraph followed by `- [ ] option` / `- [x] correct option` list | `Mcq` (attr `multi`), `McqQuestion`, `McqOption` (attr `correct`) |
 | Split point | `<!-- split: Homework starts here -->` | `SplitPoint` (attr `label`) |
+
+**Tables.** GFM pipe tables. Column alignment (`:---`, `:---:`, `---:`) round-trips through parse, editor and serialiser.
 
 **Unknown content.** Code fences, block quotes, HTML comments, and other unrecognised structures are captured as `RawBlock` and written back verbatim.
 
@@ -76,7 +78,7 @@ The student view therefore never receives teacher content.
 
 1. Anchors a ProseMirror plugin slot (`StreamSlot` extension, keyed by `slotKey`) at the end of the top-level block of the selection.
 2. Appended tokens are held in plugin state and rendered as a widget; the meta flag `addToHistory: false` keeps them out of the history stack.
-3. On completion the accumulated text is parsed (`parseFragment`), validated (`validateFragment`), and inserted by `insertFragment` in a single transaction. Invalid output falls back to plain paragraphs (`plainParagraphs`).
+3. On completion the accumulated text is normalised (`normalizeModelMarkdown`), parsed (`parseFragment`), validated (`validateFragment`), and inserted by `insertFragment` in a single transaction. Invalid output falls back to plain paragraphs (`plainParagraphs`).
 4. The single transaction is **one undo step**.
 5. Before the insert a checkpoint named `Before AI: <skill>` is saved, so the draft can be rolled back.
 
@@ -159,7 +161,7 @@ Network connections are allowed only to the page origin and to loopback hosts (`
 ### `llm/`
 - `client.py` `LlmClient` → local llama-swap; requests ask for `include_usage` · `models.py` lists/selects (allowlist unless `allow_all_models`), manages the default, unloads models; the llama-server path is read from `models.json`, then settings
 - `overlay.py` `Overlay` writes custom model entries to the llama-swap YAML. A form (`ModelForm`) is validated (id `^[a-z][a-z0-9-]{1,31}$`, `llama-server.exe` path), turned into a command line, and saved with a history entry for undo. The overlay goes to `overlay_dir` when set.
-- `slots.py` `SlotTable` one-chat-one-KV-slot (LRU, never evicts generating) · `stream.py` `LlmService` token streaming; emits a `stats` event (input and output tokens, tokens/s from the llama-server timings) after the reply
+- `slots.py` `SlotTable` one-chat-one-KV-slot (LRU, never evicts generating) · `stream.py` `LlmService` token streaming; emits a `stats` event (input and output tokens, tokens/s from the llama-server timings) after the reply · `replyTo` cuts the history to the replied-to branch (`_branch_messages`; plain questions only) · the default system prompt asks for Markdown pipe tables (`TABLE_PROMPT`)
 
 ### `edits/`
 - `__init__.py` `EditPayload` / `EditBlock` request models · `prompt.py` edit prompt · `ops.py` parser for model output · `check.py` `OpChecker` (checks and protection) · `run.py` `EditRun` turns parser output into stream events. See "AI page edits" above.
@@ -174,6 +176,7 @@ Network connections are allowed only to the page origin and to loopback hosts (`
 - `split.py` plan: parts target `student_pdf` or `teacher_docx`. Modes: none (Student + Teacher copy) / page ranges (Part N + Teacher guide) / split marker (Lesson, Homework + Teacher guide) / default (one part, both targets)
 - Student PDF: `typst_render.py`/`typst_inline.py` via `typst`; `fonts/` variable fonts; pypdf cuts ranges
 - Teacher DOCX: `docx_render.py`/`docx_inline.py`/`docx_xml.py` via python-docx; `answer_key.py` builds key; `names.py` sanitises
+- Question numbers (`md/numbering.py` `number_blocks`) label questions in both the PDF and the DOCX (answer key included). Tables keep alignment, column widths (`table_layout.py`), header row and shading in both
 - POST `/export`: thread + gate (`export_timeout_s`); returns file + `X-DocuTeach-Warnings` (URL-encoded JSON)
 
 ## Desktop app
@@ -193,8 +196,8 @@ Test files live in `frontend/test/` (vitest + jsdom + testing-library). Fixtures
 |------|-----------|
 | Markdown round trip | `roundtrip.test.ts`, `property.test.ts`, fixtures, normalise pairs |
 | Markdown unit | `parse`, `serialize`, `serialize-inline`, `inline`, `escape`, `frontmatter`, `rules-*` |
-| Editor / ProseMirror | `schema`, `commands`, `formatting`, `guards`, `numbering`, `pageStyle`, `splitConfig`, `project`, `docio`, `stream` |
-| API / Assistant | `chatStore`, `assistant.test.tsx`, `mock-api`, `mock-docs`, `edit-entry`, `contextUsage`, `reply-spellcheck`, `token-stats` |
+| Editor / ProseMirror | `schema`, `commands`, `formatting`, `guards`, `numbering`, `numbering-editor`, `model-markdown`, `table-align`, `pageStyle`, `splitConfig`, `project`, `docio`, `stream` |
+| API / Assistant | `chatStore`, `assistant.test.tsx`, `chat-markdown`, `copy-selection`, `mock-api`, `mock-docs`, `edit-entry`, `contextUsage`, `reply-spellcheck`, `token-stats` |
 | AI edits | `suggest-core`, `suggest-ui`, `bulkEdit`, `bulkAlign` |
 | Files | `autosave`, `fileio`, `fileActions`, `checkpoints-dialog` |
 | UI | `toolbar`, `dialogs`, `globalKeys`, `theme`, `tokens`, `skills-models-dialogs`, `models-dialog-overlay`, `unload-model`, `selectionPopover`, `tableHandle` |

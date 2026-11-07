@@ -1,0 +1,44 @@
+[project]
+name = "docuteach"
+version = "0.1.0"
+description = "DocuTeach backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "httpx",
+    "pydantic>=2",
+    "pyyaml",
+    "markdown-it-py",
+    "anyio",
+    "typst",
+    "pypdf",
+    "python-docx",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "pyright",
+    "hypothesis",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["llm: needs the real model behind llama-swap (holds the GPU slot)"]
+addopts = "-m 'not llm'"
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]

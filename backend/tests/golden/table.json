@@ -1,0 +1,212 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Table",
+    "rows": [
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Tense",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Example",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Present perfect",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "She ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Blank",
+         "answers": [
+          "has lived",
+          "'s lived"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " here.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Past simple",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "She lived here | in 2019.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Mixed",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "The answer is ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Blank",
+         "answers": [
+          "a|b"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " and ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": "italic",
+         "marks": [
+          "italic"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " too.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Bold cell",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "bold",
+         "marks": [
+          "bold"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " and ",
+         "marks": [],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": "underlined",
+         "marks": [
+          "underline"
+         ],
+         "style": null
+        },
+        {
+         "type": "Text",
+         "text": " marks.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ]
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}

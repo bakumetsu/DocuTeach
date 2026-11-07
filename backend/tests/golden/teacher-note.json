@@ -1,0 +1,161 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "TeacherNote",
+    "tag": "CCQ",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Is the action finished? (Not necessarily.)",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Pitfalls",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Students often confuse it with the past simple.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Distractors",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "lives",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ": present simple cannot take ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "since",
+        "marks": [
+         "italic"
+        ],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": ".",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "No tag here.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "He said \"hi\"",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "A note with a quote in the tag.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "CCQ",
+    "blocks": [
+     {
+      "type": "BulletList",
+      "items": [
+       {
+        "type": "ListItem",
+        "content": [
+         {
+          "type": "Text",
+          "text": "Does she still live there? (Yes.)",
+          "marks": [],
+          "style": null
+         }
+        ],
+        "nested": []
+       },
+       {
+        "type": "ListItem",
+        "content": [
+         {
+          "type": "Text",
+          "text": "Is he still working? (No.)",
+          "marks": [],
+          "style": null
+         }
+        ],
+        "nested": []
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}

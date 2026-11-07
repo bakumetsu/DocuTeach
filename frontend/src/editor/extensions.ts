@@ -1,0 +1,74 @@
+import { getSchema } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
+import { Highlight } from '@tiptap/extension-highlight'
+import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table'
+import { ListItem } from '@tiptap/extension-list'
+
+import { DocMeta } from './nodes/DocMeta'
+import { TeacherNote } from './nodes/TeacherNote'
+import { Blank } from './nodes/Blank'
+import { Mcq, McqQuestion, McqOption } from './nodes/Mcq'
+import { SplitPoint } from './nodes/SplitPoint'
+import { RawBlock } from './nodes/RawBlock'
+import { Align } from './nodes/Align'
+import { FontStyle } from './fontStyle'
+import { SuggestExtension } from './suggest/plugin'
+
+const cellAlign = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.style.textAlign || null,
+  renderHTML: (attrs: Record<string, unknown>) =>
+    attrs.textAlign ? { style: `text-align: ${String(attrs.textAlign)}` } : {},
+}
+
+export const extensions = [
+  DocMeta,
+  StarterKit.configure({
+    document: false,
+    link: false,
+    blockquote: false,
+    codeBlock: false,
+    code: false,
+    strike: false,
+    horizontalRule: false,
+    listKeymap: false,
+    trailingNode: false,
+    listItem: false,
+    heading: {
+      levels: [1, 2, 3, 4, 5, 6],
+    },
+    undoRedo: {
+      newGroupDelay: 500,
+    },
+  }),
+  ListItem.extend({
+    content: 'paragraph (bulletList | orderedList)?',
+  }),
+  Highlight.configure({ multicolor: false }),
+  FontStyle,
+  Table,
+  TableRow,
+  TableHeader.extend({
+    content: 'paragraph',
+    addAttributes() {
+      return { ...this.parent?.(), textAlign: cellAlign }
+    },
+  }),
+  TableCell.extend({
+    content: 'paragraph',
+    addAttributes() {
+      return { ...this.parent?.(), textAlign: cellAlign }
+    },
+  }),
+  TeacherNote,
+  Blank,
+  Mcq,
+  McqQuestion,
+  McqOption,
+  SplitPoint,
+  RawBlock,
+  Align,
+  SuggestExtension,
+]
+
+export const schema = getSchema(extensions)

@@ -1,0 +1,674 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "We use ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "Present Perfect",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Merriweather",
+       "size": 14.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": " for ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "unfinished",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 16.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": " time.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "The font name is ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "Roboto",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Roboto",
+       "size": null
+      }
+     },
+     {
+      "type": "Text",
+      "text": " throughout this section.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "This line sets a ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "fixed size",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 14.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": " without naming a font.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Here both apply: ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "fifteen-point Roboto",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Roboto",
+       "size": 15.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "bold inside a span",
+      "marks": [
+       "bold"
+      ],
+      "style": {
+       "type": "Style",
+       "font": "Roboto",
+       "size": null
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "italic inside a span",
+      "marks": [
+       "italic"
+      ],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 14.0
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "highlight inside a span",
+      "marks": [
+       "highlight"
+      ],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 14.0
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "underline inside a span",
+      "marks": [
+       "underline"
+      ],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 14.0
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "The blank ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "has lived"
+      ],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 16.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": " fills the gap, while ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Blank",
+      "answers": [
+       "lives"
+      ],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": " sits next to plain text.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "First ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "styled run",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Roboto",
+       "size": 14.0
+      }
+     },
+     {
+      "type": "Break"
+     },
+     {
+      "type": "Text",
+      "text": "Second ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "styled run",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 12.0
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Unit 3",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Be Vietnam Pro",
+       "size": 28.0
+      }
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "BulletList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "A bullet with ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "styled text",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": "Noto Sans",
+         "size": 14.0
+        }
+       },
+       {
+        "type": "Text",
+        "text": " inside it.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   },
+   {
+    "type": "OrderedList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "An ordered item with ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "styled text",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": null,
+         "size": 16.0
+        }
+       },
+       {
+        "type": "Text",
+        "text": " inside it.",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   },
+   {
+    "type": "Mcq",
+    "question": [
+     {
+      "type": "Text",
+      "text": "Which verb fits?",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "options": [
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "three",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": null,
+         "size": 14.0
+        }
+       }
+      ],
+      "correct": false
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "has lived",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": "Roboto",
+         "size": null
+        }
+       }
+      ],
+      "correct": true
+     },
+     {
+      "type": "McqOption",
+      "content": [
+       {
+        "type": "Text",
+        "text": "plain",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "correct": false
+     }
+    ],
+    "multi": false
+   },
+   {
+    "type": "TeacherNote",
+    "tag": "Notes",
+    "blocks": [
+     {
+      "type": "Paragraph",
+      "content": [
+       {
+        "type": "Text",
+        "text": "The correct tense is ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "Present Perfect",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": "Merriweather",
+         "size": 14.0
+        }
+       },
+       {
+        "type": "Text",
+        "text": ".",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "align": "left"
+     }
+    ]
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Centered styled text",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Roboto",
+       "size": 14.0
+      }
+     }
+    ],
+    "align": "center"
+   },
+   {
+    "type": "Table",
+    "rows": [
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Tense",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Example",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": true
+      }
+     ],
+     [
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "Past simple",
+         "marks": [],
+         "style": {
+          "type": "Style",
+          "font": "Roboto",
+          "size": null
+         }
+        }
+       ],
+       "header": false
+      },
+      {
+       "type": "TableCell",
+       "content": [
+        {
+         "type": "Text",
+         "text": "She lived here.",
+         "marks": [],
+         "style": null
+        }
+       ],
+       "header": false
+      }
+     ]
+    ]
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "An unlisted font reads ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "Comic text",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Comic Sans MS",
+       "size": null
+      }
+     },
+     {
+      "type": "Text",
+      "text": " and a half-point size reads ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "small",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": null,
+       "size": 10.5
+      }
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "BulletList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "x",
+        "marks": [],
+        "style": {
+         "type": "Style",
+         "font": null,
+         "size": 14.0
+        }
+       },
+       {
+        "type": "Text",
+        "text": " text",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "[x] literal",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "A Vietnamese run: ",
+      "marks": [],
+      "style": null
+     },
+     {
+      "type": "Text",
+      "text": "Tiếng Việt",
+      "marks": [],
+      "style": {
+       "type": "Style",
+       "font": "Noto Sans",
+       "size": 12.0
+      }
+     },
+     {
+      "type": "Text",
+      "text": ".",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Not a span: [x]{size=14}",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": [
+  "unlisted_font: Comic Sans MS"
+ ]
+}

@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+httpx
+pydantic>=2
+pyyaml
+markdown-it-py
+anyio
+typst
+pypdf
+python-docx
+
+# dev
+pytest
+ruff
+pyright
+hypothesis

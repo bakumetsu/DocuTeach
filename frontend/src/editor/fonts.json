@@ -1,0 +1,12 @@
+[
+  { "name": "Noto Sans", "kind": "sans", "stack": "\"Noto Sans\", Arial, sans-serif" },
+  { "name": "Noto Serif", "kind": "serif", "stack": "\"Noto Serif\", Georgia, serif" },
+  { "name": "Roboto", "kind": "sans", "stack": "\"Roboto Variable\", \"Roboto\", \"Noto Sans\", sans-serif" },
+  { "name": "Open Sans", "kind": "sans", "stack": "\"Open Sans Variable\", \"Open Sans\", \"Noto Sans\", sans-serif" },
+  { "name": "Source Sans 3", "kind": "sans", "stack": "\"Source Sans 3 Variable\", \"Source Sans 3\", \"Noto Sans\", sans-serif" },
+  { "name": "Merriweather", "kind": "serif", "stack": "\"Merriweather Variable\", \"Merriweather\", \"Noto Serif\", serif" },
+  { "name": "Be Vietnam Pro", "kind": "sans", "stack": "\"Be Vietnam Pro\", \"Noto Sans\", sans-serif" },
+  { "name": "Noto Sans Mono", "kind": "mono", "stack": "\"Noto Sans Mono\", Consolas, monospace" },
+  { "name": "Arial", "kind": "sans", "stack": "Arial, \"Noto Sans\", sans-serif" },
+  { "name": "Times New Roman", "kind": "serif", "stack": "\"Times New Roman\", \"Noto Serif\", serif" }
+]

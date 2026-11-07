@@ -1,0 +1,75 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Centered paragraph text.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "center"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Right paragraph text.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "right"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Justified paragraph text.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "justify"
+   },
+   {
+    "type": "Heading",
+    "level": 1,
+    "content": [
+     {
+      "type": "Text",
+      "text": "Centered heading",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "center"
+   },
+   {
+    "type": "Paragraph",
+    "content": [
+     {
+      "type": "Text",
+      "text": "Left paragraph text.",
+      "marks": [],
+      "style": null
+     }
+    ],
+    "align": "left"
+   }
+  ]
+ },
+ "warnings": []
+}

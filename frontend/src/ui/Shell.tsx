@@ -1,0 +1,248 @@
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { ChevronsLeft } from 'lucide-react';
+import { useApp, initTheme } from '../state/store';
+import { MenuBar } from './MenuBar';
+import { Toolbar } from './Toolbar';
+import { ViewTabs } from './ViewTabs';
+import { EditorPane } from '../editor/EditorPane';
+import { PreviewPane } from '../editor/PreviewPane';
+import { ThemeDialog } from './dialogs/ThemeDialog';
+import { PageStyleDialog } from './dialogs/PageStyleDialog';
+import { SplitDialog } from './dialogs/SplitDialog';
+import { ShortcutsDialog, AboutDialog } from './dialogs/HelpDialogs';
+import { CheckpointsDialog } from './dialogs/CheckpointsDialog';
+import { LessonsDialog } from './dialogs/LessonsDialog';
+import { SkillsDialog } from './dialogs/SkillsDialog';
+import { ModelsDialog } from './dialogs/ModelsDialog';
+import { ConfirmHost } from './ConfirmHost';
+import { installGlobalKeys } from '../editor/globalKeys';
+import { revert, redo } from '../editor/history';
+import { removeTypedNumbers } from '../editor/commands';
+import {
+  newDocument,
+  openDocument,
+  saveDocument,
+  saveCheckpoint,
+} from '../files/fileActions';
+import { AssistantPane } from '../assistant/AssistantPane';
+import { api } from '../api';
+
+export function Shell() {
+  const assistantWidth = useApp((s) => s.assistantWidth);
+  const assistantCollapsed = useApp((s) => s.assistantCollapsed);
+  const setAssistantWidth = useApp((s) => s.setAssistantWidth);
+  const setAssistantCollapsed = useApp((s) => s.setAssistantCollapsed);
+  const warnings = useApp((s) => s.warnings);
+  const setWarnings = useApp((s) => s.setWarnings);
+  const toast = useApp((s) => s.toast);
+  const view = useApp((s) => s.view);
+  const dialog = useApp((s) => s.dialog);
+  const setDialog = useApp((s) => s.setDialog);
+
+  const docPaneRef = useRef<HTMLDivElement>(null);
+  const scrollTops = useRef<Record<string, number>>({});
+
+  // Init theme once on mount
+  useEffect(() => {
+    initTheme();
+  }, []);
+
+  // Install global keyboard shortcuts
+  useEffect(() => {
+    return installGlobalKeys();
+  }, []);
+
+  // Save previous scroll, restore current on view change
+  useLayoutEffect(() => {
+    const pane = docPaneRef.current;
+    if (!pane) return;
+
+    const tops = scrollTops.current;
+
+    // Restore scroll for the new view
+    pane.scrollTop = tops[view] ?? 0;
+
+    // On cleanup (before next view change), save the outgoing view's scroll
+    return () => {
+      tops[view] = pane.scrollTop;
+    };
+  }, [view]);
+
+  // ── Menu bar actions ──────────────────────────────────────
+  const handleMenuAction = useCallback(
+    (id: string) => {
+      switch (id) {
+        case 'file.new':
+          newDocument();
+          break;
+        case 'file.lessons':
+          setDialog('lessons');
+          break;
+        case 'file.open':
+          openDocument();
+          break;
+        case 'file.save':
+          saveDocument();
+          break;
+        case 'file.saveAs':
+          saveDocument(true);
+          break;
+        case 'edit.checkpoint':
+          saveCheckpoint();
+          break;
+        case 'edit.undo':
+          revert();
+          break;
+        case 'edit.redo':
+          redo();
+          break;
+        case 'edit.numberQuestions': {
+          const ed = useApp.getState().editor;
+          if (!ed) break;
+          const changed = removeTypedNumbers(ed);
+          useApp.getState().showToast(
+            changed > 0
+              ? `Removed typed numbers from ${changed} question${changed === 1 ? '' : 's'}`
+              : 'No typed numbers found',
+          );
+          break;
+        }
+        case 'options.skills':
+          setDialog('skills');
+          break;
+        case 'options.models':
+          setDialog('models');
+          break;
+        case 'options.colorTheme':
+          setDialog('colorTheme');
+          break;
+        case 'tools.pageStyle':
+          setDialog('pageStyle');
+          break;
+        case 'file.split':
+          setDialog('split');
+          break;
+        case 'help.shortcuts':
+          setDialog('shortcuts');
+          break;
+        case 'help.installFonts':
+          api.fonts.openFolder().catch(() => useApp.getState().showToast('Could not open the fonts folder'));
+          break;
+        case 'help.about':
+          setDialog('about');
+          break;
+        case 'edit.checkpoints':
+          setDialog('checkpoints');
+          break;
+        default:
+          break;
+      }
+    },
+    [setDialog],
+  );
+
+  // ── Gutter drag ────────────────────────────────────────────
+  const handleGutterPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const el = e.currentTarget;
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('dragging');
+    },
+    [],
+  );
+
+  const handleGutterPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!(e.buttons & 1)) return;
+      const newWidth = window.innerWidth - e.clientX;
+      const clamped = Math.max(280, Math.min(newWidth, window.innerWidth * 0.6));
+      setAssistantWidth(clamped);
+    },
+    [setAssistantWidth],
+  );
+
+  const handleGutterPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      e.currentTarget.classList.remove('dragging');
+    },
+    [],
+  );
+
+  const handleGutterDoubleClick = useCallback(() => {
+    setAssistantWidth(380);
+  }, [setAssistantWidth]);
+
+  // ── Collapse / expand ──────────────────────────────────────
+  const toggleCollapse = useCallback(() => {
+    setAssistantCollapsed(!assistantCollapsed);
+  }, [assistantCollapsed, setAssistantCollapsed]);
+
+  return (
+    <div className="shell">
+      <div className="topbars"><MenuBar onAction={handleMenuAction} /><div className="island"><ViewTabs /><Toolbar /></div></div>
+
+      <div className="workspace">
+        <div className="doc-pane" ref={docPaneRef}>
+          <EditorPane hidden={view !== 'edit'} />
+          {view !== 'edit' && <PreviewPane key={view} mode={view} />}
+        </div>
+
+        <div
+          className="gutter"
+          onPointerDown={handleGutterPointerDown}
+          onPointerMove={handleGutterPointerMove}
+          onPointerUp={handleGutterPointerUp}
+          onDoubleClick={handleGutterDoubleClick}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize assistant panel"
+        />
+
+        <div
+          className={`assistant-pane${assistantCollapsed ? ' collapsed' : ''}`}
+          style={{ width: assistantCollapsed ? undefined : assistantWidth }}
+        >
+          {assistantCollapsed ? (
+            <button className="icon-btn" aria-label="Expand assistant" onClick={toggleCollapse}><ChevronsLeft size={16} /></button>
+          ) : (
+            <AssistantPane onCollapse={toggleCollapse} />
+          )}
+
+        </div>
+      </div>
+
+      {warnings.length > 0 && (
+        <div className="warn-strip" role="status">
+          <span>
+            {warnings[0]}
+            {warnings.length > 1 && (
+              <span className="warn-count"> (+{warnings.length - 1} more)</span>
+            )}
+          </span>
+          <button aria-label="Dismiss" onClick={() => setWarnings([])}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
+
+      <ThemeDialog open={dialog === 'colorTheme'} onClose={() => setDialog(null)} />
+      <PageStyleDialog open={dialog === 'pageStyle'} onClose={() => setDialog(null)} />
+      <SplitDialog open={dialog === 'split'} onClose={() => setDialog(null)} />
+      <ShortcutsDialog open={dialog === 'shortcuts'} onClose={() => setDialog(null)} />
+      <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
+      <CheckpointsDialog open={dialog === 'checkpoints'} onClose={() => setDialog(null)} />
+      <LessonsDialog open={dialog === 'lessons'} onClose={() => setDialog(null)} />
+      <SkillsDialog open={dialog === 'skills'} onClose={() => setDialog(null)} />
+      <ModelsDialog open={dialog === 'models'} onClose={() => setDialog(null)} />
+      <ConfirmHost />
+    </div>
+  );
+}

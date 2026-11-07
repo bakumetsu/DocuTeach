@@ -1,0 +1,507 @@
+.page {
+  position: relative;
+  background: var(--page-bg);
+  width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: calc(var(--page-count, 1) * 297mm + (var(--page-count, 1) - 1) * var(--page-gap, 24px));
+  margin: 16px auto;
+  box-shadow: var(--shadow);
+  padding: var(--page-mt, 12mm) var(--page-mr, 15mm) var(--page-mb, 12mm) var(--page-ml, 15mm);
+  font-family: var(--page-font, Arial, "Noto Sans", sans-serif);
+  font-size: calc(var(--page-size, 12) * 1pt);
+  line-height: var(--page-line, 1.65);
+  color: var(--page-text);
+}
+
+/* ── Loading state ─────────────────────────────────────────────── */
+.page.loading {
+  opacity: .5;
+}
+
+/* ── ProseMirror root ──────────────────────────────────────────── */
+.page-content {
+  outline: none;
+  min-height: 60vh;
+}
+
+.page-content p {
+  margin: 0 0 .6em;
+}
+
+.page-content h1,
+.page-content h2,
+.page-content h3 {
+  font-weight: bold;
+}
+
+.page-content h1 {
+  font-size: 1.6em;
+  margin: .6em 0 .4em;
+}
+
+.page-content h2 {
+  font-size: 1.3em;
+  margin: .8em 0 .3em;
+}
+
+.page-content h3 {
+  font-size: 1.1em;
+  margin: .6em 0 .3em;
+}
+
+.page-content ul,
+.page-content ol {
+  padding-left: 1.6em;
+}
+
+.page-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.page-content table td,
+.page-content table th {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+}
+
+.page-content table th {
+  font-weight: bold;
+  background: var(--page-subtle);
+}
+
+/* ── Notes ─────────────────────────────────────────────────────── */
+.note {
+  background: var(--note-bg);
+  border-left: 3px solid var(--note-border);
+  border-radius: var(--radius-ctl);
+  padding: .4em .7em;
+  margin: .8em 0;
+  position: relative;
+}
+
+.note-chip {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  background: transparent;
+  border: 1px solid var(--note-border);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: .3em;
+  display: inline-block;
+  padding: 1px 8px;
+}
+
+.note-lock {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: .6;
+  cursor: pointer;
+}
+.note-lock:hover:not(:disabled) { opacity: 1; }
+.note-lock:disabled { cursor: default; }
+
+.note-content {
+  margin: 0;
+}
+
+/* ── Blanks ────────────────────────────────────────────────────── */
+.blank {
+  display: inline-block;
+  min-width: 4ch;
+}
+
+.blank-main {
+  color: var(--acc);
+  border-bottom: 2px dotted var(--acc);
+}
+
+.blank-more {
+  font-size: 11px;
+  vertical-align: super;
+}
+
+.blank-empty {
+  display: inline-block;
+  min-width: 5ch;
+  height: 1em;
+  border-bottom: 2px dotted var(--danger);
+  background: var(--warn-bg);
+}
+
+.view-teacher .blank-main {
+  font-weight: 700;
+}
+
+.blank-alts {
+  color: var(--muted);
+}
+
+.blank-line {
+  display: inline-block;
+  width: 6ch;
+  border-bottom: 1px solid currentColor;
+}
+
+/* ── MCQ ───────────────────────────────────────────────────────── */
+.mcq {
+  margin: .8em 0;
+  counter-reset: opt;
+}
+
+.mcq-question {
+  margin: 0 0 .3em;
+}
+
+.mcq[data-multi="true"] .mcq-question::after {
+  content: " (choose all that apply)";
+  color: var(--muted);
+  font-style: italic;
+}
+
+.mcq-option {
+  display: flex;
+  gap: .5em;
+  counter-increment: opt;
+}
+
+.mcq-letter {
+  width: 1.6em;
+  height: 1.6em;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85em;
+  flex-shrink: 0;
+}
+
+.mcq-letter::before {
+  content: counter(opt, lower-alpha) ".";
+}
+
+.view-edit .mcq-option[data-correct="true"] .mcq-letter {
+  background: var(--acc);
+  color: var(--acc-ink);
+  border-color: var(--acc);
+}
+
+.view-teacher .mcq-option[data-correct="true"] {
+  background: var(--ok-bg);
+}
+
+.view-teacher .mcq-option[data-correct="true"]::after {
+  content: "✓";
+  color: var(--ok);
+  font-weight: 700;
+  margin-left: .4em;
+  flex-shrink: 0;
+}
+
+.mcq-warn {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  font-size: 11px;
+  padding: 0 6px;
+  display: inline-block;
+}
+
+.view-student .mcq-letter {
+  pointer-events: none;
+  border: none;
+}
+
+/* ── Split ─────────────────────────────────────────────────────── */
+.split {
+  border-top: 2px dashed var(--muted);
+  margin: 1.2em 0;
+  padding-top: .4em;
+}
+
+.split .split-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4em;
+  font-size: .85em;
+  color: var(--muted);
+}
+
+.split-thin {
+  border: none;
+  border-top: 1px dashed var(--muted);
+  margin: 1em 0;
+}
+
+/* ── Raw block ─────────────────────────────────────────────────── */
+.raw {
+  background: var(--page-subtle);
+  border-radius: 4px;
+  padding: .5em .8em;
+  margin: .8em 0;
+}
+
+.raw pre {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .85em;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.raw .raw-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-bottom: .3em;
+}
+
+/* ── Numbering (decorations from numberingPlugin) ────────────── */
+.page-content > ol.q-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.page-content > ol.q-list > li {
+  display: block;
+}
+
+.q-num {
+  display: inline-block;
+  min-width: 2.4em;
+  font-weight: 600;
+  user-select: none;
+}
+
+/* ── Warnings strip ────────────────────────────────────────────── */
+.warn-strip {
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--acc-soft);
+  border: 1px solid var(--acc);
+  border-radius: var(--radius-ctl);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-md);
+  max-width: 90vw;
+  box-shadow: var(--shadow-sm);
+}
+
+.warn-strip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: inherit;
+  padding: 2px 4px;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.warn-count {
+  color: var(--muted);
+}
+
+/* ── Toast ─────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: var(--text);
+  color: var(--panel);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: var(--fs-md);
+  box-shadow: var(--shadow);
+}
+
+/* ── Incoming (streaming) card ─────────────────────────────────── */
+.incoming-card {
+  border: 2px dashed var(--acc);
+  border-radius: var(--radius-ctl);
+  background: var(--acc-soft);
+  padding: .6em .8em;
+  margin: .6em 0;
+  user-select: none;
+}
+
+.incoming-card .incoming-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .3em;
+}
+
+.incoming-card .incoming-header .incoming-label {
+  font-size: .75em;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--acc);
+}
+
+.incoming-card .incoming-header .incoming-cancel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .9em;
+  color: var(--muted);
+  padding: 0 4px;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.incoming-text {
+  white-space: pre-wrap;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .85em;
+  margin: 0;
+}
+
+.incoming-hint {
+  color: var(--muted);
+  font-size: .75em;
+  margin-top: .3em;
+}
+
+/* ── Selection popover ─────────────────────────────────────────── */
+.selection-popover {
+  /* Over the page: always the paper look, whatever the app theme. */
+  --panel: var(--page-bg);
+  --text: var(--page-text);
+  --muted: var(--page-muted);
+  --border: var(--page-border);
+  --acc-soft: var(--page-acc-soft);
+  --shadow: var(--page-shadow);
+  color: var(--page-text);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: calc(100vw - 16px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow);
+  padding: 4px;
+}
+
+.selection-popover button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: var(--target);
+  height: var(--target);
+}
+
+.selection-popover button:hover {
+  background: var(--acc-soft);
+}
+
+/* ── Popover "more" list ───────────────────────────────────────── */
+.popover-more-wrap {
+  position: relative;
+}
+
+.popover-more-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow);
+  padding: 4px;
+  z-index: 10;
+}
+
+.selection-popover .popover-more-item {
+  width: auto;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+
+/* ── Page gaps (view only; widgets from pageBreaksPlugin.ts) ───── */
+.page-break-spacer {
+  --pb-fill: calc(var(--pb-rem, 0px) + var(--page-mb, 12mm));
+  display: block;
+  height: calc(var(--pb-fill) + var(--page-gap, 24px) + var(--page-mt, 12mm));
+  margin: 0 calc(-1 * var(--page-mr, 15mm)) 0 calc(-1 * var(--page-ml, 15mm));
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--pb-fill),
+    var(--bg) var(--pb-fill),
+    var(--bg) calc(var(--pb-fill) + var(--page-gap, 24px)),
+    transparent calc(var(--pb-fill) + var(--page-gap, 24px))
+  );
+  user-select: none;
+  pointer-events: none;
+}
+
+.page-content table tr.page-break-spacer-row > td {
+  border: 0;
+  padding: 0;
+  position: relative;
+  height: calc(var(--pb-rem, 0px) + var(--page-mb, 12mm) + var(--page-gap, 24px) + var(--page-mt, 12mm));
+}
+
+.page-content table tr.page-break-spacer-row .page-break-spacer {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--page-ml, 15mm));
+  right: calc(-1 * var(--page-mr, 15mm));
+  margin: 0;
+}
+
+/* ── Table handle ──────────────────────────────────────────────── */
+.table-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page-bg);
+  color: inherit;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.table-handle:hover {
+  background: var(--page-subtle);
+}

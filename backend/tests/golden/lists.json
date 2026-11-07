@@ -1,0 +1,168 @@
+{
+ "doc": {
+  "type": "Doc",
+  "meta": {
+   "type": "Meta",
+   "raw": "",
+   "data": null,
+   "broken": false
+  },
+  "blocks": [
+   {
+    "type": "BulletList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "First bullet",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Second with ",
+        "marks": [],
+        "style": null
+       },
+       {
+        "type": "Text",
+        "text": "highlight",
+        "marks": [
+         "highlight"
+        ],
+        "style": null
+       }
+      ],
+      "nested": [
+       {
+        "type": "BulletList",
+        "items": [
+         {
+          "type": "ListItem",
+          "content": [
+           {
+            "type": "Text",
+            "text": "Nested one",
+            "marks": [],
+            "style": null
+           }
+          ],
+          "nested": []
+         },
+         {
+          "type": "ListItem",
+          "content": [
+           {
+            "type": "Text",
+            "text": "Nested two with ",
+            "marks": [],
+            "style": null
+           },
+           {
+            "type": "Text",
+            "text": "bold",
+            "marks": [
+             "bold"
+            ],
+            "style": null
+           }
+          ],
+          "nested": []
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "OrderedList",
+    "items": [
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "First ordered",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Second ordered",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": [
+       {
+        "type": "OrderedList",
+        "items": [
+         {
+          "type": "ListItem",
+          "content": [
+           {
+            "type": "Text",
+            "text": "Nested ordered",
+            "marks": [],
+            "style": null
+           }
+          ],
+          "nested": []
+         },
+         {
+          "type": "ListItem",
+          "content": [
+           {
+            "type": "Text",
+            "text": "Another with ",
+            "marks": [],
+            "style": null
+           },
+           {
+            "type": "Text",
+            "text": "italic",
+            "marks": [
+             "italic"
+            ],
+            "style": null
+           }
+          ],
+          "nested": []
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "ListItem",
+      "content": [
+       {
+        "type": "Text",
+        "text": "Third item",
+        "marks": [],
+        "style": null
+       }
+      ],
+      "nested": []
+     }
+    ]
+   }
+  ]
+ },
+ "warnings": []
+}
